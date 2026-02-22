@@ -492,13 +492,15 @@ select{background:#050810;border:1px solid var(--border);padding:4px 8px;color:v
         <div class="persist-area">
           <div style="margin-bottom:16px;padding:14px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.2);">
             <div style="font-size:10px;color:var(--warn);letter-spacing:2px;margin-bottom:6px;">⚡ PRIVILEGE ESCALATION</div>
-            <div style="font-size:11px;color:var(--dim);line-height:1.8;">Attempts to relaunch the agent as Administrator using UAC bypass techniques. No UAC prompt will appear on the target.<br><br>
-              <span style="color:var(--accent2);">Method 1 — FodHelper:</span> Hijacks the fodhelper.exe COM registry key to auto-elevate (Windows 10/11).<br>
-              <span style="color:var(--accent2);">Method 2 — SilentCleanup:</span> Abuses the SYSTEM-level DiskCleanup scheduled task via env var hijack.<br>
-              <span style="color:var(--accent2);">Method 3 — cmstp.exe:</span> Uses CM shell .inf auto-execute to spawn an elevated process.
+            <div style="font-size:11px;color:var(--dim);line-height:1.8;">Attempts to relaunch the agent as Administrator. The bypass methods require no user interaction — no UAC prompt will appear.<br><br>
+              <span style="color:var(--accent);">🛡 UAC Prompt:</span> Simply asks Windows to relaunch the agent elevated — user will see a UAC dialog.<br>
+              <span style="color:var(--accent2);">🪟 FodHelper:</span> Hijacks the fodhelper.exe COM registry key to auto-elevate (Windows 10/11, no prompt).<br>
+              <span style="color:var(--accent2);">🧹 SilentCleanup:</span> Abuses the SYSTEM-level DiskCleanup scheduled task via WINDIR registry hijack.<br>
+              <span style="color:var(--accent2);">📋 cmstp.exe:</span> Uses CM shell .inf auto-execute to spawn an elevated process silently.
             </div>
           </div>
           <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+            <button class="btn btn-green" onclick="privescRun('uac_prompt')">🛡 UAC PROMPT</button>
             <button class="btn btn-warn" onclick="privescRun('fodhelper')">🪟 FODHELPER</button>
             <button class="btn btn-warn" onclick="privescRun('silentcleanup')">🧹 SILENTCLEANUP</button>
             <button class="btn btn-warn" onclick="privescRun('cmstp')">📋 CMSTP</button>
