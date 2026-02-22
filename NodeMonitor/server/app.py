@@ -9,15 +9,14 @@ app.config['SECRET_KEY'] = 'changeme123'
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading', max_http_buffer_size=10 * 1024 * 1024)
 
 clients = {}
-# Maps client_id -> socket session id (for the agent)
-agent_sids = {}
-# Maps viewer socket sid -> client_id they're viewing
-viewer_watching = {}
+agent_sids = {}   # client_id -> socket sid
+viewer_watching = {}  # viewer sid -> client_id
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
+# Keep old HTTP ping for backwards compat
 @app.route('/api/ping', methods=['POST'])
 def ping():
     data = request.json or {}
@@ -36,12 +35,11 @@ def ping():
     return jsonify({'status': 'ok', 'client_id': client_id})
 
 @app.route('/api/disconnect', methods=['POST'])
-def client_disconnect():
+def client_disconnect_http():
     data = request.json or {}
     client_id = data.get('client_id')
     if client_id and client_id in clients:
         clients[client_id]['status'] = 'offline'
-        agent_sids.pop(client_id, None)
         socketio.emit('client_update', {'clients': list(clients.values())})
     return jsonify({'status': 'ok'})
 
@@ -57,37 +55,50 @@ def handle_request():
 
 @socketio.on('agent_register')
 def agent_register(data):
-    """Called by the Python client over WebSocket to register its sid"""
     client_id = data.get('client_id')
-    if client_id:
-        agent_sids[client_id] = request.sid
-        join_room(f'agent_{client_id}')
-        if client_id in clients:
-            clients[client_id]['status'] = 'online'
-            clients[client_id]['last_seen'] = datetime.now().isoformat()
-        socketio.emit('client_update', {'clients': list(clients.values())})
+    if not client_id:
+        return
+    
+    agent_sids[client_id] = request.sid
+    join_room(f'agent_{client_id}')
+
+    # Create or update the client entry
+    existing = clients.get(client_id, {})
+    clients[client_id] = {
+        'id': client_id,
+        'hostname': data.get('hostname', existing.get('hostname', 'Unknown')),
+        'ip': request.environ.get('HTTP_X_FORWARDED_FOR', request.environ.get('REMOTE_ADDR', 'Unknown')),
+        'username': data.get('username', existing.get('username', 'Unknown')),
+        'platform': data.get('platform', existing.get('platform', 'Unknown')),
+        'connected_at': existing.get('connected_at', data.get('connected_at', datetime.now().isoformat())),
+        'last_seen': datetime.now().isoformat(),
+        'status': 'online'
+    }
+
+    print(f"Agent registered: {clients[client_id]['hostname']} ({client_id})")
+    # Broadcast to all dashboard viewers
+    socketio.emit('client_update', {'clients': list(clients.values())})
 
 @socketio.on('disconnect')
 def handle_disconnect():
     sid = request.sid
-    # Clean up agent
+    # Was this an agent?
     for cid, asid in list(agent_sids.items()):
         if asid == sid:
             del agent_sids[cid]
             if cid in clients:
                 clients[cid]['status'] = 'offline'
+                clients[cid]['last_seen'] = datetime.now().isoformat()
+            print(f"Agent disconnected: {cid}")
             socketio.emit('client_update', {'clients': list(clients.values())})
             break
-    # Clean up viewer
     viewer_watching.pop(sid, None)
 
 @socketio.on('viewer_watch')
 def viewer_watch(data):
-    """Dashboard viewer wants to watch a client"""
     client_id = data.get('client_id')
     viewer_watching[request.sid] = client_id
     join_room(f'viewers_{client_id}')
-    # Ask the agent to start streaming
     if client_id in agent_sids:
         socketio.emit('start_stream', {}, room=f'agent_{client_id}')
 
@@ -95,21 +106,18 @@ def viewer_watch(data):
 def viewer_unwatch(data):
     client_id = data.get('client_id')
     viewer_watching.pop(request.sid, None)
-    leave_room(f'viewers_{client_id}')
-    # If no viewers left, tell agent to stop
-    # (rough check — room membership not easily queryable, agent handles it gracefully)
-    socketio.emit('stop_stream', {}, room=f'agent_{client_id}')
+    if client_id:
+        leave_room(f'viewers_{client_id}')
+        socketio.emit('stop_stream', {}, room=f'agent_{client_id}')
 
 @socketio.on('screen_frame')
 def screen_frame(data):
-    """Agent sends a JPEG frame as base64, forward to all viewers of that client"""
     client_id = data.get('client_id')
     socketio.emit('screen_frame', {'frame': data.get('frame'), 'client_id': client_id},
                   room=f'viewers_{client_id}')
 
 @socketio.on('mouse_move')
 def mouse_move(data):
-    """Viewer sends mouse move, forward to agent"""
     client_id = data.get('client_id')
     if client_id in agent_sids:
         socketio.emit('mouse_move', {'x': data['x'], 'y': data['y']}, room=f'agent_{client_id}')
@@ -118,7 +126,8 @@ def mouse_move(data):
 def mouse_click(data):
     client_id = data.get('client_id')
     if client_id in agent_sids:
-        socketio.emit('mouse_click', {'x': data['x'], 'y': data['y'], 'button': data.get('button','left')}, room=f'agent_{client_id}')
+        socketio.emit('mouse_click', {'x': data['x'], 'y': data['y'], 'button': data.get('button','left')},
+                      room=f'agent_{client_id}')
 
 @socketio.on('key_press')
 def key_press(data):
