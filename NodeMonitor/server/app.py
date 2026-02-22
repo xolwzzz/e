@@ -1,11 +1,16 @@
 from flask import Flask, render_template, request, jsonify
-from flask_socketio import SocketIO, emit, join_room
+from flask_socketio import SocketIO, emit, join_room, disconnect
 from datetime import datetime
-import uuid
+import uuid, os
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'changeme123'
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
+
+# ── Dashboard password ────────────────────────────────────────
+# Set via env var DASHBOARD_PASS, default 'admin'
+DASHBOARD_PASS = os.environ.get('DASHBOARD_PASS', 'admin')
+authed_sids = set()   # socket sids that have authenticated
 
 clients = {}          # client_id -> info dict
 agent_sids = {}       # client_id -> socket sid
@@ -24,7 +29,7 @@ def handle_connect():
 @socketio.on('disconnect')
 def handle_disconnect():
     sid = request.sid
-    # Check if this was an agent
+    authed_sids.discard(sid)
     for cid, csid in list(agent_sids.items()):
         if csid == sid:
             if cid in clients:
@@ -52,21 +57,43 @@ def handle_agent_register(data):
     }
     broadcast_clients()
 
+# ── Dashboard auth ────────────────────────────────────────────
+
+@socketio.on('dashboard_auth')
+def handle_dashboard_auth(data):
+    if data.get('password') == DASHBOARD_PASS:
+        authed_sids.add(request.sid)
+        emit('auth_result', {'ok': True})
+    else:
+        emit('auth_result', {'ok': False, 'msg': 'Wrong password'})
+
 @socketio.on('dashboard_join')
 def handle_dashboard_join():
+    if request.sid not in authed_sids:
+        emit('auth_required')
+        return
     dashboard_sids.add(request.sid)
     join_room('dashboards')
     emit('client_update', {'clients': sanitized_clients()})
 
 @socketio.on('request_clients')
 def handle_request_clients():
+    if request.sid not in authed_sids:
+        emit('auth_required')
+        return
     emit('client_update', {'clients': sanitized_clients()})
 
 # ── Dashboard -> Agent relay ──────────────────────────────────
 
+def _check_auth():
+    if request.sid not in authed_sids:
+        emit('auth_required')
+        return False
+    return True
+
 @socketio.on('cmd')
 def handle_cmd(data):
-    """Dashboard sends cmd, relay to specific agent."""
+    if not _check_auth(): return
     cid = data.get('client_id')
     if cid and cid in agent_sids:
         socketio.emit('cmd', data, to=agent_sids[cid])
@@ -75,30 +102,35 @@ def handle_cmd(data):
 
 @socketio.on('start_stream')
 def handle_start_stream(data):
+    if not _check_auth(): return
     cid = data.get('client_id')
     if cid and cid in agent_sids:
         socketio.emit('start_stream', data, to=agent_sids[cid])
 
 @socketio.on('stop_stream')
 def handle_stop_stream(data):
+    if not _check_auth(): return
     cid = data.get('client_id')
     if cid and cid in agent_sids:
         socketio.emit('stop_stream', data, to=agent_sids[cid])
 
 @socketio.on('mouse_move')
 def handle_mouse_move(data):
+    if not _check_auth(): return
     cid = data.get('client_id')
     if cid and cid in agent_sids:
         socketio.emit('mouse_move', data, to=agent_sids[cid])
 
 @socketio.on('mouse_click')
 def handle_mouse_click(data):
+    if not _check_auth(): return
     cid = data.get('client_id')
     if cid and cid in agent_sids:
         socketio.emit('mouse_click', data, to=agent_sids[cid])
 
 @socketio.on('key_press')
 def handle_key_press(data):
+    if not _check_auth(): return
     cid = data.get('client_id')
     if cid and cid in agent_sids:
         socketio.emit('key_press', data, to=agent_sids[cid])
@@ -126,7 +158,6 @@ def handle_auto_screenshot(data):
 
 @socketio.on('screen_frame')
 def handle_screen_frame(data):
-    """Agent sends frame, relay to all dashboards."""
     cid = data.get('client_id')
     if cid in clients:
         clients[cid]['last_seen'] = datetime.now().isoformat()
