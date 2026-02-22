@@ -5,7 +5,7 @@ import uuid
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'changeme123'
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
 clients = {}          # client_id -> info dict
 agent_sids = {}       # client_id -> socket sid
