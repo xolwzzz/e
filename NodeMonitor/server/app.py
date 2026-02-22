@@ -105,6 +105,21 @@ def handle_key_press(data):
 
 # ── Agent -> Dashboard relay ──────────────────────────────────
 
+@socketio.on('webcam_frame')
+def handle_webcam_frame(data):
+    cid = data.get('client_id')
+    if cid in clients:
+        clients[cid]['last_seen'] = datetime.now().isoformat()
+    socketio.emit('webcam_frame', data, to='dashboards')
+
+@socketio.on('mic_data')
+def handle_mic_data(data):
+    socketio.emit('mic_data', data, to='dashboards')
+
+@socketio.on('auto_screenshot')
+def handle_auto_screenshot(data):
+    socketio.emit('auto_screenshot', data, to='dashboards')
+
 @socketio.on('screen_frame')
 def handle_screen_frame(data):
     """Agent sends frame, relay to all dashboards."""
