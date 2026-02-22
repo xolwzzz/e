@@ -112,6 +112,10 @@ def handle_webcam_frame(data):
         clients[cid]['last_seen'] = datetime.now().isoformat()
     socketio.emit('webcam_frame', data, to='dashboards')
 
+@socketio.on('mic_live_chunk')
+def handle_mic_live_chunk(data):
+    socketio.emit('mic_live_chunk', data, to='dashboards')
+
 @socketio.on('mic_data')
 def handle_mic_data(data):
     socketio.emit('mic_data', data, to='dashboards')
