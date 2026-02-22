@@ -15,7 +15,7 @@ socketio = SocketIO(
 )
 
 # ── Dashboard password ────────────────────────────────────────
-DASHBOARD_PASS = os.environ.get('DASHBOARD_PASS', 'admin')
+DASHBOARD_PASS = os.environ.get('DASHBOARD_PASS', 'niggaballs')
 authed_sids = set()
 
 clients    = {}
@@ -227,3 +227,4 @@ def broadcast_clients():
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=5000, debug=False, allow_unsafe_werkzeug=True)
+
