@@ -622,6 +622,7 @@ function clearMicCanvas(){
   ctx.fillRect(0,0,canvas.width,canvas.height);
 }
 
+socket.on('mic_data', data => {
   if(!selectedClient || data.client_id !== selectedClient.id) return;
   document.getElementById('mic-status').textContent = 'RECEIVED';
   document.getElementById('mic-status').style.color = 'var(--accent)';
