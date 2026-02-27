@@ -130,6 +130,24 @@ def _check_auth():
         return False
     return True
 
+@socketio.on('delete_client')
+def handle_delete_client(data):
+    if not _check_auth(): return
+    cid = data.get('client_id')
+    if not cid:
+        emit('cmd_response', {'status': 'error', 'msg': 'No client_id'})
+        return
+    # Block deletion of online clients
+    if cid in agent_sids:
+        emit('delete_result', {'status': 'error', 'msg': 'Cannot delete an online client. Disconnect the client first.'})
+        return
+    if cid in clients:
+        del clients[cid]
+    if cid in agent_sids:
+        del agent_sids[cid]
+    emit('delete_result', {'status': 'ok', 'client_id': cid})
+    broadcast_clients()
+
 @socketio.on('cmd')
 def handle_cmd(data):
     if not _check_auth(): return
