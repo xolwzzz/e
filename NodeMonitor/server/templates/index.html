@@ -2324,13 +2324,13 @@ async function privescRun(method){
   if(!selectedClient) return;
   document.getElementById('privesc-result').textContent='Running '+method+'...';
   document.getElementById('privesc-result').style.color='var(--muted)';
-  const res=await sendCmdRaw('privesc',{method});
+  const res=await sendCmdRaw('privesc_run',{method});
   document.getElementById('privesc-result').textContent=res.msg||(res.status==='ok'?'OK':'Error');
   document.getElementById('privesc-result').style.color=res.status==='ok'?'var(--green)':'var(--red)';
 }
 async function privescCheckAdmin(){
   if(!selectedClient) return;
-  const res=await sendCmdRaw('check_admin');
+  const res=await sendCmdRaw('privesc_check');
   document.getElementById('privesc-result').textContent=res.msg||JSON.stringify(res);
   document.getElementById('privesc-result').style.color=res.is_admin?'var(--green)':'var(--amber)';
 }
