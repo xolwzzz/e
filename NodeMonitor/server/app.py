@@ -5,13 +5,13 @@ import uuid, os, base64
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'changeme123'
-app.config['MAX_CONTENT_LENGTH'] = 64 * 1024 * 1024   # 64 MB HTTP upload limit
+app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024   # 100 MB HTTP upload limit
 
 socketio = SocketIO(
     app,
     cors_allowed_origins="*",
     async_mode='threading',
-    max_http_buffer_size=64 * 1024 * 1024,
+    max_http_buffer_size=100 * 1024 * 1024,
 )
 
 # ── Dashboard password ────────────────────────────────────────
