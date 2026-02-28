@@ -1575,6 +1575,15 @@ setInterval(clock,1000); clock();
 socket.on('disconnect', () => addLog('Lost connection','disconnect'));
 socket.on('client_update', data => renderClients(data.clients||[]));
 
+socket.on('screen_frame', data => {
+  if(!selectedClient || data.client_id !== selectedClient.id || !streaming) return;
+  const img = document.getElementById('screen-img');
+  img.src = 'data:image/jpeg;base64,'+data.frame;
+  img.style.display = 'block';
+  document.getElementById('stream-placeholder').style.display = 'none';
+  document.getElementById('stream-status').textContent = new Date().toTimeString().slice(0,8);
+});
+
 socket.on('webcam_frame', data => {
   if(!selectedClient || data.client_id !== selectedClient.id || !webcamStreaming) return;
   const img = document.getElementById('webcam-img');
